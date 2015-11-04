@@ -1,7 +1,7 @@
 [![Latest release](https://img.shields.io/github/release/ejwa/gitinspector.svg?style=flat-square)](https://github.com/ejwa/gitinspector/releases/latest)
 [![License](https://img.shields.io/github/license/ejwa/gitinspector.svg?style=flat-square)](https://github.com/ejwa/gitinspector/blob/master/LICENSE.txt)
 <h2>
- <img align="left" height="30px"   
+ <img align="left" height="65px"
       src="https://raw.githubusercontent.com/ejwa/gitinspector/master/gitinspector/html/gitinspector_piclet.png"/>
       &nbsp;About Gitinspector
 </h2>
@@ -20,7 +20,7 @@ A full [Documentation](https://github.com/ejwa/gitinspector/wiki/Documentation) 
   * Can display a statistical timeline analysis.
   * Scans for all filetypes (by extension) found in the repository.
   * Multi-threaded; uses multiple instances of git to speed up analysis when possible.
-  * Supports HTML, XML and plain text output (console).
+  * Supports HTML, JSON, XML and plain text output (console).
   * Can report violations of different code metrics.
 
 ### Example outputs
@@ -45,6 +45,9 @@ Below are some example outputs for a number of famous open source projects. All 
   * Yannick Moy, French translation
 
 *We need translations for gitinspector!* If you are a gitinspector user, feel willing to help and have good language skills in any unsupported language we urge you to contact us. We also happily accept code patches. Please refer to [Contributing](https://github.com/ejwa/gitinspector/wiki/Contributing) for more information on how to contribute to the project.
+
+### Packages
+The Debian packages offered with releases of gitinspector are unofficial and very simple packages generated with [stdeb](https://github.com/astraw/stdeb). Christian Kastner is maintaining the official Debian packages. You can check the current status on the [Debian Package Tracker](https://tracker.debian.org/pkg/gitinspector).  Consequently, there are official packages for many Debian based distributions installable via *apt-get*.
 
 ### License
 gitinspector is licensed under the *GNU GPL v3*. The gitinspector logo is partly based on the git logo; based on the work of Jason Long. The logo is licensed under the *Creative Commons Attribution 3.0 Unported License*.

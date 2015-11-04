@@ -27,31 +27,37 @@ def get_basedir():
 	else:
 		return os.path.dirname(os.path.realpath(__file__))
 
-__git_basedir__ = None
+def get_basedir_git(path=None):
+	previous_directory = None
 
-def get_basedir_git():
-	global __git_basedir__
+	if path != None:
+		previous_directory = os.getcwd()
+		os.chdir(path)
 
-	if not __git_basedir__:
-		bare_command = subprocess.Popen(["git", "rev-parse", "--is-bare-repository"], bufsize=1,
-		                          stdout=subprocess.PIPE, stderr=open(os.devnull, "w"))
-		isbare = bare_command.stdout.readlines()
-		bare_command.wait()
-		if bare_command.returncode != 0:
-			sys.exit(_("Error processing git repository at \"%s\"." % os.getcwd()))
-		isbare = (isbare[0].decode("utf-8", "replace").strip() == "true")
-		absolute_path = None
+	bare_command = subprocess.Popen(["git", "rev-parse", "--is-bare-repository"], bufsize=1,
+	                          stdout=subprocess.PIPE, stderr=open(os.devnull, "w"))
 
-		if isbare:
-			absolute_path = subprocess.Popen(["git", "rev-parse", "--git-dir"], bufsize=1, stdout=subprocess.PIPE).stdout
-		else:
-			absolute_path = subprocess.Popen(["git", "rev-parse", "--show-toplevel"], bufsize=1,
-			                                 stdout=subprocess.PIPE).stdout
+	isbare = bare_command.stdout.readlines()
+	bare_command.wait()
 
-		absolute_path = absolute_path.readlines()
-		if len(absolute_path) == 0:
-			sys.exit(_("Unable to determine absolute path of git repository."))
+	if bare_command.returncode != 0:
+		sys.exit(_("Error processing git repository at \"%s\"." % os.getcwd()))
 
-		__git_basedir__ = absolute_path[0].decode("utf-8", "replace").strip()
+	isbare = (isbare[0].decode("utf-8", "replace").strip() == "true")
+	absolute_path = None
 
-	return __git_basedir__
+	if isbare:
+		absolute_path = subprocess.Popen(["git", "rev-parse", "--git-dir"], bufsize=1, stdout=subprocess.PIPE).stdout
+	else:
+		absolute_path = subprocess.Popen(["git", "rev-parse", "--show-toplevel"], bufsize=1,
+		                                 stdout=subprocess.PIPE).stdout
+
+	absolute_path = absolute_path.readlines()
+
+	if len(absolute_path) == 0:
+		sys.exit(_("Unable to determine absolute path of git repository."))
+
+	if path != None:
+		os.chdir(previous_directory)
+
+	return absolute_path[0].decode("utf-8", "replace").strip()

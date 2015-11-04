@@ -145,3 +145,14 @@ def ljust(string, pad):
 
 def rjust(string, pad):
 	return string.rjust(pad - get_excess_column_count(string))
+
+def output_progress(text, pos, length):
+	if sys.stdout.isatty():
+		(width, _unused) = get_size()
+		progress_text = text.format(100 * pos / length)
+
+		if len(progress_text) > width:
+			progress_text = "...%s" % progress_text[-width+3:]
+
+		print("\r{0}\r{1}".format(" " * width, progress_text), end="")
+		sys.stdout.flush()

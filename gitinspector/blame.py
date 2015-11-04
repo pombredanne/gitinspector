@@ -23,7 +23,6 @@ import datetime
 import multiprocessing
 import re
 import subprocess
-import sys
 import threading
 from .localization import N_
 from .changes import FileDiff
@@ -119,15 +118,19 @@ class BlameThread(threading.Thread):
 
 		__thread_lock__.release() # Lock controlling the number of threads running
 
-PROGRESS_TEXT = N_("Checking how many rows belong to each author (Progress): {0:.0f}%")
+PROGRESS_TEXT = N_("Checking how many rows belong to each author (2 of 2): {0:.0f}%")
 
 class Blame(object):
-	def __init__(self, hard, useweeks, changes):
+	def __init__(self, repo, hard, useweeks, changes):
 		self.blames = {}
 		ls_tree_r = subprocess.Popen(["git", "ls-tree", "--name-only", "-r", interval.get_ref()], bufsize=1,
 		                             stdout=subprocess.PIPE).stdout
 		lines = ls_tree_r.readlines()
 		ls_tree_r.close()
+
+		progress_text = _(PROGRESS_TEXT)
+		if repo != None:
+			progress_text = "[%s] " % repo.name + progress_text
 
 		for i, row in enumerate(lines):
 			row = row.strip().decode("unicode_escape", "ignore")
@@ -142,19 +145,23 @@ class Blame(object):
 				thread.daemon = True
 				thread.start()
 
-				if hard:
-					Blame.output_progress(i, len(lines))
+				if format.is_interactive_format():
+					terminal.output_progress(progress_text, i, len(lines))
 
 		# Make sure all threads have completed.
 		for i in range(0, NUM_THREADS):
 			__thread_lock__.acquire()
 
-	@staticmethod
-	def output_progress(pos, length):
-		if sys.stdout.isatty() and format.is_interactive_format():
-			terminal.clear_row()
-			print(_(PROGRESS_TEXT).format(100 * pos / length), end="")
-			sys.stdout.flush()
+		# We also have to release them for future use.
+		for i in range(0, NUM_THREADS):
+			__thread_lock__.release()
+
+	def __add__(self, other):
+		if other == None:
+			return self
+
+		self.blames.update(other.blames)
+		return self
 
 	@staticmethod
 	def is_revision(string):
@@ -188,12 +195,3 @@ class Blame(object):
 			summed_blames[i[0][0]].comments += i[1].comments
 
 		return summed_blames
-
-__blame__ = None
-
-def get(hard, useweeks, changes):
-	global __blame__
-	if __blame__ == None:
-		__blame__ = Blame(hard, useweeks, changes)
-
-	return __blame__

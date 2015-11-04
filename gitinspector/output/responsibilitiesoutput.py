@@ -21,27 +21,27 @@ from __future__ import print_function
 from __future__ import unicode_literals
 import textwrap
 from ..localization import N_
-from .. import blame, changes, format, gravatar, terminal
+from .. import format, gravatar, terminal
 from .. import responsibilities as resp
 from .outputable import Outputable
 
-RESPONSIBILITIES_INFO_TEXT = N_("The following repsonsibilties, by author, were found in the current "
-                                "revision of the repository (comments are exluded from the line count, "
+RESPONSIBILITIES_INFO_TEXT = N_("The following responsibilities, by author, were found in the current "
+                                "revision of the repository (comments are excluded from the line count, "
                                 "if possible)")
 MOSTLY_RESPONSIBLE_FOR_TEXT = N_("is mostly responsible for")
 
 class ResponsibilitiesOutput(Outputable):
-	def __init__(self, hard, useweeks):
-		self.hard = hard
-		self.useweeks = useweeks
+	def __init__(self, changes, blame):
+		self.changes = changes
+		self.blame = blame
 		Outputable.__init__(self)
-		self.changes = changes.get(hard)
 
 	def output_text(self):
 		print("\n" + textwrap.fill(_(RESPONSIBILITIES_INFO_TEXT) + ":", width=terminal.get_size()[0]))
 
-		for i in sorted(set(i[0] for i in blame.get(self.hard, self.useweeks, self.changes).blames)):
-			responsibilities = sorted(((i[1], i[0]) for i in resp.Responsibilities.get(self.hard, self.useweeks, i)), reverse=True)
+		for i in sorted(set(i[0] for i in self.blame.blames)):
+			responsibilities = sorted(((i[1], i[0]) for i in resp.Responsibilities.get(self.blame, i)), reverse=True)
+
 			if responsibilities:
 				print("\n" + i, _(MOSTLY_RESPONSIBLE_FOR_TEXT) + ":")
 
@@ -59,8 +59,9 @@ class ResponsibilitiesOutput(Outputable):
 		resp_xml = "<div><div class=\"box\" id=\"responsibilities\">"
 		resp_xml += "<p>" + _(RESPONSIBILITIES_INFO_TEXT) + ".</p>"
 
-		for i in sorted(set(i[0] for i in blame.get(self.hard, self.useweeks, self.changes).blames)):
-			responsibilities = sorted(((i[1], i[0]) for i in resp.Responsibilities.get(self.hard, self.useweeks, i)), reverse=True)
+		for i in sorted(set(i[0] for i in self.blame.blames)):
+			responsibilities = sorted(((i[1], i[0]) for i in resp.Responsibilities.get(self.blame, i)), reverse=True)
+
 			if responsibilities:
 				resp_xml += "<div>"
 
@@ -81,12 +82,43 @@ class ResponsibilitiesOutput(Outputable):
 		resp_xml += "</div></div>"
 		print(resp_xml)
 
+	def output_json(self):
+		message_xml = "\t\t\t\"message\": \"" + _(RESPONSIBILITIES_INFO_TEXT) + "\",\n"
+		resp_xml = ""
+
+		for i in sorted(set(i[0] for i in self.blame.blames)):
+			responsibilities = sorted(((i[1], i[0]) for i in resp.Responsibilities.get(self.blame, i)), reverse=True)
+
+			if responsibilities:
+				author_email = self.changes.get_latest_email_by_author(i)
+
+				resp_xml += "{\n"
+				resp_xml += "\t\t\t\t\"name\": \"" + i + "\",\n"
+				resp_xml += "\t\t\t\t\"gravatar\": \"" + gravatar.get_url(author_email) + "\",\n"
+				resp_xml += "\t\t\t\t\"files\": [\n\t\t\t\t"
+
+				for j, entry in enumerate(responsibilities):
+					resp_xml += "{\n"
+					resp_xml += "\t\t\t\t\t\"name\": \"" + entry[1] + "\",\n"
+					resp_xml += "\t\t\t\t\t\"rows\": " + str(entry[0]) + "\n"
+					resp_xml += "\t\t\t\t},"
+
+					if j >= 9:
+						break
+
+				resp_xml = resp_xml[:-1]
+				resp_xml += "]\n"
+				resp_xml += "\t\t\t},"
+
+		resp_xml = resp_xml[:-1]
+		print(",\n\t\t\"responsibilities\": {\n" + message_xml + "\t\t\t\"authors\": [\n\t\t\t" + resp_xml + "]\n\t\t}", end="")
+
 	def output_xml(self):
 		message_xml = "\t\t<message>" + _(RESPONSIBILITIES_INFO_TEXT) + "</message>\n"
 		resp_xml = ""
 
-		for i in sorted(set(i[0] for i in blame.get(self.hard, self.useweeks, self.changes).blames)):
-			responsibilities = sorted(((i[1], i[0]) for i in resp.Responsibilities.get(self.hard, self.useweeks, i)), reverse=True)
+		for i in sorted(set(i[0] for i in self.blame.blames)):
+			responsibilities = sorted(((i[1], i[0]) for i in resp.Responsibilities.get(self.blame, i)), reverse=True)
 			if responsibilities:
 				author_email = self.changes.get_latest_email_by_author(i)
 
