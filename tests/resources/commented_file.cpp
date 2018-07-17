@@ -46,7 +46,8 @@ void Rectangle::print() {
 	std::cout << "\nCharacteristics of this rectangle";
 	std::cout << "\nWidth  = " << this->dimensions.width;
 	std::cout << "\nHeight = " << this->dimensions.height;
-	std::cout << "\nArea   = " << this->dimensions.width * this->dimensions.height << "\n"; // ^2
+	std::cout << "\nArea   = " << this->dimensions.width *
+	  this->dimensions.height << "\n"; // ^2
 }
 
 int main(int argc, char *argv[]) {
@@ -65,3 +66,6 @@ int main(int argc, char *argv[]) {
 
 	return 0;
 }
+
+// The block of comments inside this file (including this one) amount to :
+// 18 + 3 + 3 + 1 + 2 = 27
