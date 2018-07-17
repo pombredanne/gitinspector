@@ -31,4 +31,4 @@ There is NO WARRANTY, to the extent permitted by law.
 
 Written by Adam Waldenberg.""")
 def output():
-	print("gitinspector {0}\n".format(__version__) + __doc__)
+    print("gitinspector {0}\n".format(__version__) + __doc__)
