@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-
 __comment_begining__ = {
     "java": "/*", "c": "/*", "cc": "/*", "cpp": "/*",
     "cs": "/*", "h": "/*", "hh": "/*", "hpp": "/*",
