@@ -11,7 +11,7 @@ min-public-methods=0
 
 [FORMAT]
 max-line-length=130
-indent-string='\t'
+indent-string='    '
 
 [VARIABLES]
 additional-builtins=_
