@@ -36,12 +36,12 @@ def get_basedir_git(path=None):
 
     # Test if the repository is bare
     with open(os.devnull, "w") as stderr:
-            bare_command = subprocess.Popen(["git", "rev-parse", "--is-bare-repository"],
-                                            bufsize=1, stdout=subprocess.PIPE, stderr=stderr)
+        bare_command = subprocess.Popen(["git", "rev-parse", "--is-bare-repository"],
+                                        bufsize=1, stdout=subprocess.PIPE, stderr=stderr)
 
-            isbare = bare_command.stdout.readlines()
-            bare_command.wait()
-            bare_command.stdout.close()
+        isbare = bare_command.stdout.readlines()
+        bare_command.wait()
+        bare_command.stdout.close()
 
     if bare_command.returncode != 0:
         sys.exit(_("Error processing git repository at \"%s\"." % os.getcwd()))
