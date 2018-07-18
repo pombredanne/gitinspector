@@ -118,7 +118,7 @@ def __get_validated_git_repos__(repos_relative):
     for repo in repos_relative:
         cloned_repo = clone.create(repo)
 
-        if cloned_repo.name == None:
+        if cloned_repo.name is None:
             cloned_repo.location = basedir.get_basedir_git(cloned_repo.location)
             cloned_repo.name = os.path.basename(cloned_repo.location)
 
@@ -134,52 +134,53 @@ def main():
     repos = []
 
     try:
-        opts, args = optval.gnu_getopt(argv[1:], "f:F:hHlLmrTwx:", ["exclude=", "file-types=", "format=",
-                             "hard:true", "help", "list-file-types:true", "localize-output:true",
-                             "metrics:true", "responsibilities:true", "since=", "grading:true",
-                             "timeline:true", "until=", "version", "weeks:true"])
+        opts, args = optval.gnu_getopt(argv[1:], "f:F:hHlLmrTwx:",
+                                       ["exclude=", "file-types=", "format=",
+                                        "hard:true", "help", "list-file-types:true", "localize-output:true",
+                                        "metrics:true", "responsibilities:true", "since=", "grading:true",
+                                        "timeline:true", "until=", "version", "weeks:true"])
         repos = __get_validated_git_repos__(set(args))
 
         #We need the repos above to be set before we read the git config.
         GitConfig(run, repos[-1].location).read()
         clear_x_on_next_pass = True
 
-        for o, a in opts:
-            if o in("-h", "--help"):
+        for opt, optarg in opts:
+            if opt in("-h", "--help"):
                 help.output()
                 sys.exit(0)
-            elif o in("-f", "--file-types"):
-                extensions.define(a)
-            elif o in("-F", "--format"):
-                if not format.select(a):
+            elif opt in("-f", "--file-types"):
+                extensions.define(optarg)
+            elif opt in("-F", "--format"):
+                if not format.select(optarg):
                     raise format.InvalidFormatError(_("specified output format not supported."))
-            elif o == "-H":
+            elif opt == "-H":
                 run.hard = True
-            elif o == "--hard":
-                run.hard = optval.get_boolean_argument(a)
-            elif o == "-l":
+            elif opt == "--hard":
+                run.hard = optval.get_boolean_argument(optarg)
+            elif opt == "-l":
                 run.list_file_types = True
-            elif o == "--list-file-types":
-                run.list_file_types = optval.get_boolean_argument(a)
-            elif o == "-L":
+            elif opt == "--list-file-types":
+                run.list_file_types = optval.get_boolean_argument(optarg)
+            elif opt == "-L":
                 run.localize_output = True
-            elif o == "--localize-output":
-                run.localize_output = optval.get_boolean_argument(a)
-            elif o == "-m":
+            elif opt == "--localize-output":
+                run.localize_output = optval.get_boolean_argument(optarg)
+            elif opt == "-m":
                 run.include_metrics = True
-            elif o == "--metrics":
-                run.include_metrics = optval.get_boolean_argument(a)
-            elif o == "-r":
+            elif opt == "--metrics":
+                run.include_metrics = optval.get_boolean_argument(optarg)
+            elif opt == "-r":
                 run.responsibilities = True
-            elif o == "--responsibilities":
-                run.responsibilities = optval.get_boolean_argument(a)
-            elif o == "--since":
-                interval.set_since(a)
-            elif o == "--version":
+            elif opt == "--responsibilities":
+                run.responsibilities = optval.get_boolean_argument(optarg)
+            elif opt == "--since":
+                interval.set_since(optarg)
+            elif opt == "--version":
                 version.output()
                 sys.exit(0)
-            elif o == "--grading":
-                grading = optval.get_boolean_argument(a)
+            elif opt == "--grading":
+                grading = optval.get_boolean_argument(optarg)
                 run.include_metrics = grading
                 run.list_file_types = grading
                 run.responsibilities = grading
@@ -187,21 +188,21 @@ def main():
                 run.hard = grading
                 run.timeline = grading
                 run.useweeks = grading
-            elif o == "-T":
+            elif opt == "-T":
                 run.timeline = True
-            elif o == "--timeline":
-                run.timeline = optval.get_boolean_argument(a)
-            elif o == "--until":
-                interval.set_until(a)
-            elif o == "-w":
+            elif opt == "--timeline":
+                run.timeline = optval.get_boolean_argument(optarg)
+            elif opt == "--until":
+                interval.set_until(optarg)
+            elif opt == "-w":
                 run.useweeks = True
-            elif o == "--weeks":
-                run.useweeks = optval.get_boolean_argument(a)
-            elif o in("-x", "--exclude"):
+            elif opt == "--weeks":
+                run.useweeks = optval.get_boolean_argument(optarg)
+            elif opt in("-x", "--exclude"):
                 if clear_x_on_next_pass:
                     clear_x_on_next_pass = False
                     filtering.clear()
-                filtering.add(a)
+                filtering.add(optarg)
 
         __check_python_version__()
         run.process(repos)

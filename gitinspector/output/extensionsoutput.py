@@ -72,13 +72,13 @@ class ExtensionsOutput(Outputable):
     def output_text(self):
         if extensions.__located_extensions__:
             print("\n" + textwrap.fill("{0} {1}:".format(_(EXTENSIONS_INFO_TEXT), _(EXTENSIONS_MARKED_TEXT)),
-                  width=terminal.get_size()[0]))
+                                       width=terminal.get_size()[0]))
 
             for i in sorted(extensions.__located_extensions__):
                 if ExtensionsOutput.is_marked(i):
                     print("[" + terminal.__bold__ + i + terminal.__normal__ + "]", end=" ")
                 else:
-                    print (i, end=" ")
+                    print(i, end=" ")
             print("")
 
     def output_xml(self):

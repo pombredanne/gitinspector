@@ -24,13 +24,12 @@ import sys
 def get_basedir():
     if hasattr(sys, "frozen"): # exists when running via py2exe
         return sys.prefix
-    else:
-        return os.path.dirname(os.path.realpath(__file__))
+    return os.path.dirname(os.path.realpath(__file__))
 
 def get_basedir_git(path=None):
     previous_directory = None
 
-    if path != None:
+    if path is not None:
         previous_directory = os.getcwd()
         os.chdir(path)
 
@@ -61,10 +60,10 @@ def get_basedir_git(path=None):
     absolute_command.wait()
     absolute_command.stdout.close()
 
-    if len(absolute_path) == 0:
+    if not absolute_path:
         sys.exit(_("Unable to determine absolute path of git repository."))
 
-    if path != None:
+    if path is not None:
         os.chdir(previous_directory)
 
     return absolute_path[0].decode("utf-8", "replace").strip()

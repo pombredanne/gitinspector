@@ -22,11 +22,11 @@ import re
 import subprocess
 
 __filters__ = {
-        "file": [set(), set()],
-        "author": [set(), set()],
-        "email": [set(), set()],
-        "revision": [set(), set()],
-        "message" : [set(), None]
+    "file": [set(), set()],
+    "author": [set(), set()],
+    "email": [set(), set()],
+    "revision": [set(), set()],
+    "message" : [set(), None]
 }
 
 class InvalidRegExpError(ValueError):
@@ -77,14 +77,14 @@ def __find_commit_message__(sha):
 def set_filtered(string, filter_type="file"):
     string = string.strip()
 
-    if len(string) > 0:
+    if string:
         for i in __filters__[filter_type][0]:
             search_for = string
 
             if filter_type == "message":
                 search_for = __find_commit_message__(string)
             try:
-                if re.search(i, search_for) != None:
+                if re.search(i, search_for) is not None:
                     if filter_type == "message":
                         __add_one__("revision:" + string)
                     else:

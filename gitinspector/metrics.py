@@ -24,23 +24,23 @@ from .changes import FileDiff
 from . import comment, filtering, interval
 
 __metric_eloc__ = {
-        "java": 500, "c": 500, "cpp": 500, "cs": 500,
-        "h": 300, "hpp": 300, "php": 500, "py": 500, "glsl": 1000,
-        "rb": 500, "js": 500, "sql": 1000, "xml": 1000
+    "java": 500, "c": 500, "cpp": 500, "cs": 500,
+    "h": 300, "hpp": 300, "php": 500, "py": 500, "glsl": 1000,
+    "rb": 500, "js": 500, "sql": 1000, "xml": 1000
 }
 
 __metric_cc_tokens__ = [
-        [["java", "js", "c", "cc", "cpp"],
-         ["else", r"for\s+\(.*\)", r"if\s+\(.*\)", r"case\s+\w+:",
-          "default:", r"while\s+\(.*\)"],
-         ["assert", "break", "continue", "return"]],
-        [["cs"], ["else", r"for\s+\(.*\)", r"foreach\s+\(.*\)",
-                  r"goto\s+\w+:", r"if\s+\(.*\)", r"case\s+\w+:",
-                  "default:", r"while\s+\(.*\)"],
-         ["assert", "break", "continue", "return"]],
-        [["py"], [r"^\s+elif .*:$", r"^\s+else:$", r"^\s+for .*:",
-                  r"^\s+if .*:$", r"^\s+while .*:$"],
-         [r"^\s+assert", "break", "continue", "return"]]
+    [["java", "js", "c", "cc", "cpp"],
+     ["else", r"for\s+\(.*\)", r"if\s+\(.*\)", r"case\s+\w+:",
+      "default:", r"while\s+\(.*\)"],
+     ["assert", "break", "continue", "return"]],
+    [["cs"], ["else", r"for\s+\(.*\)", r"foreach\s+\(.*\)",
+              r"goto\s+\w+:", r"if\s+\(.*\)", r"case\s+\w+:",
+              "default:", r"while\s+\(.*\)"],
+     ["assert", "break", "continue", "return"]],
+    [["py"], [r"^\s+elif .*:$", r"^\s+else:$", r"^\s+for .*:",
+              r"^\s+if .*:$", r"^\s+while .*:$"],
+     [r"^\s+assert", "break", "continue", "return"]]
 ]
 
 METRIC_CYCLOMATIC_COMPLEXITY_THRESHOLD = 50
@@ -67,8 +67,8 @@ class MetricsLogic(object):
 
                 if FileDiff.is_valid_extension(i) and not filtering.set_filtered(FileDiff.get_filename(i)):
                     file_cmd = subprocess.Popen(["git", "show",
-                                               interval.get_ref() + ":{0}".format(i.strip())],
-                                              bufsize=1, stdout=subprocess.PIPE)
+                                                 interval.get_ref() + ":{0}".format(i.strip())],
+                                                bufsize=1, stdout=subprocess.PIPE)
                     file_r = file_cmd.stdout.readlines()
                     file_cmd.wait()
 
@@ -76,7 +76,7 @@ class MetricsLogic(object):
                     lines = MetricsLogic.get_eloc(file_r, extension)
                     cycc = MetricsLogic.get_cyclomatic_complexity(file_r, extension)
 
-                    if __metric_eloc__.get(extension, None) != None and __metric_eloc__[extension] < lines:
+                    if __metric_eloc__.get(extension, None) is not None and __metric_eloc__[extension] < lines:
                         self.eloc[i.strip()] = lines
 
                     if METRIC_CYCLOMATIC_COMPLEXITY_THRESHOLD < cycc:
@@ -92,7 +92,7 @@ class MetricsLogic(object):
             self.cyclomatic_complexity_density.update(other.cyclomatic_complexity_density)
             return self
         except AttributeError:
-            return other;
+            return other
 
     @staticmethod
     def get_cyclomatic_complexity(file_r, extension):

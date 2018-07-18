@@ -37,7 +37,7 @@ class TimelineData(object):
             else:
                 key = (i[0][1], i[0][0][0:7])
 
-            if self.entries.get(key, None) == None:
+            if self.entries.get(key, None) is None:
                 self.entries[key] = i[1]
             else:
                 self.entries[key].insertions += i[1].insertions
@@ -49,12 +49,12 @@ class TimelineData(object):
 
             for author in self.get_authors():
                 entry = self.entries.get((author[0], period), None)
-                if entry != None:
+                if entry is not None:
                     total_insertions += entry.insertions
                     total_deletions += entry.deletions
 
             self.total_changes_by_period[period] = (total_insertions, total_deletions,
-                                total_insertions + total_deletions)
+                                                    total_insertions + total_deletions)
 
     def get_periods(self):
         return sorted(set([i[1] for i in self.entries]))
@@ -73,8 +73,8 @@ class TimelineData(object):
             i = multiplier * (self.entries[(author, period)].insertions / total)
             j = multiplier * (self.entries[(author, period)].deletions / total)
             return (int(i), int(j))
-        else:
-            return (0, 0)
+        # Default returned value
+        return (0, 0)
 
     def get_multiplier(self, period, max_width):
         multiplier = 0
@@ -91,7 +91,7 @@ class TimelineData(object):
                     multiplier += 0.25
 
     def is_author_in_period(self, period, author):
-        return self.entries.get((author, period), None) != None
+        return self.entries.get((author, period), None) is not None
 
     def is_author_in_periods(self, periods, author):
         for period in periods:

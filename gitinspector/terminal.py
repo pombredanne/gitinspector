@@ -46,14 +46,16 @@ def __get_size_windows__():
         sizex = right - left + 1
         sizey = bottom - top + 1
         return sizex, sizey
-    else:
-        return DEFAULT_TERMINAL_SIZE
+
+    return DEFAULT_TERMINAL_SIZE
 
 def __get_size_linux__():
     def ioctl_get_window_size(file_descriptor):
         try:
-            import fcntl, termios, struct
-            size = struct.unpack('hh', fcntl.ioctl(file_descriptor, termios.TIOCGWINSZ, "1234"))
+            from fcntl import ioctl
+            from struct import unpack
+            from termios import TIOCGWINSZ
+            size = unpack('hh', ioctl(file_descriptor, TIOCGWINSZ, "1234"))
         except:
             return DEFAULT_TERMINAL_SIZE
 
@@ -126,9 +128,10 @@ def convert_command_line_to_utf8():
         return sys.argv
 
 def check_terminal_encoding():
-    if sys.stdout.isatty() and (sys.stdout.encoding == None or sys.stdin.encoding == None):
+    if sys.stdout.isatty() and (sys.stdout.encoding is None or sys.stdin.encoding is None):
         print(_("WARNING: The terminal encoding is not correctly configured. gitinspector might malfunction. "
-            "The encoding can be configured with the environment variable 'PYTHONIOENCODING'."), file=sys.stderr)
+                "The encoding can be configured with the environment variable 'PYTHONIOENCODING'."),
+              file=sys.stderr)
 
 def get_excess_column_count(string):
     width_mapping = {'F': 2, 'H': 1, 'W': 2, 'Na': 1, 'N': 1, 'A': 1}

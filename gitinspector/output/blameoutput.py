@@ -28,7 +28,7 @@ from ..blame import Blame
 from .outputable import Outputable
 
 BLAME_INFO_TEXT = N_("Below are the number of rows from each author that have survived and are still "
-             "intact in the current revision")
+                     "intact in the current revision")
 
 class BlameOutput(Outputable):
     def __init__(self, changes, blame):
@@ -42,8 +42,13 @@ class BlameOutput(Outputable):
     def output_html(self):
         blame_xml = "<div><div class=\"box\">"
         blame_xml += "<p>" + _(BLAME_INFO_TEXT) + ".</p><div><table id=\"blame\" class=\"git\">"
-        blame_xml += "<thead><tr> <th>{0}</th> <th>{1}</th> <th>{2}</th> <th>{3}</th> <th>{4}</th> </tr></thead>".format(
-                 _("Author"), _("Rows"), _("Stability"), _("Age"), _("% in comments"))
+        blame_xml += "<thead><tr>"
+        blame_xml += "<th>{0}</th> ".format(_("Author"))
+        blame_xml += "<th>{0}</th> ".format(_("Rows"))
+        blame_xml += "<th>{0}</th> ".format(_("Stability"))
+        blame_xml += "<th>{0}</th> ".format(_("Age"))
+        blame_xml += "<th>{0}</th> ".format(_("% in comments"))
+        blame_xml += "</tr></thead>"
         blame_xml += "<tbody>"
         chart_data = ""
         blames = sorted(self.blame.get_summed_blames().items())
@@ -106,12 +111,12 @@ class BlameOutput(Outputable):
             gravatar_json = "\t\t\t\t\"gravatar\": \"" + gravatar.get_url(author_email) + "\",\n"
             rows_json = "\t\t\t\t\"rows\": " + str(i[1].rows) + ",\n"
             stability_json = ("\t\t\t\t\"stability\": " + "{0:.1f}".format(Blame.get_stability(i[0], i[1].rows,
-                      self.changes)) + ",\n")
+                                                                                               self.changes)) + ",\n")
             age_json = ("\t\t\t\t\"age\": " + "{0:.1f}".format(float(i[1].skew) / i[1].rows) + ",\n")
             percentage_in_comments_json = ("\t\t\t\t\"percentage_in_comments\": " +
-                               "{0:.2f}".format(100.0 * i[1].comments / i[1].rows) + "\n")
+                                           "{0:.2f}".format(100.0 * i[1].comments / i[1].rows) + "\n")
             blame_json += ("{\n" + name_json + email_json + gravatar_json + rows_json + stability_json + age_json +
-                      percentage_in_comments_json + "\t\t\t},")
+                           percentage_in_comments_json + "\t\t\t},")
         else:
             blame_json = blame_json[:-1]
 
@@ -123,7 +128,7 @@ class BlameOutput(Outputable):
 
         print(textwrap.fill(_(BLAME_INFO_TEXT) + ":", width=terminal.get_size()[0]) + "\n")
         terminal.printb(terminal.ljust(_("Author"), 21) + terminal.rjust(_("Rows"), 10) + terminal.rjust(_("Stability"), 15) +
-                terminal.rjust(_("Age"), 13) + terminal.rjust(_("% in comments"), 20))
+                        terminal.rjust(_("Age"), 13) + terminal.rjust(_("% in comments"), 20))
 
         for i in sorted(self.blame.get_summed_blames().items()):
             print(terminal.ljust(i[0], 20)[0:20 - terminal.get_excess_column_count(i[0])], end=" ")
@@ -144,11 +149,11 @@ class BlameOutput(Outputable):
             gravatar_xml = "\t\t\t\t<gravatar>" + gravatar.get_url(author_email) + "</gravatar>\n"
             rows_xml = "\t\t\t\t<rows>" + str(i[1].rows) + "</rows>\n"
             stability_xml = ("\t\t\t\t<stability>" + "{0:.1f}".format(Blame.get_stability(i[0], i[1].rows,
-                     self.changes)) + "</stability>\n")
+                                                                                          self.changes)) + "</stability>\n")
             age_xml = ("\t\t\t\t<age>" + "{0:.1f}".format(float(i[1].skew) / i[1].rows) + "</age>\n")
             percentage_in_comments_xml = ("\t\t\t\t<percentage-in-comments>" + "{0:.2f}".format(100.0 * i[1].comments / i[1].rows) +
-                              "</percentage-in-comments>\n")
+                                          "</percentage-in-comments>\n")
             blame_xml += ("\t\t\t<author>\n" + name_xml + email_xml + gravatar_xml + rows_xml + stability_xml +
-                      age_xml + percentage_in_comments_xml + "\t\t\t</author>\n")
+                          age_xml + percentage_in_comments_xml + "\t\t\t</author>\n")
 
         print("\t<blame>\n" + message_xml + "\t\t<authors>\n" + blame_xml + "\t\t</authors>\n\t</blame>")

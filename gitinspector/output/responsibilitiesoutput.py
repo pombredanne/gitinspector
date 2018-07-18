@@ -26,8 +26,8 @@ from .. import responsibilities as resp
 from .outputable import Outputable
 
 RESPONSIBILITIES_INFO_TEXT = N_("The following responsibilities, by author, were found in the current "
-                "revision of the repository (comments are excluded from the line count, "
-                "if possible)")
+                                "revision of the repository (comments are excluded from the line count, "
+                                "if possible)")
 MOSTLY_RESPONSIBLE_FOR_TEXT = N_("is mostly responsible for")
 
 class ResponsibilitiesOutput(Outputable):
@@ -68,7 +68,7 @@ class ResponsibilitiesOutput(Outputable):
                 if format.get_selected() == "html":
                     author_email = self.changes.get_latest_email_by_author(i)
                     resp_xml += "<h3><img src=\"{0}\"/>{1} {2}</h3>".format(gravatar.get_url(author_email, size=32),
-                            i, _(MOSTLY_RESPONSIBLE_FOR_TEXT))
+                                                                            i, _(MOSTLY_RESPONSIBLE_FOR_TEXT))
                 else:
                     resp_xml += "<h3>{0} {1}</h3>".format(i, _(MOSTLY_RESPONSIBLE_FOR_TEXT))
 

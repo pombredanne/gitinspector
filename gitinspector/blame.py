@@ -78,7 +78,7 @@ class BlameThread(threading.Thread):
 
             __blame_lock__.acquire() # Global lock used to protect calls from here...
 
-            if self.blames.get((author, self.filename), None) == None:
+            if self.blames.get((author, self.filename), None) is None:
                 self.blames[(author, self.filename)] = BlameEntry()
 
             self.blames[(author, self.filename)].comments += comments
@@ -86,13 +86,12 @@ class BlameThread(threading.Thread):
 
             if (self.blamechunk_time - self.changes.first_commit_date).days > 0:
                 self.blames[(author, self.filename)].skew += ((self.changes.last_commit_date - self.blamechunk_time).days /
-                                         (7.0 if self.useweeks else AVG_DAYS_PER_MONTH))
+                                                              (7.0 if self.useweeks else AVG_DAYS_PER_MONTH))
 
             __blame_lock__.release() # ...to here.
 
     def run(self):
-        git_blame_cmd = subprocess.Popen(self.blame_command, bufsize=1,
-                                       stdout=subprocess.PIPE)
+        git_blame_cmd = subprocess.Popen(self.blame_command, bufsize=1, stdout=subprocess.PIPE)
         rows = git_blame_cmd.stdout.readlines()
         git_blame_cmd.wait()
         git_blame_cmd.stdout.close()
@@ -100,8 +99,8 @@ class BlameThread(threading.Thread):
         self.__clear_blamechunk_info__()
 
         #pylint: disable=W0201
-        for j in range(0, len(rows)):
-            row = rows[j].decode("utf-8", "replace").strip()
+        for row in rows:
+            row = row.decode("utf-8", "replace").strip()
             keyval = row.split(" ", 2)
 
             if self.blamechunk_is_last:
@@ -135,7 +134,7 @@ class Blame(object):
         if ls_tree_p.returncode == 0:
             progress_text = _(PROGRESS_TEXT)
 
-            if repo != None:
+            if repo is not None:
                 progress_text = "[%s] " % repo.name + progress_text
 
             for i, row in enumerate(lines):
@@ -146,10 +145,10 @@ class Blame(object):
                 if FileDiff.get_extension(row) in extensions.get_located() and \
                    FileDiff.is_valid_extension(row) and not filtering.set_filtered(FileDiff.get_filename(row)):
                     blame_command = filter(None, ["git", "blame", "--line-porcelain", "-w"] + \
-                            (["-C", "-C", "-M"] if hard else []) +
-                            [interval.get_since(), interval.get_ref(), "--", row])
+                                           (["-C", "-C", "-M"] if hard else []) +
+                                           [interval.get_since(), interval.get_ref(), "--", row])
                     thread = BlameThread(useweeks, changes, blame_command, FileDiff.get_extension(row),
-                                 self.blames, row.strip())
+                                         self.blames, row.strip())
                     thread.daemon = True
                     thread.start()
 
@@ -167,15 +166,15 @@ class Blame(object):
     def __iadd__(self, other):
         try:
             self.blames.update(other.blames)
-            return self;
+            return self
         except AttributeError:
-            return other;
+            return other
 
     @staticmethod
     def is_revision(string):
         revision = re.search("([0-9a-f]{40})", string)
 
-        if revision == None:
+        if revision is None:
             return False
 
         return revision.group(1).strip()
@@ -195,7 +194,7 @@ class Blame(object):
     def get_summed_blames(self):
         summed_blames = {}
         for i in self.blames.items():
-            if summed_blames.get(i[0][0], None) == None:
+            if summed_blames.get(i[0][0], None) is None:
                 summed_blames[i[0][0]] = BlameEntry()
 
             summed_blames[i[0][0]].rows += i[1].rows

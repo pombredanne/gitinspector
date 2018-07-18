@@ -45,8 +45,11 @@ class ChangesOutput(Outputable):
 
         if authorinfo_list:
             changes_xml += "<p>" + _(HISTORICAL_INFO_TEXT) + ".</p><div><table id=\"changes\" class=\"git\">"
-            changes_xml += "<thead><tr> <th>{0}</th> <th>{1}</th> <th>{2}</th> <th>{3}</th> <th>{4}</th>".format(
-                       _("Author"), _("Commits"), _("Insertions"), _("Deletions"), _("% of changes"))
+            changes_xml += "<thead><tr><th>{0}</th> <th>{1}</th> <th>{2}</th> <th>{3}</th> <th>{4}</th>".format(_("Author"),
+                                                                                                                _("Commits"),
+                                                                                                                _("Insertions"),
+                                                                                                                _("Deletions"),
+                                                                                                                _("% of changes"))
             changes_xml += "</tr></thead><tbody>"
 
             for i, entry in enumerate(sorted(authorinfo_list)):
@@ -56,8 +59,9 @@ class ChangesOutput(Outputable):
                 changes_xml += "<tr " + ("class=\"odd\">" if i % 2 == 1 else ">")
 
                 if format.get_selected() == "html":
-                    changes_xml += "<td><img src=\"{0}\"/>{1}</td>".format(
-                               gravatar.get_url(self.changes.get_latest_email_by_author(entry)), entry)
+                    changes_xml += "<td>"
+                    changes_xml += "<img src=\"{0}\"/>".format(gravatar.get_url(self.changes.get_latest_email_by_author(entry)))
+                    changes_xml += "{0}</td>".format(entry)
                 else:
                     changes_xml += "<td>" + entry + "</td>"
 
@@ -121,7 +125,7 @@ class ChangesOutput(Outputable):
                 percentage_json = "\t\t\t\t\"percentage_of_changes\": " + "{0:.2f}".format(percentage) + "\n"
 
                 changes_json += ("{\n" + name_json + email_json + gravatar_json + commits_json +
-                         insertions_json + deletions_json + percentage_json + "\t\t\t}")
+                                 insertions_json + deletions_json + percentage_json + "\t\t\t}")
                 changes_json += ","
             else:
                 changes_json = changes_json[:-1]
@@ -141,8 +145,8 @@ class ChangesOutput(Outputable):
         if authorinfo_list:
             print(textwrap.fill(_(HISTORICAL_INFO_TEXT) + ":", width=terminal.get_size()[0]) + "\n")
             terminal.printb(terminal.ljust(_("Author"), 21) + terminal.rjust(_("Commits"), 13) +
-                    terminal.rjust(_("Insertions"), 14) + terminal.rjust(_("Deletions"), 15) +
-                    terminal.rjust(_("% of changes"), 16))
+                            terminal.rjust(_("Insertions"), 14) + terminal.rjust(_("Deletions"), 15) +
+                            terminal.rjust(_("% of changes"), 16))
 
             for i in sorted(authorinfo_list):
                 authorinfo = authorinfo_list.get(i)
@@ -182,7 +186,7 @@ class ChangesOutput(Outputable):
                 percentage_xml = "\t\t\t\t<percentage-of-changes>" + "{0:.2f}".format(percentage) + "</percentage-of-changes>\n"
 
                 changes_xml += ("\t\t\t<author>\n" + name_xml + email_xml + gravatar_xml + commits_xml +
-                        insertions_xml + deletions_xml + percentage_xml + "\t\t\t</author>\n")
+                                insertions_xml + deletions_xml + percentage_xml + "\t\t\t</author>\n")
 
             print("\t<changes>\n" + message_xml + "\t\t<authors>\n" + changes_xml + "\t\t</authors>\n\t</changes>")
         else:

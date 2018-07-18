@@ -43,8 +43,8 @@ def __output_row__text__(timeline_data, periods, names):
                 multiplier = timeline_data.get_multiplier(period, 9)
                 signs = timeline_data.get_author_signs_in_period(name[0], period, multiplier)
                 signs_str = (signs[1] * "-" + signs[0] * "+")
-                print (("." if timeline_data.is_author_in_period(period, name[0]) and
-                           len(signs_str) == 0 else signs_str).rjust(10), end=" ")
+                print(("." if (timeline_data.is_author_in_period(period, name[0]) and not signs_str) else signs_str).rjust(10),
+                      end=" ")
             print("")
 
     print(terminal.__bold__  + terminal.ljust(_(MODIFIED_ROWS_TEXT), 20) + terminal.__normal__, end=" ")
@@ -66,8 +66,8 @@ def __output_row__html__(timeline_data, periods, names):
         timeline_xml += "<th>" + str(period) + "</th>"
 
     timeline_xml += "</tr></thead><tbody>"
-    i = 0
 
+    i = 0
     for name in names:
         if timeline_data.is_author_in_periods(periods, name[0]):
             timeline_xml += "<tr" + (" class=\"odd\">" if i % 2 == 1 else ">")
@@ -82,10 +82,11 @@ def __output_row__html__(timeline_data, periods, names):
                 signs = timeline_data.get_author_signs_in_period(name[0], period, multiplier)
                 signs_str = (signs[1] * "<div class=\"remove\">&nbsp;</div>" + signs[0] * "<div class=\"insert\">&nbsp;</div>")
 
-                timeline_xml += "<td>" + ("." if timeline_data.is_author_in_period(period, name[0]) and len(signs_str) == 0 else signs_str)
-                timeline_xml += "</td>"
+                timeline_xml += "<td>" + \
+                                ("." if (timeline_data.is_author_in_period(period, name[0]) and not signs_str) else signs_str) + \
+                                "</td>"
             timeline_xml += "</tr>"
-            i = i + 1
+            i += 1
 
     timeline_xml += "<tfoot><tr><td><strong>" + _(MODIFIED_ROWS_TEXT) + "</strong></td>"
 
@@ -153,7 +154,7 @@ class TimelineOutput(Outputable):
                         signs = timeline_data.get_author_signs_in_period(name[0], period, multiplier)
                         signs_str = (signs[1] * "-" + signs[0] * "+")
 
-                        if len(signs_str) == 0:
+                        if not signs_str:
                             signs_str = "."
 
                         authors_json += "{\n\t\t\t\t\t\"name\": \"" + name[0] + "\",\n"
@@ -192,7 +193,7 @@ class TimelineOutput(Outputable):
                         signs = timeline_data.get_author_signs_in_period(name[0], period, multiplier)
                         signs_str = (signs[1] * "-" + signs[0] * "+")
 
-                        if len(signs_str) == 0:
+                        if not signs_str:
                             signs_str = "."
 
                         authors_xml += "\t\t\t\t\t<author>\n\t\t\t\t\t\t<name>" + name[0] + "</name>\n"

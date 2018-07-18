@@ -32,10 +32,10 @@ def define(string):
     __extensions__ = string.split(",")
 
 def add_located(string):
-    if len(string) == 0:
-        __located_extensions__.add("*")
-    else:
+    if string:
         __located_extensions__.add(string)
+    else:
+        __located_extensions__.add("*")
 
 def get_located():
     return __located_extensions__

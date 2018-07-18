@@ -55,7 +55,7 @@ class GitConfig(object):
 
     def __read_git_config_string__(self, variable):
         string = self.__read_git_config__(variable)
-        return (True, string) if len(string) > 0 else (False, None)
+        return (True, string) if string else (False, None)
 
     def read(self):
         var = self.__read_git_config_string__("file-types")

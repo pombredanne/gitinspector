@@ -90,9 +90,10 @@ class Commit(object):
     @staticmethod
     def get_author_and_email(string):
         commit_line = string.split("|")
-
-        if commit_line.__len__() == 5:
+        try:
             return (commit_line[3].strip(), commit_line[4].strip())
+        except IndexError:
+            return "Unknown Author"
 
     @staticmethod
     def is_commit_line(string):
@@ -122,10 +123,11 @@ class ChangesThread(threading.Thread):
         thread.start()
 
     def run(self):
-        git_log_r = subprocess.Popen(filter(None, ["git", "log", "--reverse", "--pretty=%ct|%cd|%H|%aN|%aE",
-                 "--stat=100000,8192", "--no-merges", "-w", interval.get_since(),
-                 interval.get_until(), "--date=short"] + (["-C", "-C", "-M"] if self.hard else []) +
-                 [self.first_hash + self.second_hash]), bufsize=1, stdout=subprocess.PIPE)
+        git_log_r = subprocess.Popen(filter(None,
+                                            ["git", "log", "--reverse", "--pretty=%ct|%cd|%H|%aN|%aE", "--stat=100000,8192",
+                                             "--no-merges", "-w", interval.get_since(),
+                                             interval.get_until(), "--date=short"] + (["-C", "-C", "-M"] if self.hard else []) +
+                                            [self.first_hash + self.second_hash]), bufsize=1, stdout=subprocess.PIPE)
         lines = git_log_r.stdout.readlines()
         git_log_r.wait()
         git_log_r.stdout.close()
@@ -185,17 +187,17 @@ class Changes(object):
 
     def __init__(self, repo, hard):
         self.commits = []
-        interval.set_ref("HEAD");
+        interval.set_ref("HEAD")
         git_rev_list_p = subprocess.Popen(filter(None, ["git", "rev-list", "--reverse", "--no-merges",
-                  interval.get_since(), interval.get_until(), "HEAD"]), bufsize=1,
-                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                                        interval.get_since(), interval.get_until(), "HEAD"]),
+                                          bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         lines = git_rev_list_p.communicate()[0].splitlines()
         git_rev_list_p.wait()
         git_rev_list_p.stdout.close()
 
-        if git_rev_list_p.returncode == 0 and len(lines) > 0:
+        if git_rev_list_p.returncode == 0 and lines:
             progress_text = _(PROGRESS_TEXT)
-            if repo != None:
+            if repo is not None:
                 progress_text = "[%s] " % repo.name + progress_text
 
             chunks = len(lines) // CHANGES_PER_THREAD
@@ -227,14 +229,16 @@ class Changes(object):
 
         self.commits = [item for sublist in self.commits for item in sublist]
 
-        if len(self.commits) > 0:
+        if self.commits:
             if interval.has_interval():
                 interval.set_ref(self.commits[-1].sha)
 
-            self.first_commit_date = datetime.date(int(self.commits[0].date[0:4]), int(self.commits[0].date[5:7]),
-                           int(self.commits[0].date[8:10]))
-            self.last_commit_date = datetime.date(int(self.commits[-1].date[0:4]), int(self.commits[-1].date[5:7]),
-                          int(self.commits[-1].date[8:10]))
+            self.first_commit_date = datetime.date(int(self.commits[0].date[0:4]),
+                                                   int(self.commits[0].date[5:7]),
+                                                   int(self.commits[0].date[8:10]))
+            self.last_commit_date = datetime.date(int(self.commits[-1].date[0:4]),
+                                                  int(self.commits[-1].date[5:7]),
+                                                  int(self.commits[-1].date[8:10]))
 
     def __iadd__(self, other):
         try:
@@ -257,7 +261,7 @@ class Changes(object):
 
     @staticmethod
     def modify_authorinfo(authors, key, commit):
-        if authors.get(key, None) == None:
+        if authors.get(key, None) is None:
             authors[key] = AuthorInfo()
 
         if commit.get_filediffs():
