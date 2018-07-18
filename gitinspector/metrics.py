@@ -69,8 +69,8 @@ class MetricsLogic(object):
                     file_cmd = subprocess.Popen(["git", "show",
                                                interval.get_ref() + ":{0}".format(i.strip())],
                                               bufsize=1, stdout=subprocess.PIPE)
-                    file_cmd.wait()
                     file_r = file_cmd.stdout.readlines()
+                    file_cmd.wait()
 
                     extension = FileDiff.get_extension(i)
                     lines = MetricsLogic.get_eloc(file_r, extension)
