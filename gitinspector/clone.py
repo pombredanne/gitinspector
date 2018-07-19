@@ -23,10 +23,7 @@ import subprocess
 import sys
 import tempfile
 
-try:
-    from urllib.parse import urlparse
-except:
-    from urlparse import urlparse
+from urllib.parse import urlparse
 
 __cloned_paths__ = []
 

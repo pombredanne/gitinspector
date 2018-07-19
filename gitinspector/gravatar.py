@@ -19,10 +19,7 @@
 
 import hashlib
 
-try:
-    from urllib.parse import urlencode
-except:
-    from urllib import urlencode
+from urllib.parse import urlencode
 
 from . import format
 
