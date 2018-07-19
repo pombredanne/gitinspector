@@ -27,6 +27,8 @@ HISTORICAL_INFO_TEXT = N_("The following historical commit information, by autho
 NO_COMMITED_FILES_TEXT = N_("No commited files with the specified extensions were found")
 
 class ChangesOutput(Outputable):
+    output_order = 100
+
     def __init__(self, repos):
         Outputable.__init__(self)
         self.changes = repos.changes

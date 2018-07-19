@@ -29,6 +29,8 @@ RESPONSIBILITIES_INFO_TEXT = N_("The following responsibilities, by author, were
 MOSTLY_RESPONSIBLE_FOR_TEXT = N_("is mostly responsible for")
 
 class ResponsibilitiesOutput(Outputable):
+    output_order = 500
+
     def __init__(self, repos):
         Outputable.__init__(self)
         self.changes = repos.changes

@@ -96,6 +96,8 @@ def __output_row__html__(timeline_data, periods, names):
     print(timeline_xml)
 
 class TimelineOutput(Outputable):
+    output_order = 300
+
     def __init__(self, repos):
         Outputable.__init__(self)
         self.changes  = repos.changes

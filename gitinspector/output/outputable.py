@@ -32,7 +32,7 @@ class Outputable(object):
         """
         List all the classes implementing Outputable
         """
-        return Outputable.outputables
+        return sorted(Outputable.outputables, key=(lambda c: c.output_order))
 
     def output_html(self):
         raise NotImplementedError(_("HTML output not yet supported in") +

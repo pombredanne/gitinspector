@@ -52,8 +52,8 @@ class Runner(object):
         self.repos   = None                        # List of Repository objects
         self.silent  = None                        # Boolean
         self.changes = Changes.__new__(Changes)    # Changes object
-        self.blames  = Blame.__new__(Blame)
-        self.metrics = None
+        self.blames  = Blame.__new__(Blame)        # Blame object
+        self.metrics = None                        # MetricsLogic object
 
     def __load__(self, repos):
         """
@@ -94,14 +94,8 @@ class Runner(object):
             return
 
         format.output_header(self.repos)
-
-        ChangesOutput(self).output()
-        BlameOutput(self).output()
-        TimelineOutput(self).output()
-        MetricsOutput(self).output()
-        ResponsibilitiesOutput(self).output()
-        FilteringOutput(self).output()
-        ExtensionsOutput(self).output()
+        for out in outputable.Outputable.list():
+            out(self).output()
 
         format.output_footer()
 

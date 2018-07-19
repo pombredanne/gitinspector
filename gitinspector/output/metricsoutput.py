@@ -37,6 +37,8 @@ def __get_metrics_score__(ceiling, value):
         return 0
 
 class MetricsOutput(Outputable):
+    output_order = 400
+
     def __init__(self, repos):
         Outputable.__init__(self)
         self.metrics = repos.metrics
