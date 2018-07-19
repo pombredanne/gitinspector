@@ -70,6 +70,7 @@ class MetricsLogic(object):
                                                 bufsize=1, stdout=subprocess.PIPE)
                     file_r = file_cmd.stdout.readlines()
                     file_cmd.wait()
+                    file_cmd.stdout.close()
 
                     extension = FileDiff.get_extension(i)
                     lines = MetricsLogic.get_eloc(file_r, extension)
