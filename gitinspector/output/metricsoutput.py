@@ -38,8 +38,9 @@ def __get_metrics_score__(ceiling, value):
 
 class MetricsOutput(Outputable):
     def __init__(self, repos):
-        self.metrics = repos.metrics
         Outputable.__init__(self)
+        self.metrics = repos.metrics
+        self.display = bool(repos.changes.commits) and bool(repos.include_metrics)
 
     def output_text(self):
         if not self.metrics.eloc and not self.metrics.cyclomatic_complexity and not self.metrics.cyclomatic_complexity_density:

@@ -33,9 +33,10 @@ class BlameOutput(Outputable):
         if format.is_interactive_format():
             print("")
 
-        self.changes = repos.changes
-        self.blame = repos.blames
         Outputable.__init__(self)
+        self.changes = repos.changes
+        self.blame   = repos.blames
+        self.display = bool(self.changes.commits)
 
     def output_html(self):
         blame_xml = "<div><div class=\"box\">"

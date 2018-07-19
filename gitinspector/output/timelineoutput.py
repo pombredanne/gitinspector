@@ -97,9 +97,10 @@ def __output_row__html__(timeline_data, periods, names):
 
 class TimelineOutput(Outputable):
     def __init__(self, repos):
-        self.changes = repos.changes
-        self.useweeks = repos.useweeks
         Outputable.__init__(self)
+        self.changes  = repos.changes
+        self.useweeks = repos.useweeks
+        self.display  = bool(repos.changes.commits) and bool(repos.timeline)
 
     def output_text(self):
         if self.changes.get_commits():

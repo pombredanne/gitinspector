@@ -33,6 +33,7 @@ FILTERING_COMMIT_INFO_TEXT = N_("The following commit revisions were excluded fr
 class FilteringOutput(Outputable):
     def __init__(self, repos):
         Outputable.__init__(self)
+        self.display = bool(repos.changes.commits)
 
     @staticmethod
     def __output_html_section__(info_string, filtered):

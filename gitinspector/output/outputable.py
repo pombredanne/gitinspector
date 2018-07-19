@@ -19,7 +19,21 @@
 
 from .. import format
 
+
 class Outputable(object):
+    outputables = [] # Children classes
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        Outputable.outputables.append(cls)
+
+    @classmethod
+    def list(self):
+        """
+        List all the classes implementing Outputable
+        """
+        return Outputable.outputables
+
     def output_html(self):
         raise NotImplementedError(_("HTML output not yet supported in") +
                                   " \"" + self.__class__.__name__ + "\".")
@@ -37,11 +51,12 @@ class Outputable(object):
                                   " \"" + self.__class__.__name__ + "\".")
 
     def output(self):
-        if format.get_selected() == "html" or format.get_selected() == "htmlembedded":
-            self.output_html()
-        elif format.get_selected() == "json":
-            self.output_json()
-        elif format.get_selected() == "text":
-            self.output_text()
-        else:
-            self.output_xml()
+        if (self.display):
+            if format.get_selected() == "html" or format.get_selected() == "htmlembedded":
+                self.output_html()
+            elif format.get_selected() == "json":
+                self.output_json()
+            elif format.get_selected() == "text":
+                self.output_text()
+            else:
+                self.output_xml()

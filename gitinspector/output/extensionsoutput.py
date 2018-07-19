@@ -29,6 +29,8 @@ EXTENSIONS_MARKED_TEXT = N_("(extensions used during statistical analysis are ma
 class ExtensionsOutput(Outputable):
     def __init__(self, repos):
         Outputable.__init__(self)
+        self.display = bool(repos.changes.commits) and bool(repos.list_file_types)
+
 
     @staticmethod
     def is_marked(extension):

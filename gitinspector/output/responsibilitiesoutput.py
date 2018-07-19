@@ -30,9 +30,10 @@ MOSTLY_RESPONSIBLE_FOR_TEXT = N_("is mostly responsible for")
 
 class ResponsibilitiesOutput(Outputable):
     def __init__(self, repos):
-        self.changes = repos.changes
-        self.blame = repos.blames
         Outputable.__init__(self)
+        self.changes = repos.changes
+        self.blame   = repos.blames
+        self.display = bool(repos.changes.commits) and bool(repos.responsibilities)
 
     def output_text(self):
         print("\n" + textwrap.fill(_(RESPONSIBILITIES_INFO_TEXT) + ":", width=terminal.get_size()[0]))
