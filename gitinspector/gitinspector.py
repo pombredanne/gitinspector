@@ -49,7 +49,19 @@ class Runner(object):
         self.timeline = False
         self.useweeks = False
 
-    def process(self, repos):
+        self.repos   = None                        # List of Repository objects
+        self.silent  = None                        # Boolean
+        self.changes = Changes.__new__(Changes)    # Changes object
+        self.blames  = Blame.__new__(Blame)
+        self.metrics = None
+
+    def __load__(self, repos):
+        """
+        Load a list of repositories `repos`, compute the changes, the
+        blames and possibly the metrics.
+        """
+        self.metrics = MetricsLogic.__new__(MetricsLogic)
+        self.repos = repos
         localization.check_compatibility(version.__version__)
 
         if not self.localize_output:
@@ -58,39 +70,43 @@ class Runner(object):
         terminal.skip_escapes(not sys.stdout.isatty())
         terminal.set_stdout_encoding()
         previous_directory = os.getcwd()
-        summed_blames = Blame.__new__(Blame)
-        summed_changes = Changes.__new__(Changes)
-        summed_metrics = MetricsLogic.__new__(MetricsLogic)
 
         for repo in repos:
             os.chdir(repo.location)
             repo = repo if len(repos) > 1 else None
-            changes = Changes(repo, self.hard)
-            summed_blames += Blame(repo, self.hard, self.useweeks, changes)
-            summed_changes += changes
+            repo_changes = Changes(repo, self.hard)
+            self.blames  += Blame(repo, self.hard, self.useweeks, repo_changes, silent = self.silent)
+            self.changes += repo_changes
 
             if self.include_metrics:
-                summed_metrics += MetricsLogic()
+                self.metrics += MetricsLogic()
 
-            if sys.stdout.isatty() and format.is_interactive_format():
+            if not(self.silent) and sys.stdout.isatty() and format.is_interactive_format():
                 terminal.clear_row()
         else:
             os.chdir(previous_directory)
 
-        format.output_header(repos)
-        outputable.output(ChangesOutput(summed_changes))
+    def __output__(self):
+        """
+        Output the results of the run.
+        """
+        if self.silent:
+            return
 
-        if summed_changes.get_commits():
-            outputable.output(BlameOutput(summed_changes, summed_blames))
+        format.output_header(self.repos)
+        outputable.output(ChangesOutput(self.changes))
+
+        if self.changes.get_commits():
+            outputable.output(BlameOutput(self.changes, self.blames))
 
             if self.timeline:
-                outputable.output(TimelineOutput(summed_changes, self.useweeks))
+                outputable.output(TimelineOutput(self.changes, self.useweeks))
 
             if self.include_metrics:
-                outputable.output(MetricsOutput(summed_metrics))
+                outputable.output(MetricsOutput(self.metrics))
 
             if self.responsibilities:
-                outputable.output(ResponsibilitiesOutput(summed_changes, summed_blames))
+                outputable.output(ResponsibilitiesOutput(self.changes, self.blames))
 
             outputable.output(FilteringOutput())
 
@@ -98,7 +114,14 @@ class Runner(object):
                 outputable.output(ExtensionsOutput())
 
         format.output_footer()
-        os.chdir(previous_directory)
+
+    def process(self, repos, silent = False):
+        """
+        Launch a full run, loading the repositories and possibly outputting the results.
+        """
+        self.silent = silent
+        self.__load__(repos)
+        self.__output__()
 
 def __check_python_version__():
     if sys.version_info < (2, 6):
