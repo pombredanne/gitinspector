@@ -74,7 +74,7 @@ class Runner(object):
         for repo in repos:
             os.chdir(repo.location)
             repo = repo if len(repos) > 1 else None
-            repo_changes = Changes(repo, self.hard)
+            repo_changes = Changes(repo, self.hard, silent = self.silent)
             self.blames  += Blame(repo, self.hard, self.useweeks, repo_changes, silent = self.silent)
             self.changes += repo_changes
 
@@ -99,11 +99,10 @@ class Runner(object):
 
         format.output_footer()
 
-    def process(self, repos, silent = False):
+    def process(self, repos):
         """
         Launch a full run, loading the repositories and possibly outputting the results.
         """
-        self.silent = silent
         self.__load__(repos)
         self.__output__()
 

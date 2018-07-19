@@ -184,7 +184,7 @@ class Changes(object):
     authors_by_email = {}
     emails_by_author = {}
 
-    def __init__(self, repo, hard):
+    def __init__(self, repo, hard, silent = False):
         self.commits = []
         interval.set_ref("HEAD")
         git_rev_list_p = subprocess.Popen(filter(None, ["git", "rev-list", "--reverse", "--no-merges",
@@ -210,7 +210,7 @@ class Changes(object):
                     ChangesThread.create(hard, self, first_hash, second_hash, i)
                     first_hash = entry + ".."
 
-                    if format.is_interactive_format():
+                    if not(silent) and format.is_interactive_format():
                         terminal.output_progress(progress_text, i, len(lines))
             else:
                 if CHANGES_PER_THREAD - 1 != i % CHANGES_PER_THREAD:
