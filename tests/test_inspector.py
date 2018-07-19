@@ -40,11 +40,12 @@ class RepositoryTest(unittest.TestCase):
         self.assertTrue(r.repos[0].location.endswith("build/tests/repository"))
         # Check the commits
         self.assertEqual(len(r.changes.commits), 2)
-        self.assertEqual(r.changes.commits[0].author, "Abraham Lincoln")
-        self.assertEqual(r.changes.commits[1].author, "Andrew Johnson")
+        authors = sorted(list(map(lambda c: c.author, r.changes.commits)))
+        self.assertEqual(authors[0], "Abraham Lincoln")
+        self.assertEqual(authors[1], "Andrew Johnson")
         # Check the blames
         self.assertEqual(len(r.blames.blames.keys()), 2)
-        blame_keys = list(r.blames.blames.keys())
+        blame_keys = sorted(list(r.blames.blames.keys()))
         self.assertEqual(blame_keys[0], ('Abraham Lincoln', 'README.txt'))
         self.assertEqual(blame_keys[1], ('Andrew Johnson', 'file.c'))
         self.assertEqual(r.blames.blames[blame_keys[0]].rows, 1) # README.txt is 1 line long
