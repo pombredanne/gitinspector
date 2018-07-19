@@ -122,9 +122,10 @@ class ChangesThread(threading.Thread):
 
     def run(self):
         git_log_r = subprocess.Popen(filter(None,
-                                            ["git", "log", "--reverse", "--pretty=%ct|%cd|%H|%aN|%aE", "--stat=100000,8192",
-                                             "--no-merges", "-w", interval.get_since(),
-                                             interval.get_until(), "--date=short"] + (["-C", "-C", "-M"] if self.hard else []) +
+                                            ["git", "log", "--reverse", "--pretty=%ct|%cd|%H|%aN|%aE",
+                                             "--stat=100000,8192", "--no-merges", "-w", interval.get_since(),
+                                             interval.get_until(),
+                                             "--date=short"] + (["-C", "-C", "-M"] if self.hard else []) +
                                             [self.first_hash + self.second_hash]), bufsize=1, stdout=subprocess.PIPE)
         lines = git_log_r.stdout.readlines()
         git_log_r.wait()
