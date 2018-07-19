@@ -31,6 +31,9 @@ FILTERING_COMMIT_INFO_TEXT = N_("The following commit revisions were excluded fr
                 "exclusion patterns")
 
 class FilteringOutput(Outputable):
+    def __init__(self, repos):
+        Outputable.__init__(self)
+
     @staticmethod
     def __output_html_section__(info_string, filtered):
         filtering_xml = ""

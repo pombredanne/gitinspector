@@ -29,12 +29,12 @@ BLAME_INFO_TEXT = N_("Below are the number of rows from each author that have su
                      "intact in the current revision")
 
 class BlameOutput(Outputable):
-    def __init__(self, changes, blame):
+    def __init__(self, repos):
         if format.is_interactive_format():
             print("")
 
-        self.changes = changes
-        self.blame = blame
+        self.changes = repos.changes
+        self.blame = repos.blames
         Outputable.__init__(self)
 
     def output_html(self):

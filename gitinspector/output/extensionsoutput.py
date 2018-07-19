@@ -27,6 +27,9 @@ EXTENSIONS_INFO_TEXT = N_("The extensions below were found in the repository his
 EXTENSIONS_MARKED_TEXT = N_("(extensions used during statistical analysis are marked)")
 
 class ExtensionsOutput(Outputable):
+    def __init__(self, repos):
+        Outputable.__init__(self)
+
     @staticmethod
     def is_marked(extension):
         if extension in extensions.__extensions__ or "**" in extensions.__extensions__:

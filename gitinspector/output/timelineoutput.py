@@ -96,9 +96,9 @@ def __output_row__html__(timeline_data, periods, names):
     print(timeline_xml)
 
 class TimelineOutput(Outputable):
-    def __init__(self, changes, useweeks):
-        self.changes = changes
-        self.useweeks = useweeks
+    def __init__(self, repos):
+        self.changes = repos.changes
+        self.useweeks = repos.useweeks
         Outputable.__init__(self)
 
     def output_text(self):

@@ -94,24 +94,24 @@ class Runner(object):
             return
 
         format.output_header(self.repos)
-        outputable.output(ChangesOutput(self.changes))
+        ChangesOutput(self).output()
 
         if self.changes.get_commits():
-            outputable.output(BlameOutput(self.changes, self.blames))
+            BlameOutput(self).output()
 
             if self.timeline:
-                outputable.output(TimelineOutput(self.changes, self.useweeks))
+                TimelineOutput(self).output()
 
             if self.include_metrics:
-                outputable.output(MetricsOutput(self.metrics))
+                MetricsOutput(self).output()
 
             if self.responsibilities:
-                outputable.output(ResponsibilitiesOutput(self.changes, self.blames))
+                ResponsibilitiesOutput(self).output()
 
-            outputable.output(FilteringOutput())
+            FilteringOutput(self).output()
 
             if self.list_file_types:
-                outputable.output(ExtensionsOutput())
+                ExtensionsOutput(self).output()
 
         format.output_footer()
 
