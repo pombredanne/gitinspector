@@ -68,8 +68,8 @@ class FilteringOutput(Outputable):
 
             for i in filtered:
                 filtering_json += "\t\t\t\t\t\"" + i + "\",\n"
-            else:
-                filtering_json = filtering_json[:-3]
+            # Removing the last trailing '\n'
+            filtering_json = filtering_json[:-3]
 
             return "\n\t\t\t\"{0}\": {{\n".format(container_tagname) + message_json + \
             "\t\t\t\t\"entries\": [\n" + filtering_json + "\"\n\t\t\t\t]\n\t\t\t},"

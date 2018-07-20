@@ -118,8 +118,8 @@ class BlameOutput(Outputable):
                                            "{0:.2f}".format(100.0 * i[1].comments / i[1].rows) + "\n")
             blame_json += ("{\n" + name_json + email_json + gravatar_json + rows_json + stability_json + age_json +
                            percentage_in_comments_json + "\t\t\t},")
-        else:
-            blame_json = blame_json[:-1]
+        # Removing the last trailing ','
+        blame_json = blame_json[:-1]
 
         print(",\n\t\t\"blame\": {\n" + message_json + "\t\t\t\"authors\": [\n\t\t\t" + blame_json + "]\n\t\t}", end="")
 

@@ -109,9 +109,9 @@ class MetricsOutput(Outputable):
                     eloc_json += "\t\t\t\t\"file_name\": \"" + i[1] + "\",\n"
                     eloc_json += "\t\t\t\t\"value\": " + str(i[0]) + "\n"
                     eloc_json += "\t\t\t},"
-                else:
-                    if not self.metrics.cyclomatic_complexity:
-                        eloc_json = eloc_json[:-1]
+                # Removing the last trailing ','
+                if not self.metrics.cyclomatic_complexity:
+                    eloc_json = eloc_json[:-1]
 
             if self.metrics.cyclomatic_complexity:
                 for i in sorted(set([(j, i) for (i, j) in self.metrics.cyclomatic_complexity.items()]), reverse=True):
@@ -119,9 +119,9 @@ class MetricsOutput(Outputable):
                     eloc_json += "\t\t\t\t\"file_name\": \"" + i[1] + "\",\n"
                     eloc_json += "\t\t\t\t\"value\": " + str(i[0]) + "\n"
                     eloc_json += "\t\t\t},"
-                else:
-                    if not self.metrics.cyclomatic_complexity_density:
-                        eloc_json = eloc_json[:-1]
+                # Removing the last trailing ','
+                if not self.metrics.cyclomatic_complexity_density:
+                    eloc_json = eloc_json[:-1]
 
             if self.metrics.cyclomatic_complexity_density:
                 for i in sorted(set([(j, i) for (i, j) in self.metrics.cyclomatic_complexity_density.items()]), reverse=True):
@@ -129,8 +129,8 @@ class MetricsOutput(Outputable):
                     eloc_json += "\t\t\t\t\"file_name\": \"" + i[1] + "\",\n"
                     eloc_json += "\t\t\t\t\"value\": {0:.3f}\n".format(i[0])
                     eloc_json += "\t\t\t},"
-                else:
-                    eloc_json = eloc_json[:-1]
+                # Removing the last trailing ','
+                eloc_json = eloc_json[:-1]
 
             print(",\n\t\t\"metrics\": {\n\t\t\t\"violations\": [\n\t\t\t" + eloc_json + "]\n\t\t}", end="")
     def output_xml(self):

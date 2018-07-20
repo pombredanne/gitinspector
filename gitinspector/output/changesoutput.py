@@ -128,8 +128,8 @@ class ChangesOutput(Outputable):
                 changes_json += ("{\n" + name_json + email_json + gravatar_json + commits_json +
                                  insertions_json + deletions_json + percentage_json + "\t\t\t}")
                 changes_json += ","
-            else:
-                changes_json = changes_json[:-1]
+            # Removing the last trailing ','
+            changes_json = changes_json[:-1]
 
             print("\t\t\"changes\": {\n" + message_json + "\t\t\t\"authors\": [\n\t\t\t" + changes_json + "]\n\t\t}", end="")
         else:

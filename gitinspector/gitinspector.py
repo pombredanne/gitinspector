@@ -77,8 +77,8 @@ class Runner(object):
 
             if not(self.silent) and sys.stdout.isatty() and format.is_interactive_format():
                 terminal.clear_row()
-        else:
-            os.chdir(previous_directory)
+
+        os.chdir(previous_directory)
 
     def __output__(self):
         """

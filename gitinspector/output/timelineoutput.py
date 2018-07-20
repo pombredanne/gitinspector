@@ -162,15 +162,15 @@ class TimelineOutput(Outputable):
                         authors_json += "\t\t\t\t\t\"email\": \"" + name[1] + "\",\n"
                         authors_json += "\t\t\t\t\t\"gravatar\": \"" + gravatar.get_url(name[1]) + "\",\n"
                         authors_json += "\t\t\t\t\t\"work\": \"" + signs_str + "\"\n\t\t\t\t},"
-                else:
-                    authors_json = authors_json[:-1]
+                # Removing the last trailing ','
+                authors_json = authors_json[:-1]
 
                 authors_json += "],\n"
                 modified_rows_json = "\t\t\t\t\"modified_rows\": " + \
                             str(timeline_data.get_total_changes_in_period(period)[2]) + "\n"
                 timeline_json += "{\n" + name_json + authors_json + modified_rows_json + "\t\t\t},"
-            else:
-                timeline_json = timeline_json[:-1]
+            # Removing the last trailing ','
+            timeline_json = timeline_json[:-1]
 
             print(",\n\t\t\"timeline\": {\n" + message_json + periods_json + timeline_json + "]\n\t\t}", end="")
 
