@@ -79,10 +79,14 @@ class FilteringOutput(Outputable):
     def output_json(self):
         if has_filtered():
             output = ",\n\t\t\"filtering\": {"
-            output += FilteringOutput.__output_json_section__(_(FILTERING_INFO_TEXT), __filters__["file"][1], "files")
-            output += FilteringOutput.__output_json_section__(_(FILTERING_AUTHOR_INFO_TEXT), __filters__["author"][1], "authors")
-            output += FilteringOutput.__output_json_section__(_(FILTERING_EMAIL_INFO_TEXT), __filters__["email"][1], "emails")
-            output += FilteringOutput.__output_json_section__(_(FILTERING_COMMIT_INFO_TEXT), __filters__["revision"][1], "revision")
+            output += FilteringOutput.__output_json_section__(_(FILTERING_INFO_TEXT),
+                                                              __filters__["file"][1], "files")
+            output += FilteringOutput.__output_json_section__(_(FILTERING_AUTHOR_INFO_TEXT),
+                                                              __filters__["author"][1], "authors")
+            output += FilteringOutput.__output_json_section__(_(FILTERING_EMAIL_INFO_TEXT),
+                                                              __filters__["email"][1], "emails")
+            output += FilteringOutput.__output_json_section__(_(FILTERING_COMMIT_INFO_TEXT),
+                                                              __filters__["revision"][1], "revision")
             output = output[:-1]
             output += "\n\t\t}"
             print(output, end="")
