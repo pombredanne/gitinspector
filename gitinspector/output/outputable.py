@@ -23,12 +23,15 @@ from .. import format
 class Outputable(object):
     outputables = [] # Children classes
 
+    def __init__(self):
+        self.display = False
+
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         Outputable.outputables.append(cls)
 
     @classmethod
-    def list(self):
+    def list(cls):
         """
         List all the classes implementing Outputable
         """
