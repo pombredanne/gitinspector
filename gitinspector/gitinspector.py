@@ -28,15 +28,9 @@ from .metrics import MetricsLogic
 from . import (basedir, clone, extensions, filtering, format, help, interval,
                localization, optval, terminal, version)
 from .output import outputable
-from .output.blameoutput import BlameOutput
-from .output.changesoutput import ChangesOutput
-from .output.extensionsoutput import ExtensionsOutput
-from .output.filteringoutput import FilteringOutput
-from .output.metricsoutput import MetricsOutput
-from .output.responsibilitiesoutput import ResponsibilitiesOutput
-from .output.timelineoutput import TimelineOutput
 
 localization.init()
+
 
 class Runner(object):
     def __init__(self):
@@ -49,10 +43,10 @@ class Runner(object):
         self.timeline = False
         self.useweeks = False
 
-        self.repos   = None                        # List of Repository objects
-        self.silent  = None                        # Boolean
+        self.silent =  None                        # Boolean
+        self.repos =   None                        # List of Repository objects
         self.changes = Changes.__new__(Changes)    # Changes object
-        self.blames  = Blame.__new__(Blame)        # Blame object
+        self.blames =  Blame.__new__(Blame)        # Blame object
         self.metrics = None                        # MetricsLogic object
 
     def __load__(self, repos):
@@ -74,8 +68,8 @@ class Runner(object):
         for repo in repos:
             os.chdir(repo.location)
             repo = repo if len(repos) > 1 else None
-            repo_changes = Changes(repo, self.hard, silent = self.silent)
-            self.blames  += Blame(repo, self.hard, self.useweeks, repo_changes, silent = self.silent)
+            repo_changes =  Changes(repo, self.hard, silent=self.silent)
+            self.blames +=  Blame(repo, self.hard, self.useweeks, repo_changes, silent=self.silent)
             self.changes += repo_changes
 
             if self.include_metrics:
@@ -106,11 +100,13 @@ class Runner(object):
         self.__load__(repos)
         self.__output__()
 
+
 def __check_python_version__():
-    if sys.version_info < (2, 6):
+    if sys.version_info < (3, 6):
         python_version = str(sys.version_info[0]) + "." + str(sys.version_info[1])
-        sys.exit(_("gitinspector requires at least Python 2.6"
+        sys.exit(_("gitinspector requires at least Python 3.6"
                    "to run (version {0} was found).").format(python_version))
+
 
 def __get_validated_git_repos__(repos_relative):
     if not repos_relative:
@@ -130,6 +126,7 @@ def __get_validated_git_repos__(repos_relative):
 
     return repos
 
+
 def main():
     terminal.check_terminal_encoding()
     terminal.set_stdin_encoding()
@@ -145,7 +142,7 @@ def main():
                                         "timeline:true", "until=", "version", "weeks:true"])
         repos = __get_validated_git_repos__(set(args))
 
-        #We need the repos above to be set before we read the git config.
+        # We need the repos above to be set before we read the git config.
         GitConfig(run, repos[-1].location).read()
         clear_x_on_next_pass = True
 
@@ -211,14 +208,17 @@ def main():
         __check_python_version__()
         run.process(repos)
 
-    except (filtering.InvalidRegExpError, format.InvalidFormatError, optval.InvalidOptionArgument, getopt.error) as exception:
+    except (filtering.InvalidRegExpError, format.InvalidFormatError,
+            optval.InvalidOptionArgument, getopt.error) as exception:
         print(sys.argv[0], "\b:", exception.msg, file=sys.stderr)
         print(_("Try `{0} --help' for more information.").format(sys.argv[0]), file=sys.stderr)
         sys.exit(2)
 
+
 @atexit.register
 def cleanup():
     clone.delete()
+
 
 if __name__ == "__main__":
     main()
