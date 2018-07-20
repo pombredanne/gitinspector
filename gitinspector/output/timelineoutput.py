@@ -100,9 +100,9 @@ class TimelineOutput(Outputable):
 
     def __init__(self, repos):
         Outputable.__init__(self)
-        self.changes  = repos.changes
+        self.changes = repos.changes
         self.useweeks = repos.useweeks
-        self.display  = bool(repos.changes.commits) and bool(repos.timeline)
+        self.display = bool(repos.changes.commits) and bool(repos.timeline)
 
     def output_text(self):
         if self.changes.get_commits():

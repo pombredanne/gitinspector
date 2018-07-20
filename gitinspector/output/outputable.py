@@ -51,7 +51,7 @@ class Outputable(object):
                                   " \"" + self.__class__.__name__ + "\".")
 
     def output(self):
-        if (self.display):
+        if self.display:
             if format.get_selected() == "html" or format.get_selected() == "htmlembedded":
                 self.output_html()
             elif format.get_selected() == "json":

@@ -37,7 +37,7 @@ class BlameOutput(Outputable):
 
         Outputable.__init__(self)
         self.changes = repos.changes
-        self.blame   = repos.blames
+        self.blame = repos.blames
         self.display = bool(self.changes.commits)
 
     def output_html(self):

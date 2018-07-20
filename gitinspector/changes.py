@@ -184,7 +184,7 @@ class Changes(object):
     authors_by_email = {}
     emails_by_author = {}
 
-    def __init__(self, repo, hard, silent = False):
+    def __init__(self, repo, hard, silent=False):
         self.commits = []
         interval.set_ref("HEAD")
         git_rev_list_p = subprocess.Popen(filter(None, ["git", "rev-list", "--reverse", "--no-merges",

@@ -34,7 +34,7 @@ class ResponsibilitiesOutput(Outputable):
     def __init__(self, repos):
         Outputable.__init__(self)
         self.changes = repos.changes
-        self.blame   = repos.blames
+        self.blame = repos.blames
         self.display = bool(repos.changes.commits) and bool(repos.responsibilities)
 
     def output_text(self):

@@ -43,11 +43,11 @@ class Runner(object):
         self.timeline = False
         self.useweeks = False
 
-        self.silent =  None                        # Boolean
-        self.repos =   None                        # List of Repository objects
-        self.changes = Changes.__new__(Changes)    # Changes object
-        self.blames =  Blame.__new__(Blame)        # Blame object
-        self.metrics = None                        # MetricsLogic object
+        self.silent = None                       # Boolean
+        self.repos = None                        # List of Repository objects
+        self.changes = Changes.__new__(Changes)  # Changes object
+        self.blames = Blame.__new__(Blame)       # Blame object
+        self.metrics = None                      # MetricsLogic object
 
     def __load__(self, repos):
         """
@@ -68,8 +68,8 @@ class Runner(object):
         for repo in repos:
             os.chdir(repo.location)
             repo = repo if len(repos) > 1 else None
-            repo_changes =  Changes(repo, self.hard, silent=self.silent)
-            self.blames +=  Blame(repo, self.hard, self.useweeks, repo_changes, silent=self.silent)
+            repo_changes = Changes(repo, self.hard, silent=self.silent)
+            self.blames += Blame(repo, self.hard, self.useweeks, repo_changes, silent=self.silent)
             self.changes += repo_changes
 
             if self.include_metrics:
