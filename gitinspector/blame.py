@@ -76,9 +76,9 @@ class BlameThread(threading.Thread):
         except KeyError:
             return
 
-        if not filtering.set_filtered(author, "author") and not \
-               filtering.set_filtered(self.blamechunk_email, "email") and not \
-               filtering.set_filtered(self.blamechunk_revision, "revision"):
+        if not filtering.set_filtered(author, "author") and \
+           not filtering.set_filtered(self.blamechunk_email, "email") and \
+           not filtering.set_filtered(self.blamechunk_revision, "revision"):
 
             __blame_lock__.acquire() # Global lock used to protect calls from here...
 
