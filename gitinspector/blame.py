@@ -39,6 +39,12 @@ __blame_lock__ = threading.Lock()
 AVG_DAYS_PER_MONTH = 30.4167
 
 class BlameThread(threading.Thread):
+    blamechunk_email = None
+    blamechunk_is_last = False
+    blamechunk_is_prior = False
+    blamechunk_revision = None
+    blamechunk_time = None
+
     def __init__(self, useweeks, changes, blame_command, extension, blames, filename):
         __thread_lock__.acquire() # Lock controlling the number of threads running
         threading.Thread.__init__(self)
