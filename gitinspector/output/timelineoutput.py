@@ -142,10 +142,9 @@ class TimelineOutput(Outputable):
             periods_json += "\t\t\t\"periods\": [\n\t\t\t"
 
             timeline_data = timeline.TimelineData(self.changes, self.useweeks)
-            periods = timeline_data.get_periods()
             names = timeline_data.get_authors()
 
-            for period in periods:
+            for period in timeline_data.get_periods():
                 name_json = "\t\t\t\t\"name\": \"" + str(period) + "\",\n"
                 authors_json = "\t\t\t\t\"authors\": [\n\t\t\t\t"
 
@@ -181,10 +180,9 @@ class TimelineOutput(Outputable):
             periods_xml = "\t\t<periods length=\"{0}\">\n".format("week" if self.useweeks else "month")
 
             timeline_data = timeline.TimelineData(self.changes, self.useweeks)
-            periods = timeline_data.get_periods()
             names = timeline_data.get_authors()
 
-            for period in periods:
+            for period in timeline_data.get_periods():
                 name_xml = "\t\t\t\t<name>" + str(period) + "</name>\n"
                 authors_xml = "\t\t\t\t<authors>\n"
 

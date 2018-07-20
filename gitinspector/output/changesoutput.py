@@ -115,19 +115,18 @@ class ChangesOutput(Outputable):
             for i in sorted(authorinfo_list):
                 author_email = self.changes.get_latest_email_by_author(i)
                 authorinfo = authorinfo_list.get(i)
-
                 percentage = 0 if total_changes == 0 else (authorinfo.insertions + authorinfo.deletions) / total_changes * 100
-                name_json = "\t\t\t\t\"name\": \"" + i + "\",\n"
-                email_json = "\t\t\t\t\"email\": \"" + author_email + "\",\n"
-                gravatar_json = "\t\t\t\t\"gravatar\": \"" + gravatar.get_url(author_email) + "\",\n"
-                commits_json = "\t\t\t\t\"commits\": " + str(authorinfo.commits) + ",\n"
-                insertions_json = "\t\t\t\t\"insertions\": " + str(authorinfo.insertions) + ",\n"
-                deletions_json = "\t\t\t\t\"deletions\": " + str(authorinfo.deletions) + ",\n"
-                percentage_json = "\t\t\t\t\"percentage_of_changes\": " + "{0:.2f}".format(percentage) + "\n"
 
-                changes_json += ("{\n" + name_json + email_json + gravatar_json + commits_json +
-                                 insertions_json + deletions_json + percentage_json + "\t\t\t}")
-                changes_json += ","
+                changes_json += "{\n"
+                changes_json += "\t\t\t\t\"name\": \"" + i + "\",\n"
+                changes_json += "\t\t\t\t\"email\": \"" + author_email + "\",\n"
+                changes_json += "\t\t\t\t\"gravatar\": \"" + gravatar.get_url(author_email) + "\",\n"
+                changes_json += "\t\t\t\t\"commits\": " + str(authorinfo.commits) + ",\n"
+                changes_json += "\t\t\t\t\"insertions\": " + str(authorinfo.insertions) + ",\n"
+                changes_json += "\t\t\t\t\"deletions\": " + str(authorinfo.deletions) + ",\n"
+                changes_json += "\t\t\t\t\"percentage_of_changes\": " + "{0:.2f}".format(percentage) + "\n"
+                changes_json += "\t\t\t},"
+
             # Removing the last trailing ','
             changes_json = changes_json[:-1]
 
@@ -176,18 +175,17 @@ class ChangesOutput(Outputable):
             for i in sorted(authorinfo_list):
                 author_email = self.changes.get_latest_email_by_author(i)
                 authorinfo = authorinfo_list.get(i)
-
                 percentage = 0 if total_changes == 0 else (authorinfo.insertions + authorinfo.deletions) / total_changes * 100
-                name_xml = "\t\t\t\t<name>" + i + "</name>\n"
-                email_xml = "\t\t\t\t<email>" + author_email + "</email>\n"
-                gravatar_xml = "\t\t\t\t<gravatar>" + gravatar.get_url(author_email) + "</gravatar>\n"
-                commits_xml = "\t\t\t\t<commits>" + str(authorinfo.commits) + "</commits>\n"
-                insertions_xml = "\t\t\t\t<insertions>" + str(authorinfo.insertions) + "</insertions>\n"
-                deletions_xml = "\t\t\t\t<deletions>" + str(authorinfo.deletions) + "</deletions>\n"
-                percentage_xml = "\t\t\t\t<percentage-of-changes>" + "{0:.2f}".format(percentage) + "</percentage-of-changes>\n"
 
-                changes_xml += ("\t\t\t<author>\n" + name_xml + email_xml + gravatar_xml + commits_xml +
-                                insertions_xml + deletions_xml + percentage_xml + "\t\t\t</author>\n")
+                changes_xml += "\t\t\t<author>\n"
+                changes_xml += "\t\t\t\t<name>" + i + "</name>\n"
+                changes_xml += "\t\t\t\t<email>" + author_email + "</email>\n"
+                changes_xml += "\t\t\t\t<gravatar>" + gravatar.get_url(author_email) + "</gravatar>\n"
+                changes_xml += "\t\t\t\t<commits>" + str(authorinfo.commits) + "</commits>\n"
+                changes_xml += "\t\t\t\t<insertions>" + str(authorinfo.insertions) + "</insertions>\n"
+                changes_xml += "\t\t\t\t<deletions>" + str(authorinfo.deletions) + "</deletions>\n"
+                changes_xml += "\t\t\t\t<percentage-of-changes>" + "{0:.2f}".format(percentage) + "</percentage-of-changes>\n"
+                changes_xml += "\t\t\t</author>\n"
 
             print("\t<changes>\n" + message_xml + "\t\t<authors>\n" + changes_xml + "\t\t</authors>\n\t</changes>")
         else:
