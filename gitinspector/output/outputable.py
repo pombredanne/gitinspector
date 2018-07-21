@@ -17,6 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
+import glob
+import importlib
+import os
 from .. import format
 
 
@@ -63,3 +66,8 @@ class Outputable(object):
                 self.output_text()
             else:
                 self.output_xml()
+
+# Import the outputables inside the output/ directory
+for f in glob.glob(os.path.dirname(__file__)+"/*output.py"):
+    base = os.path.basename(f)[:-3]
+    importlib.import_module("gitinspector.output." + base)
