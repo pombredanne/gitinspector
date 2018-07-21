@@ -29,6 +29,7 @@ from . import (basedir, clone, extensions, filtering, format, help, interval,
                localization, optval, terminal, version)
 from .output import outputable
 
+
 localization.init()
 
 
@@ -102,6 +103,9 @@ class Runner(object):
 
 
 def __check_python_version__():
+    """
+    Check for a sufficiently recent python version.
+    """
     if sys.version_info < (3, 6):
         python_version = str(sys.version_info[0]) + "." + str(sys.version_info[1])
         sys.exit(_("gitinspector requires at least Python 3.6"
@@ -109,12 +113,15 @@ def __check_python_version__():
 
 
 def __get_validated_git_repos__(repos_relative):
+    """
+    Convert a list of paths into a list of Repository objects.
+    """
     if not repos_relative:
-        repos_relative = "."
+        repos_relative = [ "." ]
 
     repos = []
 
-    #Try to clone the repos or return the same directory and bail out.
+    # Try to clone the repos or return the same directory and bail out.
     for repo in repos_relative:
         cloned_repo = clone.create(repo)
 
@@ -128,6 +135,7 @@ def __get_validated_git_repos__(repos_relative):
 
 
 def main():
+    __check_python_version__()
     terminal.check_terminal_encoding()
     terminal.set_stdin_encoding()
     argv = terminal.convert_command_line_to_utf8()
@@ -205,7 +213,6 @@ def main():
                     filtering.clear()
                 filtering.add(optarg)
 
-        __check_python_version__()
         run.process(repos)
 
     except (filtering.InvalidRegExpError, format.InvalidFormatError,
