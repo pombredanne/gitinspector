@@ -31,13 +31,13 @@ BLAME_INFO_TEXT = N_("Below are the number of rows from each author that have su
 class BlameOutput(Outputable):
     output_order = 200
 
-    def __init__(self, repos):
+    def __init__(self, runner):
         if format.is_interactive_format():
             print("")
 
         Outputable.__init__(self)
-        self.changes = repos.changes
-        self.blame = repos.blames
+        self.changes = runner.changes
+        self.blame = runner.blames
         self.display = bool(self.changes.commits)
 
     def output_html(self):

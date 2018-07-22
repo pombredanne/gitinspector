@@ -29,9 +29,9 @@ NO_COMMITED_FILES_TEXT = N_("No commited files with the specified extensions wer
 class ChangesOutput(Outputable):
     output_order = 100
 
-    def __init__(self, repos):
+    def __init__(self, runner):
         Outputable.__init__(self)
-        self.changes = repos.changes
+        self.changes = runner.changes
         self.display = True
 
     def output_html(self):

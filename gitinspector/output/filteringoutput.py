@@ -33,9 +33,9 @@ FILTERING_COMMIT_INFO_TEXT = N_("The following commit revisions were excluded fr
 class FilteringOutput(Outputable):
     output_order = 600
 
-    def __init__(self, repos):
+    def __init__(self, runner):
         Outputable.__init__(self)
-        self.display = bool(repos.changes.commits)
+        self.display = bool(runner.changes.commits)
 
     @staticmethod
     def __output_html_section__(info_string, filtered):
