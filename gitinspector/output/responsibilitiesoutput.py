@@ -31,11 +31,11 @@ MOSTLY_RESPONSIBLE_FOR_TEXT = N_("is mostly responsible for")
 class ResponsibilitiesOutput(Outputable):
     output_order = 500
 
-    def __init__(self, repos):
+    def __init__(self, runner):
         Outputable.__init__(self)
-        self.changes = repos.changes
-        self.blame = repos.blames
-        self.display = bool(repos.changes.commits) and bool(repos.responsibilities)
+        self.changes = runner.changes
+        self.blame = runner.blames
+        self.display = bool(runner.changes.commits) and bool(runner.config.responsibilities)
 
     def output_text(self):
         print("\n" + textwrap.fill(_(RESPONSIBILITIES_INFO_TEXT) + ":", width=terminal.get_size()[0]))

@@ -29,9 +29,9 @@ EXTENSIONS_MARKED_TEXT = N_("(extensions used during statistical analysis are ma
 class ExtensionsOutput(Outputable):
     output_order = 700
 
-    def __init__(self, repos):
+    def __init__(self, runner):
         Outputable.__init__(self)
-        self.display = bool(repos.changes.commits) and bool(repos.list_file_types)
+        self.display = bool(runner.changes.commits) and bool(runner.config.list_file_types)
 
 
     @staticmethod

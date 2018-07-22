@@ -98,11 +98,11 @@ def __output_row__html__(timeline_data, periods, names):
 class TimelineOutput(Outputable):
     output_order = 300
 
-    def __init__(self, repos):
+    def __init__(self, runner):
         Outputable.__init__(self)
-        self.changes = repos.changes
-        self.useweeks = repos.useweeks
-        self.display = bool(repos.changes.commits) and bool(repos.timeline)
+        self.changes = runner.changes
+        self.useweeks = runner.config.weeks
+        self.display = bool(runner.changes.commits) and bool(runner.config.timeline)
 
     def output_text(self):
         if self.changes.get_commits():

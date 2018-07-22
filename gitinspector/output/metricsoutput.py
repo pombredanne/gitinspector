@@ -39,13 +39,14 @@ def __get_metrics_score__(ceiling, value):
 class MetricsOutput(Outputable):
     output_order = 400
 
-    def __init__(self, repos):
+    def __init__(self, runner):
         Outputable.__init__(self)
-        self.metrics = repos.metrics
-        self.display = bool(repos.changes.commits) and bool(repos.include_metrics)
+        self.metrics = runner.metrics
+        self.display = bool(runner.changes.commits) and bool(runner.config.metrics)
 
     def output_text(self):
-        if not self.metrics.eloc and not self.metrics.cyclomatic_complexity and not self.metrics.cyclomatic_complexity_density:
+        if not self.metrics.eloc and not self.metrics.cyclomatic_complexity and \
+           not self.metrics.cyclomatic_complexity_density:
             print("\n" + _(METRICS_MISSING_INFO_TEXT) + ".")
 
         if self.metrics.eloc:
