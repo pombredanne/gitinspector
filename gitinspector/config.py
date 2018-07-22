@@ -43,6 +43,8 @@ class GitConfig(object):
         except IndexError:
             setting = ""
 
+        setting_cmd.stdout.close()
+
         return setting
 
     def __read_git_config_bool__(self, variable):
