@@ -22,7 +22,6 @@ import os
 import textwrap
 import time
 import zipfile
-from .localization import N_
 from . import basedir, localization, terminal, version
 
 __available_formats__ = ["html", "htmlembedded", "json", "text", "xml"]
@@ -63,8 +62,8 @@ def __get_zip_file_content__(name, file_name="/html/flot.zip"):
     zip_file.close()
     return content.decode("utf-8", "replace")
 
-INFO_ONE_REPOSITORY = N_("Statistical information for the repository '{0}' was gathered on {1}.")
-INFO_MANY_REPOSITORIES = N_("Statistical information for the repositories '{0}' was gathered on {1}.")
+INFO_ONE_REPOSITORY = _("Statistical information for the repository '{0}' was gathered on {1}.")
+INFO_MANY_REPOSITORIES = _("Statistical information for the repositories '{0}' was gathered on {1}.")
 
 def output_header(repos):
     repos_string = ", ".join([repo.name for repo in repos])
