@@ -144,57 +144,57 @@ def __get_validated_git_repos__(repos_relative):
 
 def __parse_arguments__():
     parser = argparse.ArgumentParser(description=
-                        ("List information about the repository in REPOSITORY. If no repository is "
+                        _("List information about the repository in REPOSITORY. If no repository is "
                          "specified, the current directory is used. If multiple repositories are "
                          "given, information will be merged into a unified statistical report."))
     parser.add_argument('repositories', metavar='REPOSITORY', type=str, nargs='*',
-                        help='the address of a repository to be analyzed')
+                        help=_('the address of a repository to be analyzed'))
     parser.add_argument('-f', '--file-types', metavar='TYPES',help=
-                        ("a comma separated list of file extensions to include when "
-                         "computing statistics. The default extensions used are: ") + str(DEFAULT_EXTENSIONS) +
-                        (" Specifying * includes files with no extension, while ** includes all files"),
+                        _("a comma separated list of file extensions to include when "
+                         "computing statistics. The default extensions used are: ") + str(DEFAULT_EXTENSIONS) + " " +
+                        _("Specifying * includes files with no extension, while ** includes all files"),
                         default=",".join(DEFAULT_EXTENSIONS))
     parser.add_argument('-F', '--format', metavar='FORMAT', help=
-                        ("define in which format output should be generated; the "
+                        _("define in which format output should be generated; the "
                          "default format is 'text' and the available formats are: ") + str(__available_formats__),
                         default="text", choices=__available_formats__)
     parser.add_argument('-g', '--grading', action='store_true', help=
-                        ("show statistics and information in a way that is formatted "
+                        _("show statistics and information in a way that is formatted "
                          "for grading of student projects; this is the same as supplying "
                          "the options -HlmrTw"))
     parser.add_argument('-H', '--hard', action='store_true', help=
-                        ("track rows and look for duplicates harder;"
+                        _("track rows and look for duplicates harder;"
                          "this can be quite slow with big repositories"))
     parser.add_argument('-l', '--list-file-types', action='store_true', help=
-                        ("list all the file extensions available in the current branch "
+                        _("list all the file extensions available in the current branch "
                          "of the repository"))
     parser.add_argument('-L', '--localize-output', action='store_true', help=
-                        ("localize the generated output to the selected "
+                        _("localize the generated output to the selected "
                          "system language if a translation is available"))
     parser.add_argument('-m', '--metrics', action='store_true', help=
-                        ("include checks for certain metrics during the analysis of commits"))
+                        _("include checks for certain metrics during the analysis of commits"))
     parser.add_argument('-r', '--responsibilities', action='store_true', help=
-                        ("show which files the different authors seem most responsible for"))
+                        _("show which files the different authors seem most responsible for"))
     parser.add_argument('-s', '--since', metavar='DATE',
                         type=lambda s: datetime.datetime.strptime(s, '%Y-%m-%d'), help=
-                        ("only show statistics for commits more recent than a specific date, "
+                        _("only show statistics for commits more recent than a specific date, "
                          "specified as '%%Y-%%m-%%d'"),
                         default=None)
     parser.add_argument('-S', '--silent', action='store_true', help=
-                        ("Silent output, mainly used for testing purposes"))
+                        _("Silent output, mainly used for testing purposes"))
     parser.add_argument('-T', '--timeline', action='store_true', help=
-                        ("show commit timeline, including author names"))
+                        _("show commit timeline, including author names"))
     parser.add_argument('-u', '--until', metavar='DATE',
                         type=lambda s: datetime.datetime.strptime(s, '%Y-%m-%d'), help=
-                        ("only show statistics for commits older than a specific date, "
+                        _("only show statistics for commits older than a specific date, "
                          "specified as '%%Y-%%m-%%d'"),
                         default=None)
     parser.add_argument('-v', '--version', action='store_true', help=
-                        ("display the current version of the program"))
+                        _("display the current version of the program"))
     parser.add_argument('-w', '--weeks', action='store_true', help=
-                        ("show all statistical information in weeks instead of in months"))
+                        _("show all statistical information in weeks instead of in months"))
     parser.add_argument('-x', '--exclude', metavar='PATTERN', action='append', help=
-                        ("an exclusion patterns of the form KEY=PAT, describing the file paths, "
+                        _("an exclusion pattern of the form KEY=PAT, describing the file paths, "
                          "revisions, revisions with certain commit messages, author names or "
                          "author emails that should be excluded from the statistics; KEY must "
                          "be in [ 'file', 'author', 'email', 'revision', 'message' ]"))
