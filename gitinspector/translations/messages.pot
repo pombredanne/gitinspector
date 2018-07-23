@@ -54,7 +54,7 @@ msgid "Below are the number of rows from each author that have survived and are 
 msgstr ""
 
 #, python-brace-format
-msgid "Checking how many rows belong to each author (Progress): {0:.0f}%"
+msgid "Checking how many rows belong to each author (2 of 2): {0:.0f}%"
 msgstr ""
 
 msgid "Commits"
