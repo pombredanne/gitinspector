@@ -71,12 +71,18 @@ class GitConfig(object):
         if var[0] and not format.select(var[1]):
             raise format.InvalidFormatError(_("specified output format not supported."))
 
-        self.run.config.hard = self.__read_git_config_bool__("hard")
-        self.run.config.list_file_types = self.__read_git_config_bool__("list-file-types")
-        self.run.config.localize_output = self.__read_git_config_bool__("localize-output")
-        self.run.config.metrics = self.__read_git_config_bool__("metrics")
-        self.run.config.responsibilities = self.__read_git_config_bool__("responsibilities")
-        self.run.config.useweeks = self.__read_git_config_bool__("weeks")
+        if self.__read_git_config_bool__("hard"):
+            self.run.config.hard = True
+        if self.__read_git_config_bool__("list-file-types"):
+            self.run.config.list_file_types = True
+        if self.__read_git_config_bool__("localize-output"):
+            self.run.config.localize_output = True
+        if self.__read_git_config_bool__("metrics"):
+            self.run.config.metrics = True
+        if self.__read_git_config_bool__("responsibilities"):
+            self.run.config.responsibilities = True
+        if self.__read_git_config_bool__("weeks"):
+            self.run.config.useweeks = True
 
         var = self.__read_git_config_string__("since")
         if var[0]:
