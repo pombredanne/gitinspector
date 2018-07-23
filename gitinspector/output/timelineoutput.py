@@ -18,12 +18,11 @@
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
 import textwrap
-from ..localization import N_
 from .. import format, gravatar, terminal, timeline
 from .outputable import Outputable
 
-TIMELINE_INFO_TEXT = N_("The following history timeline has been gathered from the repository")
-MODIFIED_ROWS_TEXT = N_("Modified Rows:")
+TIMELINE_INFO_TEXT = _("The following history timeline has been gathered from the repository")
+MODIFIED_ROWS_TEXT = _("Modified Rows:")
 
 def __output_row__text__(timeline_data, periods, names):
     print("\n" + terminal.__bold__ + terminal.ljust(_("Author"), 20), end=" ")

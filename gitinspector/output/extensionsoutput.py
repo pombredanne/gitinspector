@@ -18,13 +18,12 @@
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
 import textwrap
-from ..localization import N_
 from .. import extensions, terminal
 from .outputable import Outputable
 
 
-EXTENSIONS_INFO_TEXT = N_("The extensions below were found in the repository history")
-EXTENSIONS_MARKED_TEXT = N_("(extensions used during statistical analysis are marked)")
+EXTENSIONS_INFO_TEXT = _("The extensions below were found in the repository history")
+EXTENSIONS_MARKED_TEXT = _("(extensions used during statistical analysis are marked)")
 
 class ExtensionsOutput(Outputable):
     output_order = 700

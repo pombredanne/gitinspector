@@ -20,13 +20,12 @@
 import json
 import sys
 import textwrap
-from ..localization import N_
 from .. import format, gravatar, terminal
 from ..blame import Blame
 from .outputable import Outputable
 
-BLAME_INFO_TEXT = N_("Below are the number of rows from each author that have survived and are still "
-                     "intact in the current revision")
+BLAME_INFO_TEXT = _("Below are the number of rows from each author that have survived and are still "
+                    "intact in the current revision")
 
 class BlameOutput(Outputable):
     output_order = 200

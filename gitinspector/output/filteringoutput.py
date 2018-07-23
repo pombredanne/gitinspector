@@ -18,17 +18,16 @@
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
 import textwrap
-from ..localization import N_
 from ..filtering import __filters__, has_filtered
 from .. import terminal
 from .outputable import Outputable
 
-FILTERING_INFO_TEXT = N_("The following files were excluded from the statistics due to the specified exclusion patterns")
-FILTERING_AUTHOR_INFO_TEXT = N_("The following authors were excluded from the statistics due to the specified exclusion patterns")
-FILTERING_EMAIL_INFO_TEXT = N_("The authors with the following emails were excluded from the statistics due to the specified " \
-                   "exclusion patterns")
-FILTERING_COMMIT_INFO_TEXT = N_("The following commit revisions were excluded from the statistics due to the specified " \
-                "exclusion patterns")
+FILTERING_INFO_TEXT = _("The following files were excluded from the statistics due to the specified exclusion patterns")
+FILTERING_AUTHOR_INFO_TEXT = _("The following authors were excluded from the statistics due to the specified exclusion patterns")
+FILTERING_EMAIL_INFO_TEXT = _("The authors with the following emails were excluded from the statistics due to the specified " \
+                              "exclusion patterns")
+FILTERING_COMMIT_INFO_TEXT = _("The following commit revisions were excluded from the statistics due to the specified " \
+                               "exclusion patterns")
 
 class FilteringOutput(Outputable):
     output_order = 600

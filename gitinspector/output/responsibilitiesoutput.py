@@ -18,15 +18,14 @@
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
 import textwrap
-from ..localization import N_
 from .. import format, gravatar, terminal
 from .. import responsibilities as resp
 from .outputable import Outputable
 
-RESPONSIBILITIES_INFO_TEXT = N_("The following responsibilities, by author, were found in the current "
+RESPONSIBILITIES_INFO_TEXT = _("The following responsibilities, by author, were found in the current "
                                 "revision of the repository (comments are excluded from the line count, "
                                 "if possible)")
-MOSTLY_RESPONSIBLE_FOR_TEXT = N_("is mostly responsible for")
+MOSTLY_RESPONSIBLE_FOR_TEXT = _("is mostly responsible for")
 
 class ResponsibilitiesOutput(Outputable):
     output_order = 500

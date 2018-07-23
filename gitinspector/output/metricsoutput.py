@@ -18,15 +18,14 @@
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
 from ..changes import FileDiff
-from ..localization import N_
 from ..metrics import (__metric_eloc__, METRIC_CYCLOMATIC_COMPLEXITY_THRESHOLD, METRIC_CYCLOMATIC_COMPLEXITY_DENSITY_THRESHOLD)
 from .outputable import Outputable
 
-ELOC_INFO_TEXT = N_("The following files are suspiciously big (in order of severity)")
-CYCLOMATIC_COMPLEXITY_TEXT = N_("The following files have an elevated cyclomatic complexity (in order of severity)")
-CYCLOMATIC_COMPLEXITY_DENSITY_TEXT = N_("The following files have an elevated cyclomatic complexity density " \
+ELOC_INFO_TEXT = _("The following files are suspiciously big (in order of severity)")
+CYCLOMATIC_COMPLEXITY_TEXT = _("The following files have an elevated cyclomatic complexity (in order of severity)")
+CYCLOMATIC_COMPLEXITY_DENSITY_TEXT = _("The following files have an elevated cyclomatic complexity density " \
                     "(in order of severity)")
-METRICS_MISSING_INFO_TEXT = N_("No metrics violations were found in the repository")
+METRICS_MISSING_INFO_TEXT = _("No metrics violations were found in the repository")
 
 METRICS_VIOLATION_SCORES = [[1.0, "minimal"], [1.25, "minor"], [1.5, "medium"], [2.0, "bad"], [3.0, "severe"]]
 

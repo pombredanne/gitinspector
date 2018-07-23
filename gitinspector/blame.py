@@ -22,7 +22,6 @@ import multiprocessing
 import re
 import subprocess
 import threading
-from .localization import N_
 from .changes import FileDiff
 from . import comment, extensions, filtering, format, interval, terminal
 
