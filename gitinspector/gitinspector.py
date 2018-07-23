@@ -143,10 +143,15 @@ def __get_validated_git_repos__(repos_relative):
 
 
 def __parse_arguments__():
-    parser = argparse.ArgumentParser(description=
-                        _("List information about the repository in REPOSITORY. If no repository is "
-                         "specified, the current directory is used. If multiple repositories are "
-                         "given, information will be merged into a unified statistical report."))
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=
+                        _("List information about the repository in REPOSITORY. If no repository is \n"
+                         "specified, the current directory is used. If multiple repositories are \n"
+                          "given, information will be merged into a unified statistical report."),epilog=
+                        _("gitinspector will filter statistics to only include commits that modify, \n"
+                          "add or remove one of the specified extensions, see -f or --file-types for \n"
+                          "more information. \n\n"
+                          "gitinspector requires that the git executable is available in your PATH. \n"
+                          "Report gitinspector bugs to gitinspector@ejwa.se."))
     parser.add_argument('repositories', metavar='REPOSITORY', type=str, nargs='*',
                         help=_('the address of a repository to be analyzed'))
     parser.add_argument('-f', '--file-types', metavar='TYPES',help=

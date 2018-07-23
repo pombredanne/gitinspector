@@ -202,9 +202,17 @@ msgid "{0} ({1} in cyclomatic complexity)"
 msgstr ""
 
 msgid
-"List information about the repository in REPOSITORY. If no repository is "
-"specified, the current directory is used. If multiple repositories are "
+"List information about the repository in REPOSITORY. If no repository is \n"
+"specified, the current directory is used. If multiple repositories are \n"
 "given, information will be merged into a unified statistical report."
+msgstr ""
+
+msgid
+"gitinspector will filter statistics to only include commits that modify, \n"
+"add or remove one of the specified extensions, see -f or --file-types for \n"
+"more information. \n\n"
+"gitinspector requires that the git executable is available in your PATH. \n"
+"Report gitinspector bugs to gitinspector@ejwa.se."
 msgstr ""
 
 msgid "the address of a repository to be analyzed"

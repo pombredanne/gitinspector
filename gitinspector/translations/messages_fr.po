@@ -412,13 +412,26 @@ msgid "{0} ({1} in cyclomatic complexity)"
 msgstr "{0} ({1} en complexité cyclomatique)"
 
 msgid
-"List information about the repository in REPOSITORY. If no repository is "
-"specified, the current directory is used. If multiple repositories are "
+"List information about the repository in REPOSITORY. If no repository is \n"
+"specified, the current directory is used. If multiple repositories are \n"
 "given, information will be merged into a unified statistical report."
 msgstr
-"Génère les informations sur le dépôt REPOSITORY. Si aucun répertoire "
-"n'est spécifié, le répertoire courant est utilisé. Si plusieurs répertoires "
+"Génère les informations sur le dépôt REPOSITORY. Si aucun répertoire \n"
+"n'est spécifié, le répertoire courant est utilisé. Si plusieurs répertoires \n"
 "sont spécifiés, les informations seront données pour l'ensemble des dépôts."
+
+msgid
+"gitinspector will filter statistics to only include commits that modify, \n"
+"add or remove one of the specified extensions, see -f or --file-types for \n"
+"more information. \n\n"
+"gitinspector requires that the git executable is available in your PATH. \n"
+"Report gitinspector bugs to gitinspector@ejwa.se."
+msgstr
+"gitinspector filtre les statistiques pour n'inclure que les soumissions qui \n"
+"modifient, ajoutent ou retirent un fichier avec une des extensions spécifiées, \n"
+"voir -f ou --file-type pour plus d'information.\n\n"
+"gitinspector nécessite que l'exécutable git soit trouvé dans le PATH.\n"
+"Signalez les bugs dans gitinspector à gitinspector@ejwa.se."
 
 msgid "the address of a repository to be analyzed"
 msgstr "l'adresse d'un dépôt à analyser"
