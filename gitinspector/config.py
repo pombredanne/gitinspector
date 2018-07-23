@@ -21,6 +21,7 @@ import os
 import subprocess
 from . import extensions, filtering, format, interval, optval
 
+
 class GitConfig(object):
     def __init__(self, run, repo, global_only=False):
         self.run = run
@@ -38,8 +39,7 @@ class GitConfig(object):
         os.chdir(previous_directory)
 
         try:
-            setting = setting_cmd.stdout.readlines()[0]
-            setting = setting_cmd.stdout.decode("utf-8", "replace").strip()
+            setting = setting_cmd.stdout.readlines()[0].strip().decode("utf-8", "replace")
         except IndexError:
             setting = ""
 
@@ -71,12 +71,12 @@ class GitConfig(object):
         if var[0] and not format.select(var[1]):
             raise format.InvalidFormatError(_("specified output format not supported."))
 
-        self.run.hard = self.__read_git_config_bool__("hard")
-        self.run.list_file_types = self.__read_git_config_bool__("list-file-types")
-        self.run.localize_output = self.__read_git_config_bool__("localize-output")
-        self.run.metrics = self.__read_git_config_bool__("metrics")
-        self.run.responsibilities = self.__read_git_config_bool__("responsibilities")
-        self.run.useweeks = self.__read_git_config_bool__("weeks")
+        self.run.config.hard = self.__read_git_config_bool__("hard")
+        self.run.config.list_file_types = self.__read_git_config_bool__("list-file-types")
+        self.run.config.localize_output = self.__read_git_config_bool__("localize-output")
+        self.run.config.metrics = self.__read_git_config_bool__("metrics")
+        self.run.config.responsibilities = self.__read_git_config_bool__("responsibilities")
+        self.run.config.useweeks = self.__read_git_config_bool__("weeks")
 
         var = self.__read_git_config_string__("since")
         if var[0]:
@@ -86,12 +86,12 @@ class GitConfig(object):
         if var[0]:
             interval.set_until(var[1])
 
-        self.run.timeline = self.__read_git_config_bool__("timeline")
+        self.run.config.timeline = self.__read_git_config_bool__("timeline")
 
         if self.__read_git_config_bool__("grading"):
-            self.run.hard = True
-            self.run.list_file_types = True
-            self.run.metrics = True
-            self.run.responsibilities = True
-            self.run.timeline = True
-            self.run.useweeks = True
+            self.run.config.hard = True
+            self.run.config.list_file_types = True
+            self.run.config.metrics = True
+            self.run.config.responsibilities = True
+            self.run.config.timeline = True
+            self.run.config.useweeks = True
