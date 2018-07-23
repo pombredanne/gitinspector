@@ -27,7 +27,7 @@ from .blame import Blame
 from .changes import Changes
 from .config import GitConfig
 from .metrics import MetricsLogic
-from . import (basedir, clone, extensions, filtering, format, help, interval,
+from . import (basedir, clone, extensions, filtering, format, interval,
                localization, optval, terminal, version)
 from .output import outputable
 
@@ -48,6 +48,11 @@ class Runner(object):
         # Initialize extensions and formats
         extensions.define(config.file_types)
         format.select(config.format)
+        # Initialize bounds on commits dates
+        if config.since:
+            interval.set_since(config.since.strftime('%Y-%m-%d'))
+        if config.until:
+            interval.set_until(config.until.strftime('%Y-%m-%d'))
 
         self.changes = Changes.__new__(Changes)  # Changes object
         self.blames = Blame.__new__(Blame)       # Blame object
@@ -174,7 +179,7 @@ def __parse_arguments__():
                         type=lambda s: datetime.datetime.strptime(s, '%Y-%m-%d'), help=
                         ("only show statistics for commits more recent than a specific date, "
                          "specified as '%%Y-%%m-%%d'"),
-                        default=datetime.datetime(1970, 1, 1, 0, 0))
+                        default=None)
     parser.add_argument('-S', '--silent', action='store_true', help=
                         ("Silent output, mainly used for testing purposes"))
     parser.add_argument('-T', '--timeline', action='store_true', help=
@@ -183,7 +188,7 @@ def __parse_arguments__():
                         type=lambda s: datetime.datetime.strptime(s, '%Y-%m-%d'), help=
                         ("only show statistics for commits older than a specific date, "
                          "specified as '%%Y-%%m-%%d'"),
-                        default=datetime.datetime.today())
+                        default=None)
     parser.add_argument('-v', '--version', action='store_true', help=
                         ("display the current version of the program"))
     parser.add_argument('-w', '--weeks', action='store_true', help=
@@ -224,12 +229,6 @@ def main():
             sys.exit(0)
 
         run = Runner(options)
-
-        # for opt, optarg in opts:
-        #     elif opt == "--since":
-        #         interval.set_since(optarg)
-        #     elif opt == "--until":
-        #         interval.set_until(optarg)
 
         run.process()
 
