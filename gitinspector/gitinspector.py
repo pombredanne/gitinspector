@@ -142,7 +142,7 @@ def __parse_arguments__():
                         ("List information about the repository in REPOSITORY. If no repository is "
                          "specified, the current directory is used. If multiple repositories are "
                          "given, information will be merged into a unified statistical report."))
-    parser.add_argument('repositories', metavar='REPOSITORY', type=str, nargs='+',
+    parser.add_argument('repositories', metavar='REPOSITORY', type=str, nargs='*',
                         help='the address of a repository to be analyzed')
     parser.add_argument('-f', '--file-types', metavar='TYPES',help=
                         ("a comma separated list of file extensions to include when "
@@ -236,7 +236,8 @@ def main():
     except (filtering.InvalidRegExpError, format.InvalidFormatError,
             optval.InvalidOptionArgument, getopt.error) as exception:
         print(sys.argv[0], "\b:", exception.msg, file=sys.stderr)
-        print(_("Try `{0} --help' for more information.").format(sys.argv[0]), file=sys.stderr)
+        print(_("Try `{0} --help' for more information.").
+              format(sys.argv[0]), file=sys.stderr)
         sys.exit(2)
 
 
