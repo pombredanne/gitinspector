@@ -25,6 +25,7 @@ from .outputable import Outputable
 HISTORICAL_INFO_TEXT = _("The following historical commit information, by author, was found in the repository")
 NO_COMMITED_FILES_TEXT = _("No commited files with the specified extensions were found")
 
+
 class ChangesOutput(Outputable):
     output_order = 100
 

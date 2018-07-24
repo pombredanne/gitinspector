@@ -96,7 +96,8 @@ class GitConfig(object):
         if var[0]:
             interval.set_until(var[1])
 
-        self.run.config.timeline = self.__read_git_config_bool__("timeline")
+        if self.__read_git_config_bool__("timeline"):
+            self.run.config.timeline = True
 
         if self.__read_git_config_bool__("grading"):
             self.run.config.hard = True
