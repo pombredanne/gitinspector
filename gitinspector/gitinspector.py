@@ -27,7 +27,7 @@ from .changes import Changes
 from .config import GitConfig
 from .metrics import MetricsLogic
 from . import (basedir, clone, extensions, filtering, format, interval,
-               localization, optval, terminal, version)
+               localization, terminal, version)
 from .output import outputable
 
 from .extensions import DEFAULT_EXTENSIONS
@@ -236,8 +236,7 @@ def main():
 
         run.process()
 
-    except (filtering.InvalidRegExpError, format.InvalidFormatError,
-            optval.InvalidOptionArgument) as exception:
+    except (filtering.InvalidRegExpError, format.InvalidFormatError) as exception:
         print(sys.argv[0], "\b:", exception.msg, file=sys.stderr)
         print(_("Try `{0} --help' for more information.").
               format(sys.argv[0]), file=sys.stderr)

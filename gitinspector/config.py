@@ -19,7 +19,7 @@
 
 import os
 import subprocess
-from . import extensions, filtering, format, interval, optval
+from . import extensions, filtering, format, interval
 
 
 class GitConfig(object):
@@ -48,11 +48,15 @@ class GitConfig(object):
         return setting
 
     def __read_git_config_bool__(self, variable):
-        try:
-            variable = self.__read_git_config__(variable)
-            return optval.get_boolean_argument(False if variable == "" else variable)
-        except optval.InvalidOptionArgument:
+        variable = self.__read_git_config__(variable)
+        arg = (False if variable == "" else variable)
+        if isinstance(arg, bool):
+            return arg
+        elif arg is None or arg.lower() == "false" or arg.lower() == "f" or arg == "0":
             return False
+        elif arg.lower() == "true" or arg.lower() == "t" or arg == "1":
+            return True
+        return False
 
     def __read_git_config_string__(self, variable):
         string = self.__read_git_config__(variable)
