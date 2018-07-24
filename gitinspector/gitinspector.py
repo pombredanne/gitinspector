@@ -26,7 +26,8 @@ from .blame import Blame
 from .changes import Changes
 from .config import GitConfig
 from .metrics import MetricsLogic
-from . import (basedir, clone, extensions, filtering, format, interval,
+from .repository import Repository
+from . import (basedir, extensions, filtering, format, interval,
                localization, terminal, version)
 from .output import outputable
 
@@ -130,7 +131,7 @@ def __get_validated_git_repos__(repos_relative):
 
     # Try to clone the repos or return the same directory and bail out.
     for repo in repos_relative:
-        cloned_repo = clone.create(repo)
+        cloned_repo = Repository.create(repo)
 
         if cloned_repo.name is None:
             cloned_repo.location = basedir.get_basedir_git(cloned_repo.location)
@@ -245,7 +246,7 @@ def main():
 
 @atexit.register
 def cleanup():
-    clone.delete()
+    Repository.delete_all()
 
 
 if __name__ == "__main__":
