@@ -26,12 +26,11 @@ import tempfile
 from urllib.parse import urlparse
 
 
-
 class Repository(object):
     cloned_paths = []  # List of paths of temporary repositories
 
     @classmethod
-    def create(cls,url):
+    def create(cls, url):
         parsed_url = urlparse(url)
 
         if parsed_url.scheme == "file" or parsed_url.scheme == "git" or parsed_url.scheme == "http" or \

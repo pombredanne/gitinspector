@@ -31,6 +31,7 @@ NUM_THREADS = multiprocessing.cpu_count()
 __thread_lock__ = threading.BoundedSemaphore(NUM_THREADS)
 __changes_lock__ = threading.Lock()
 
+
 class FileDiff(object):
     def __init__(self, string):
         commit_line = string.split("|")
@@ -62,6 +63,7 @@ class FileDiff(object):
             if (extension == "" and i == "*") or extension == i or i == '**':
                 return True
         return False
+
 
 class Commit(object):
     def __init__(self, string):
@@ -96,11 +98,13 @@ class Commit(object):
     def is_commit_line(string):
         return string.split("|").__len__() == 5
 
+
 class AuthorInfo(object):
     email = None
     insertions = 0
     deletions = 0
     commits = 0
+
 
 class ChangesThread(threading.Thread):
     def __init__(self, hard, changes, first_hash, second_hash, offset):
@@ -175,13 +179,21 @@ class ChangesThread(threading.Thread):
         __changes_lock__.release() # ...to here.
         __thread_lock__.release() # Lock controlling the number of threads running
 
+
 PROGRESS_TEXT = _("Fetching and calculating primary statistics (1 of 2): {0:.0f}%")
 
+
 class Changes(object):
-    authors = {}
+    authors = {} # Class variables (?)
     authors_dateinfo = {}
     authors_by_email = {}
     emails_by_author = {}
+
+    @classmethod
+    def empty(cls):
+        changes = Changes.__new__(Changes)
+        changes.commits = []
+        return changes
 
     def __init__(self, repo, hard, silent=False):
         self.commits = []

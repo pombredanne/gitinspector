@@ -122,9 +122,18 @@ class BlameThread(threading.Thread):
 
         __thread_lock__.release() # Lock controlling the number of threads running
 
+
 PROGRESS_TEXT = _("Checking how many rows belong to each author (2 of 2): {0:.0f}%")
 
+
 class Blame(object):
+
+    @classmethod
+    def empty(cls):
+        blame = Blame.__new__(Blame)
+        blame.blames = {}
+        return blame
+
     def __init__(self, repo, hard, useweeks, changes, silent=False):
         self.blames = {}
         ls_tree_p = subprocess.Popen(["git", "ls-tree", "--name-only", "-r",

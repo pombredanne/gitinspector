@@ -54,16 +54,17 @@ class Runner(object):
         if config.until:
             interval.set_until(config.until.strftime('%Y-%m-%d'))
 
-        self.changes = Changes.__new__(Changes)  # Changes object
-        self.blames = Blame.__new__(Blame)       # Blame object
-        self.metrics = None                      # MetricsLogic object
+        # The following objects are additive : they begin empty, and
+        # then one instance is added to the Runner for each repository
+        self.changes = Changes.empty()      # Changes object
+        self.blames = Blame.empty()         # Blame object
+        self.metrics = MetricsLogic.empty() # Metrics object
 
     def __load__(self):
         """
         Load a list of repositories `repos`, compute the changes, the
         blames and possibly the metrics.
         """
-        self.metrics = MetricsLogic.__new__(MetricsLogic)
         localization.check_compatibility(version.__version__)
 
         if not self.config.localize_output:
