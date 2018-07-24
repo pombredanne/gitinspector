@@ -18,7 +18,7 @@
 import shutil
 import unittest
 import zipfile
-from gitinspector.gitinspector import Runner, __get_validated_git_repos__, __parse_arguments__
+from gitinspector.gitinspector import Runner, FileWriter, __get_validated_git_repos__, __parse_arguments__
 
 
 # Test gitinspector over a git repository present in the resources/
@@ -38,6 +38,7 @@ class RepositoryTest(unittest.TestCase):
         opts = __parse_arguments__()
         opts.repositories = ["build/tests/repository"]
         opts.silent = True
+        opts.progress = False
         opts.file_types = "c,txt"
         opts.metrics = True
         # Launch runner
@@ -62,10 +63,26 @@ class RepositoryTest(unittest.TestCase):
         # Check the metrics
         self.assertEqual(r.metrics.eloc, {}) # Both files are too short, no metrics to report
 
-    def test_output(self):
+    def test_output_text(self):
         opts = __parse_arguments__()
         opts.repositories = ["build/tests/repository"]
+        opts.progress = False
+        opts.file_types = "c,txt"
+        opts.timeline = True
         opts.format = "text"
         # Launch runner
         r = Runner(opts)
+        r.out = FileWriter("/tmp/test.txt")
+        r.process()
+
+    def test_output_html(self):
+        opts = __parse_arguments__()
+        opts.repositories = ["build/tests/repository"]
+        opts.progress = False
+        opts.file_types = "c,txt"
+        opts.timeline = True
+        opts.format = "html"
+        # Launch runner
+        r = Runner(opts)
+        r.out = FileWriter("/tmp/test.html")
         r.process()

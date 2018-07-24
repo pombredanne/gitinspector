@@ -195,7 +195,7 @@ class Changes(object):
         changes.emails_by_author = {}
         return changes
 
-    def __init__(self, repo, hard, silent=False):
+    def __init__(self, repo, hard, progress=True):
         self.commits = []
         self.authors = {}
         self.authors_dateinfo = {}
@@ -226,7 +226,7 @@ class Changes(object):
                     ChangesThread.create(hard, self, first_hash, second_hash, i)
                     first_hash = entry + ".."
 
-                    if not(silent) and format.is_interactive_format():
+                    if progress and format.is_interactive_format():
                         terminal.output_progress(progress_text, i, len(lines))
             else:
                 if CHANGES_PER_THREAD - 1 != i % CHANGES_PER_THREAD:

@@ -33,6 +33,7 @@ class ChangesOutput(Outputable):
         Outputable.__init__(self)
         self.changes = runner.changes
         self.display = True
+        self.out = runner.out
 
     def output_html(self):
         authorinfo_list = self.changes.get_authorinfo_list()
@@ -98,7 +99,7 @@ class ChangesOutput(Outputable):
             changes_xml += "<p>" + _(NO_COMMITED_FILES_TEXT) + ".</p>"
 
         changes_xml += "</div></div>"
-        print(changes_xml)
+        self.out.writeln(changes_xml)
 
     def output_json(self):
         authorinfo_list = self.changes.get_authorinfo_list()
@@ -130,9 +131,9 @@ class ChangesOutput(Outputable):
             # Removing the last trailing ','
             changes_json = changes_json[:-1]
 
-            print("\t\t\"changes\": {\n" + message_json + "\t\t\t\"authors\": [\n\t\t\t" + changes_json + "]\n\t\t}", end="")
+            self.out.write("\t\t\"changes\": {\n" + message_json + "\t\t\t\"authors\": [\n\t\t\t" + changes_json + "]\n\t\t}")
         else:
-            print("\t\t\"exception\": \"" + _(NO_COMMITED_FILES_TEXT) + "\"")
+            self.out.writeln("\t\t\"exception\": \"" + _(NO_COMMITED_FILES_TEXT) + "\"")
 
     def output_text(self):
         authorinfo_list = self.changes.get_authorinfo_list()
@@ -143,22 +144,26 @@ class ChangesOutput(Outputable):
             total_changes += authorinfo_list.get(i).deletions
 
         if authorinfo_list:
-            print(textwrap.fill(_(HISTORICAL_INFO_TEXT) + ":", width=terminal.get_size()[0]) + "\n")
-            terminal.printb(terminal.ljust(_("Author"), 21) + terminal.rjust(_("Commits"), 13) +
+            self.out.writeln(textwrap.fill(_(HISTORICAL_INFO_TEXT) + ":", width=terminal.get_size()[0]))
+            self.out.writeln("")
+            terminal.writeb(self.out,
+                            terminal.ljust(_("Author"), 21) + terminal.rjust(_("Commits"), 13) +
                             terminal.rjust(_("Insertions"), 14) + terminal.rjust(_("Deletions"), 15) +
-                            terminal.rjust(_("% of changes"), 16))
+                            terminal.rjust(_("% of changes"), 16) + "\n")
 
             for i in sorted(authorinfo_list):
                 authorinfo = authorinfo_list.get(i)
-                percentage = 0 if total_changes == 0 else (authorinfo.insertions + authorinfo.deletions) / total_changes * 100
+                percentage = 0 if total_changes == 0 else \
+                             (authorinfo.insertions + authorinfo.deletions) / total_changes * 100
 
-                print(terminal.ljust(i, 20)[0:20 - terminal.get_excess_column_count(i)], end=" ")
-                print(str(authorinfo.commits).rjust(13), end=" ")
-                print(str(authorinfo.insertions).rjust(13), end=" ")
-                print(str(authorinfo.deletions).rjust(14), end=" ")
-                print("{0:.2f}".format(percentage).rjust(15))
+                self.out.write(terminal.ljust(i, 20)[0:20 - terminal.get_excess_column_count(i)])
+                self.out.write(str(authorinfo.commits).rjust(14))
+                self.out.write(str(authorinfo.insertions).rjust(14))
+                self.out.write(str(authorinfo.deletions).rjust(15))
+                self.out.writeln("{0:.2f}".format(percentage).rjust(16))
         else:
-            print(_(NO_COMMITED_FILES_TEXT) + ".")
+            self.out.writeln(_(NO_COMMITED_FILES_TEXT) + ".")
+        self.out.writeln("")
 
     def output_xml(self):
         authorinfo_list = self.changes.get_authorinfo_list()
@@ -184,9 +189,12 @@ class ChangesOutput(Outputable):
                 changes_xml += "\t\t\t\t<commits>" + str(authorinfo.commits) + "</commits>\n"
                 changes_xml += "\t\t\t\t<insertions>" + str(authorinfo.insertions) + "</insertions>\n"
                 changes_xml += "\t\t\t\t<deletions>" + str(authorinfo.deletions) + "</deletions>\n"
-                changes_xml += "\t\t\t\t<percentage-of-changes>" + "{0:.2f}".format(percentage) + "</percentage-of-changes>\n"
+                changes_xml += "\t\t\t\t<percentage-of-changes>" + "{0:.2f}".format(percentage) + \
+                               "</percentage-of-changes>\n"
                 changes_xml += "\t\t\t</author>\n"
 
-            print("\t<changes>\n" + message_xml + "\t\t<authors>\n" + changes_xml + "\t\t</authors>\n\t</changes>")
+            self.out.writeln("\t<changes>\n" + message_xml + "\t\t<authors>\n" +
+                             changes_xml + "\t\t</authors>\n\t</changes>")
         else:
-            print("\t<changes>\n\t\t<exception>" + _(NO_COMMITED_FILES_TEXT) + "</exception>\n\t</changes>")
+            self.out.writeln("\t<changes>\n\t\t<exception>" + _(NO_COMMITED_FILES_TEXT) +
+                             "</exception>\n\t</changes>")

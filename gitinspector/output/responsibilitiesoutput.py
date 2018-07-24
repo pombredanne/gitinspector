@@ -35,22 +35,25 @@ class ResponsibilitiesOutput(Outputable):
         self.changes = runner.changes
         self.blame = runner.blames
         self.display = bool(runner.changes.commits) and bool(runner.config.responsibilities)
+        self.out = runner.out
 
     def output_text(self):
-        print("\n" + textwrap.fill(_(RESPONSIBILITIES_INFO_TEXT) + ":", width=terminal.get_size()[0]))
+        self.out.writeln("\n" + textwrap.fill(_(RESPONSIBILITIES_INFO_TEXT) + ":",
+                                              width=terminal.get_size()[0]))
 
         for i in sorted(set(i[0] for i in self.blame.blames)):
-            responsibilities = sorted(((i[1], i[0]) for i in resp.Responsibilities.get(self.blame, i)), reverse=True)
+            responsibilities = sorted(((i[1], i[0]) for i in resp.Responsibilities.get(self.blame, i)),
+                                      reverse=True)
 
             if responsibilities:
-                print("\n" + i, _(MOSTLY_RESPONSIBLE_FOR_TEXT) + ":")
+                self.out.writeln("\n" + i + _(MOSTLY_RESPONSIBLE_FOR_TEXT) + ":")
 
                 for j, entry in enumerate(responsibilities):
                     (width, _unused) = terminal.get_size()
                     width -= 7
 
-                    print(str(entry[0]).rjust(6), end=" ")
-                    print("...%s" % entry[1][-width+3:] if len(entry[1]) > width else entry[1])
+                    self.out.write(str(entry[0]).rjust(6) + " ")
+                    self.out.writeln("...%s" % entry[1][-width+3:] if len(entry[1]) > width else entry[1])
 
                     if j >= 9:
                         break
@@ -80,7 +83,7 @@ class ResponsibilitiesOutput(Outputable):
 
                 resp_xml += "</div>"
         resp_xml += "</div></div>"
-        print(resp_xml)
+        self.out.writeln(resp_xml)
 
     def output_json(self):
         message_json = "\t\t\t\"message\": \"" + _(RESPONSIBILITIES_INFO_TEXT) + "\",\n"
@@ -111,7 +114,8 @@ class ResponsibilitiesOutput(Outputable):
                 resp_json += "]\n\t\t\t},"
 
         resp_json = resp_json[:-1]
-        print(",\n\t\t\"responsibilities\": {\n" + message_json + "\t\t\t\"authors\": [\n\t\t\t" + resp_json + "]\n\t\t}", end="")
+        self.out.write(",\n\t\t\"responsibilities\": {\n" + message_json + "\t\t\t\"authors\": [\n\t\t\t" +
+                       resp_json + "]\n\t\t}")
 
     def output_xml(self):
         message_xml = "\t\t<message>" + _(RESPONSIBILITIES_INFO_TEXT) + "</message>\n"
@@ -140,4 +144,5 @@ class ResponsibilitiesOutput(Outputable):
                 resp_xml += "\t\t\t\t</files>\n"
                 resp_xml += "\t\t\t</author>\n"
 
-        print("\t<responsibilities>\n" + message_xml + "\t\t<authors>\n" + resp_xml + "\t\t</authors>\n\t</responsibilities>")
+        self.out.writeln("\t<responsibilities>\n" + message_xml + "\t\t<authors>\n" + resp_xml +
+                         "\t\t</authors>\n\t</responsibilities>")

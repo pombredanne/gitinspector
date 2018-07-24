@@ -20,6 +20,7 @@
 import argparse
 import atexit
 import datetime
+import io
 import os
 import sys
 from .blame import Blame
@@ -36,10 +37,31 @@ from .format import __available_formats__
 
 localization.init()
 
+class StringWriter(io.StringIO):
+    def __init__(self):
+        io.StringIO.__init__(self)
+    def writeln(self, string):
+        self.write(string + "\n")
+    def close(self):
+        print(self.getvalue())
+        io.StringIO.close(self)
+
+
+class FileWriter(object):
+    def __init__(self, file):
+        self.file = open(file, "w")
+    def write(self, string):
+        self.file.write(string)
+    def writeln(self, string):
+        self.file.write(string + "\n")
+    def close(self):
+        self.file.close()
+
 
 class Runner(object):
     def __init__(self, config):
-        self.config = config   # Namespace object containing the config
+        self.config = config  # Namespace object containing the config
+        self.out = StringWriter()   # Buffer for containing the output
 
         # Initialize a list of Repository objects
         self.repos = __get_validated_git_repos__(config.repositories)
@@ -77,15 +99,15 @@ class Runner(object):
         for repo in self.repos:
             os.chdir(repo.location)
             repo = repo if len(self.repos) > 1 else None
-            repo_changes = Changes(repo, self.config.hard, silent=self.config.silent)
+            repo_changes = Changes(repo, self.config.hard, progress=self.config.progress)
             self.blames += Blame(repo, self.config.hard, self.config.weeks,
-                                 repo_changes, silent=self.config.silent)
+                                 repo_changes, progress=self.config.progress)
             self.changes += repo_changes
 
             if self.config.metrics:
                 self.metrics += MetricsLogic()
 
-            if not(self.config.silent) and sys.stdout.isatty() and format.is_interactive_format():
+            if self.config.progress and sys.stdout.isatty() and format.is_interactive_format():
                 terminal.clear_row()
 
         os.chdir(previous_directory)
@@ -97,11 +119,12 @@ class Runner(object):
         if self.config.silent:
             return
 
-        format.output_header(self.repos)
+        format.output_header(self)
         for out in outputable.Outputable.list():
             out(self).output()
+        format.output_footer(self)
 
-        format.output_footer()
+        self.out.close()
 
     def process(self):
         """
@@ -109,7 +132,6 @@ class Runner(object):
         """
         self.__load__()
         self.__output__()
-
 
 def __check_python_version__():
     """
@@ -206,6 +228,7 @@ def __parse_arguments__():
                          "be in [ 'file', 'author', 'email', 'revision', 'message' ]"))
 
     namespace = parser.parse_args()
+    namespace.progress = True  # Display progress messages
 
     if namespace.grading:
         namespace.metrics = True

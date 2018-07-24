@@ -65,7 +65,8 @@ def __get_zip_file_content__(name, file_name="/html/flot.zip"):
 INFO_ONE_REPOSITORY = _("Statistical information for the repository '{0}' was gathered on {1}.")
 INFO_MANY_REPOSITORIES = _("Statistical information for the repositories '{0}' was gathered on {1}.")
 
-def output_header(repos):
+def output_header(runner):
+    repos = runner.repos
     repos_string = ", ".join([repo.name for repo in repos])
 
     if __selected_format__ == "html" or __selected_format__ == "htmlembedded":
@@ -88,7 +89,7 @@ def output_header(repos):
         else:
             jquery_js = " src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js\">"
 
-        print(html_header.format(title=_("Repository statistics for '{0}'").format(repos_string),
+        runner.out.writeln(html_header.format(title=_("Repository statistics for '{0}'").format(repos_string),
                                  jquery=jquery_js,
                                  jquery_tablesorter=tablesorter_js,
                                  jquery_flot=flot_js,
@@ -106,47 +107,48 @@ def output_header(repos):
                                  show_minor_rows=_("Show rows with minor work"),
                                  hide_minor_rows=_("Hide rows with minor work")))
     elif __selected_format__ == "json":
-        print("{\n\t\"gitinspector\": {")
-        print("\t\t\"version\": \"" + version.__version__ + "\",")
+        runner.out.writeln("{\n\t\"gitinspector\": {")
+        runner.out.writeln("\t\t\"version\": \"" + version.__version__ + "\",")
 
         if len(repos) <= 1:
-            print("\t\t\"repository\": \"" + repos_string + "\",")
+            runner.out.writeln("\t\t\"repository\": \"" + repos_string + "\",")
         else:
             repos_json = "\t\t\"repositories\": [ "
 
             for repo in repos:
                 repos_json += "\"" + repo.name + "\", "
 
-            print(repos_json[:-2] + " ],")
+            runner.out.writeln(repos_json[:-2] + " ],")
 
-        print("\t\t\"report_date\": \"" + time.strftime("%Y/%m/%d") + "\",")
+        runner.out.writeln("\t\t\"report_date\": \"" + time.strftime("%Y/%m/%d") + "\",")
 
     elif __selected_format__ == "xml":
-        print("<gitinspector>")
-        print("\t<version>" + version.__version__ + "</version>")
+        runner.out.writeln("<gitinspector>")
+        runner.out.writeln("\t<version>" + version.__version__ + "</version>")
 
         if len(repos) <= 1:
-            print("\t<repository>" + repos_string + "</repository>")
+            runner.out.writeln("\t<repository>" + repos_string + "</repository>")
         else:
-            print("\t<repositories>")
+            runner.out.writeln("\t<repositories>")
 
             for repo in repos:
-                print("\t\t<repository>" + repo.name + "</repository>")
+                runner.out.writeln("\t\t<repository>" + repo.name + "</repository>")
 
-            print("\t</repositories>")
+            runner.out.writeln("\t</repositories>")
 
-        print("\t<report-date>" + time.strftime("%Y/%m/%d") + "</report-date>")
+        runner.out.writeln("\t<report-date>" + time.strftime("%Y/%m/%d") + "</report-date>")
     else:
-        print(textwrap.fill(_(INFO_ONE_REPOSITORY if len(repos) <= 1 else
-                              INFO_MANY_REPOSITORIES).format(repos_string, localization.get_date()),
-                            width=terminal.get_size()[0]))
+        runner.out.writeln(textwrap.fill(_(INFO_ONE_REPOSITORY if len(repos) <= 1 else
+                                           INFO_MANY_REPOSITORIES).format(repos_string,
+                                                                          localization.get_date()),
+                                         width=terminal.get_size()[0]))
 
-def output_footer():
+def output_footer(runner):
     if __selected_format__ == "html" or __selected_format__ == "htmlembedded":
         base = basedir.get_basedir()
         html_footer = __output_html_template__(base + "/html/html.footer")
-        print(html_footer)
+        runner.out.writeln(html_footer)
     elif __selected_format__ == "json":
-        print("\n\t}\n}")
+        runner.out.writeln("\n\t}\n}")
     elif __selected_format__ == "xml":
-        print("</gitinspector>")
+        runner.out.writeln("</gitinspector>")
