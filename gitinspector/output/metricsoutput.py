@@ -72,7 +72,7 @@ class MetricsOutput(Outputable):
         if self.metrics.eloc:
             metrics_xml += "<div><h4>" + _(ELOC_INFO_TEXT) + ".</h4>"
             for num, i in enumerate(sorted(set([(j, i) for (i, j) in self.metrics.eloc.items()]), reverse=True)):
-                metrics_xml += "<div class=\"" + __get_metrics_score__(__metric_eloc__[FileDiff.get_extension(i[1])], i[0]) + \
+                metrics_xml += "<div class=\"" + str(__get_metrics_score__(__metric_eloc__[FileDiff.get_extension(i[1])], i[0])) + \
                            (" odd\">" if num % 2 == 1 else "\">") + \
                            _("{0} ({1} estimated lines of code)").format(i[1], str(i[0])) + "</div>"
             metrics_xml += "</div>"
@@ -80,7 +80,7 @@ class MetricsOutput(Outputable):
         if self.metrics.cyclomatic_complexity:
             metrics_xml += "<div><h4>" +  _(CYCLOMATIC_COMPLEXITY_TEXT) + "</h4>"
             for num, i in enumerate(sorted(set([(j, i) for (i, j) in self.metrics.cyclomatic_complexity.items()]), reverse=True)):
-                metrics_xml += "<div class=\"" + __get_metrics_score__(METRIC_CYCLOMATIC_COMPLEXITY_THRESHOLD, i[0]) + \
+                metrics_xml += "<div class=\"" + str(__get_metrics_score__(METRIC_CYCLOMATIC_COMPLEXITY_THRESHOLD, i[0])) + \
                            (" odd\">" if num % 2 == 1 else "\">") + \
                            _("{0} ({1} in cyclomatic complexity)").format(i[1], str(i[0])) + "</div>"
             metrics_xml += "</div>"
@@ -89,7 +89,7 @@ class MetricsOutput(Outputable):
             metrics_xml += "<div><h4>" +  _(CYCLOMATIC_COMPLEXITY_DENSITY_TEXT) + "</h4>"
             for num, i in \
                 enumerate(sorted(set([(j, i) for (i, j) in self.metrics.cyclomatic_complexity_density.items()]), reverse=True)):
-                metrics_xml += "<div class=\"" + __get_metrics_score__(METRIC_CYCLOMATIC_COMPLEXITY_DENSITY_THRESHOLD, i[0]) + \
+                metrics_xml += "<div class=\"" + str(__get_metrics_score__(METRIC_CYCLOMATIC_COMPLEXITY_DENSITY_THRESHOLD, i[0])) + \
                            (" odd\">" if num % 2 == 1 else "\">") + \
                            _("{0} ({1:.3f} in cyclomatic complexity density)").format(i[1], i[0]) + "</div>"
             metrics_xml += "</div>"
