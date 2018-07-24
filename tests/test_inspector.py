@@ -15,19 +15,25 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
-import os
+import shutil
 import unittest
 import zipfile
 from gitinspector.gitinspector import Runner, __get_validated_git_repos__, __parse_arguments__
-import gitinspector.extensions as extensions
+
 
 # Test gitinspector over a git repository present in the resources/
 # dir, count the changes and the blames and check the metrics.
 class RepositoryTest(unittest.TestCase):
-    def test(self):
+
+    def setUp(self):
         zip_ref = zipfile.ZipFile("tests/resources/repository.zip", 'r')
         zip_ref.extractall("build/tests")
         zip_ref.close()
+
+    def tearDown(self):
+        shutil.rmtree("build/tests/repository")
+
+    def test_process(self):
         # Set options
         opts = __parse_arguments__()
         opts.repositories = ["build/tests/repository"]
@@ -55,3 +61,11 @@ class RepositoryTest(unittest.TestCase):
         self.assertEqual(r.blames.blames[blame_keys[1]].rows, 6) # main.c     is 6 lines long
         # Check the metrics
         self.assertEqual(r.metrics.eloc, {}) # Both files are too short, no metrics to report
+
+    def test_output(self):
+        opts = __parse_arguments__()
+        opts.repositories = ["build/tests/repository"]
+        opts.format = "text"
+        # Launch runner
+        r = Runner(opts)
+        r.process()
