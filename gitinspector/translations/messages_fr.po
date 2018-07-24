@@ -56,10 +56,13 @@ msgstr ""
 "courante est reporté ci-dessous"
 
 #, python-brace-format
+msgid "Fetching and calculating primary statistics (1 of 2): {0:.0f}%"
+msgstr "Récupération et calcul des statistiques primaires (1 / 2) : {0:.0f}%"
+
+#, python-brace-format
 msgid "Checking how many rows belong to each author (2 of 2): {0:.0f}%"
 msgstr ""
-"Contrôle du nombre de lignes appartenant à chaque auteur (2 / 2) : "
-"{0:.0f}%"
+"Contrôle du nombre de lignes appartenant à chaque auteur (2 / 2) : {0:.0f}%"
 
 msgid "Commits"
 msgstr "Soumissions"
