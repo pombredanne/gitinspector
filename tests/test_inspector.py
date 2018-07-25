@@ -15,10 +15,23 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
+import hashlib
+import locale
+import gitinspector.localization as localization
+import os
 import shutil
+import tempfile
 import unittest
 import zipfile
-from gitinspector.gitinspector import Runner, FileWriter, __get_validated_git_repos__, __parse_arguments__
+from gitinspector.gitinspector import Runner, FileWriter, StdoutWriter, __parse_arguments__
+
+
+def file_md5(fname):
+    hash_md5 = hashlib.md5()
+    with open(fname, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
 
 
 # Test gitinspector over a git repository present in the resources/
@@ -30,8 +43,8 @@ class RepositoryTest(unittest.TestCase):
         zip_ref.extractall("build/tests")
         zip_ref.close()
 
-    def tearDown(self):
-        shutil.rmtree("build/tests/repository")
+    # def tearDown(self):
+    #     shutil.rmtree("build/tests/repository")
 
     def test_process(self):
         # Set options
@@ -71,8 +84,17 @@ class RepositoryTest(unittest.TestCase):
         opts.timeline = True
         opts.format = "text"
         # Launch runner
-        r = Runner(opts, FileWriter("/tmp/test.txt"))
+        localization.init_null()
+        file = tempfile.NamedTemporaryFile('w', delete=False)
+        r = Runner(opts, FileWriter(file))
         r.process()
+        with open(file.name, 'r') as f:
+            contents = f.read()
+            self.assertTrue("Statistical information" in contents)
+            self.assertTrue("The following historical commit" in contents)
+            self.assertTrue("Below are the number of rows" in contents)
+            self.assertTrue("The following history timeline" in contents)
+        os.remove(file.name)
 
     def test_output_html(self):
         opts = __parse_arguments__()
@@ -82,5 +104,14 @@ class RepositoryTest(unittest.TestCase):
         opts.timeline = True
         opts.format = "html"
         # Launch runner
-        r = Runner(opts, FileWriter("/tmp/test.html"))
+        localization.init_null()
+        file = tempfile.NamedTemporaryFile('w', delete=False)
+        r = Runner(opts, FileWriter(file))
         r.process()
+        with open(file.name, 'r') as f:
+            contents = f.read()
+            self.assertTrue("Statistical information" in contents)
+            self.assertTrue("The following historical commit" in contents)
+            self.assertTrue("Below are the number of rows" in contents)
+            self.assertTrue("The following history timeline" in contents)
+        os.remove(file.name)
