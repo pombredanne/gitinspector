@@ -22,8 +22,8 @@ import textwrap
 from .. import format, gravatar, terminal
 from .outputable import Outputable
 
-HISTORICAL_INFO_TEXT = _("The following historical commit information, by author, was found in the repository")
-NO_COMMITED_FILES_TEXT = _("No commited files with the specified extensions were found")
+HISTORICAL_INFO_TEXT = lambda: _("The following historical commit information, by author, was found in the repository")
+NO_COMMITED_FILES_TEXT = lambda: _("No commited files with the specified extensions were found")
 
 
 class ChangesOutput(Outputable):
@@ -46,7 +46,7 @@ class ChangesOutput(Outputable):
             total_changes += authorinfo_list.get(i).deletions
 
         if authorinfo_list:
-            changes_xml += "<p>" + _(HISTORICAL_INFO_TEXT) + ".</p><div><table id=\"changes\" class=\"git\">"
+            changes_xml += "<p>" + HISTORICAL_INFO_TEXT() + ".</p><div><table id=\"changes\" class=\"git\">"
             changes_xml += "<thead><tr><th>{0}</th> <th>{1}</th> <th>{2}</th> <th>{3}</th> <th>{4}</th>".format(_("Author"),
                                                                                                                 _("Commits"),
                                                                                                                 _("Insertions"),
@@ -96,7 +96,7 @@ class ChangesOutput(Outputable):
             changes_xml += "    });"
             changes_xml += "</script>"
         else:
-            changes_xml += "<p>" + _(NO_COMMITED_FILES_TEXT) + ".</p>"
+            changes_xml += "<p>" + NO_COMMITED_FILES_TEXT() + ".</p>"
 
         changes_xml += "</div></div>"
         self.out.writeln(changes_xml)
@@ -110,7 +110,7 @@ class ChangesOutput(Outputable):
             total_changes += authorinfo_list.get(i).deletions
 
         if authorinfo_list:
-            message_json = "\t\t\t\"message\": \"" + _(HISTORICAL_INFO_TEXT) + "\",\n"
+            message_json = "\t\t\t\"message\": \"" + HISTORICAL_INFO_TEXT() + "\",\n"
             changes_json = ""
 
             for i in sorted(authorinfo_list):
@@ -133,7 +133,7 @@ class ChangesOutput(Outputable):
 
             self.out.write("\t\t\"changes\": {\n" + message_json + "\t\t\t\"authors\": [\n\t\t\t" + changes_json + "]\n\t\t}")
         else:
-            self.out.writeln("\t\t\"exception\": \"" + _(NO_COMMITED_FILES_TEXT) + "\"")
+            self.out.writeln("\t\t\"exception\": \"" + NO_COMMITED_FILES_TEXT() + "\"")
 
     def output_text(self):
         authorinfo_list = self.changes.get_authorinfo_list()
@@ -144,7 +144,7 @@ class ChangesOutput(Outputable):
             total_changes += authorinfo_list.get(i).deletions
 
         if authorinfo_list:
-            self.out.writeln(textwrap.fill(_(HISTORICAL_INFO_TEXT) + ":", width=terminal.get_size()[0]))
+            self.out.writeln(textwrap.fill(HISTORICAL_INFO_TEXT() + ":", width=terminal.get_size()[0]))
             self.out.writeln("")
             terminal.writeb(self.out,
                             terminal.ljust(_("Author"), 21) + terminal.rjust(_("Commits"), 13) +
@@ -162,7 +162,7 @@ class ChangesOutput(Outputable):
                 self.out.write(str(authorinfo.deletions).rjust(15))
                 self.out.writeln("{0:.2f}".format(percentage).rjust(16))
         else:
-            self.out.writeln(_(NO_COMMITED_FILES_TEXT) + ".")
+            self.out.writeln(NO_COMMITED_FILES_TEXT() + ".")
         self.out.writeln("")
 
     def output_xml(self):
@@ -174,7 +174,7 @@ class ChangesOutput(Outputable):
             total_changes += authorinfo_list.get(i).deletions
 
         if authorinfo_list:
-            message_xml = "\t\t<message>" + _(HISTORICAL_INFO_TEXT) + "</message>\n"
+            message_xml = "\t\t<message>" + HISTORICAL_INFO_TEXT() + "</message>\n"
             changes_xml = ""
 
             for i in sorted(authorinfo_list):
@@ -196,5 +196,5 @@ class ChangesOutput(Outputable):
             self.out.writeln("\t<changes>\n" + message_xml + "\t\t<authors>\n" +
                              changes_xml + "\t\t</authors>\n\t</changes>")
         else:
-            self.out.writeln("\t<changes>\n\t\t<exception>" + _(NO_COMMITED_FILES_TEXT) +
+            self.out.writeln("\t<changes>\n\t\t<exception>" + NO_COMMITED_FILES_TEXT() +
                              "</exception>\n\t</changes>")

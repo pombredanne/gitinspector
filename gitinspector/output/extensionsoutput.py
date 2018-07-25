@@ -22,8 +22,8 @@ from .. import extensions, terminal
 from .outputable import Outputable
 
 
-EXTENSIONS_INFO_TEXT = _("The extensions below were found in the repository history")
-EXTENSIONS_MARKED_TEXT = _("(extensions used during statistical analysis are marked)")
+EXTENSIONS_INFO_TEXT = lambda: _("The extensions below were found in the repository history")
+EXTENSIONS_MARKED_TEXT = lambda: _("(extensions used during statistical analysis are marked)")
 
 class ExtensionsOutput(Outputable):
     output_order = 700
@@ -43,7 +43,7 @@ class ExtensionsOutput(Outputable):
     def output_html(self):
         if extensions.__located_extensions__:
             extensions_xml = "<div><div class=\"box\">"
-            extensions_xml += "<p>{0} {1}.</p><p>".format(_(EXTENSIONS_INFO_TEXT), _(EXTENSIONS_MARKED_TEXT))
+            extensions_xml += "<p>{0} {1}.</p><p>".format(EXTENSIONS_INFO_TEXT(), EXTENSIONS_MARKED_TEXT())
 
             for i in sorted(extensions.__located_extensions__):
                 if ExtensionsOutput.is_marked(i):
@@ -57,7 +57,7 @@ class ExtensionsOutput(Outputable):
 
     def output_json(self):
         if extensions.__located_extensions__:
-            message_json = "\t\t\t\"message\": \"" + _(EXTENSIONS_INFO_TEXT) + "\",\n"
+            message_json = "\t\t\t\"message\": \"" + EXTENSIONS_INFO_TEXT() + "\",\n"
             used_extensions_json = ""
             unused_extensions_json = ""
 
@@ -77,8 +77,8 @@ class ExtensionsOutput(Outputable):
     def output_text(self):
         if extensions.__located_extensions__:
             self.out.writeln("\n" +
-                             textwrap.fill("{0} {1}:".format(_(EXTENSIONS_INFO_TEXT),
-                                                             _(EXTENSIONS_MARKED_TEXT)),
+                             textwrap.fill("{0} {1}:".format(EXTENSIONS_INFO_TEXT(),
+                                                             EXTENSIONS_MARKED_TEXT()),
                                            width=terminal.get_size()[0]))
 
             for i in sorted(extensions.__located_extensions__):
@@ -89,7 +89,7 @@ class ExtensionsOutput(Outputable):
 
     def output_xml(self):
         if extensions.__located_extensions__:
-            message_xml = "\t\t<message>" + _(EXTENSIONS_INFO_TEXT) + "</message>\n"
+            message_xml = "\t\t<message>" + EXTENSIONS_INFO_TEXT() + "</message>\n"
             used_extensions_xml = ""
             unused_extensions_xml = ""
 

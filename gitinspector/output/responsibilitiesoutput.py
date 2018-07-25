@@ -22,10 +22,10 @@ from .. import format, gravatar, terminal
 from .. import responsibilities as resp
 from .outputable import Outputable
 
-RESPONSIBILITIES_INFO_TEXT = _("The following responsibilities, by author, were found in the current "
+RESPONSIBILITIES_INFO_TEXT = lambda: _("The following responsibilities, by author, were found in the current "
                                 "revision of the repository (comments are excluded from the line count, "
                                 "if possible)")
-MOSTLY_RESPONSIBLE_FOR_TEXT = _("is mostly responsible for")
+MOSTLY_RESPONSIBLE_FOR_TEXT = lambda: _("is mostly responsible for")
 
 class ResponsibilitiesOutput(Outputable):
     output_order = 500
@@ -38,7 +38,7 @@ class ResponsibilitiesOutput(Outputable):
         self.out = runner.out
 
     def output_text(self):
-        self.out.writeln("\n" + textwrap.fill(_(RESPONSIBILITIES_INFO_TEXT) + ":",
+        self.out.writeln("\n" + textwrap.fill(RESPONSIBILITIES_INFO_TEXT() + ":",
                                               width=terminal.get_size()[0]))
 
         for i in sorted(set(i[0] for i in self.blame.blames)):
@@ -46,7 +46,7 @@ class ResponsibilitiesOutput(Outputable):
                                       reverse=True)
 
             if responsibilities:
-                self.out.writeln("\n" + i + _(MOSTLY_RESPONSIBLE_FOR_TEXT) + ":")
+                self.out.writeln("\n" + i + MOSTLY_RESPONSIBLE_FOR_TEXT() + ":")
 
                 for j, entry in enumerate(responsibilities):
                     (width, _unused) = terminal.get_size()
@@ -60,7 +60,7 @@ class ResponsibilitiesOutput(Outputable):
 
     def output_html(self):
         resp_xml = "<div><div class=\"box\" id=\"responsibilities\">"
-        resp_xml += "<p>" + _(RESPONSIBILITIES_INFO_TEXT) + ".</p>"
+        resp_xml += "<p>" + RESPONSIBILITIES_INFO_TEXT() + ".</p>"
 
         for i in sorted(set(i[0] for i in self.blame.blames)):
             responsibilities = sorted(((i[1], i[0]) for i in resp.Responsibilities.get(self.blame, i)), reverse=True)
@@ -71,9 +71,9 @@ class ResponsibilitiesOutput(Outputable):
                 if format.get_selected() == "html":
                     author_email = self.changes.get_latest_email_by_author(i)
                     resp_xml += "<h3><img src=\"{0}\"/>{1} {2}</h3>".format(gravatar.get_url(author_email, size=32),
-                                                                            i, _(MOSTLY_RESPONSIBLE_FOR_TEXT))
+                                                                            i, MOSTLY_RESPONSIBLE_FOR_TEXT())
                 else:
-                    resp_xml += "<h3>{0} {1}</h3>".format(i, _(MOSTLY_RESPONSIBLE_FOR_TEXT))
+                    resp_xml += "<h3>{0} {1}</h3>".format(i, MOSTLY_RESPONSIBLE_FOR_TEXT())
 
                 for j, entry in enumerate(responsibilities):
                     resp_xml += "<div" + (" class=\"odd\">" if j % 2 == 1 else ">") + entry[1] + \
@@ -86,7 +86,7 @@ class ResponsibilitiesOutput(Outputable):
         self.out.writeln(resp_xml)
 
     def output_json(self):
-        message_json = "\t\t\t\"message\": \"" + _(RESPONSIBILITIES_INFO_TEXT) + "\",\n"
+        message_json = "\t\t\t\"message\": \"" + RESPONSIBILITIES_INFO_TEXT() + "\",\n"
         resp_json = ""
 
         for i in sorted(set(i[0] for i in self.blame.blames)):
@@ -118,7 +118,7 @@ class ResponsibilitiesOutput(Outputable):
                        resp_json + "]\n\t\t}")
 
     def output_xml(self):
-        message_xml = "\t\t<message>" + _(RESPONSIBILITIES_INFO_TEXT) + "</message>\n"
+        message_xml = "\t\t<message>" + RESPONSIBILITIES_INFO_TEXT() + "</message>\n"
         resp_xml = ""
 
         for i in sorted(set(i[0] for i in self.blame.blames)):
