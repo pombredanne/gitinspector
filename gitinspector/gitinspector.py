@@ -148,7 +148,7 @@ def __get_validated_git_repos__(repos_relative):
     Convert a list of paths into a list of Repository objects.
     """
     if not repos_relative:
-        repos_relative = [ "." ]
+        repos_relative = ["."]
 
     repos = []
 
