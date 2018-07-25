@@ -65,6 +65,12 @@ def init():
         __installed__ = True
         __translation__.install(True)
 
+
+def init_null():
+    __translation__ = gettext.NullTranslations()
+    __translation__.install(True)
+
+
 def check_compatibility(version):
     if isinstance(__translation__, gettext.GNUTranslations):
         header_pattern = re.compile("^([^:\n]+): *(.*?) *$", re.MULTILINE)
