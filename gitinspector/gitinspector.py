@@ -49,7 +49,7 @@ class StdoutWriter(io.StringIO):
 
 class FileWriter(object):
     def __init__(self, file):
-        self.file = open(file, "w")
+        self.file = file
     def write(self, string):
         self.file.write(string)
     def writeln(self, string):
@@ -89,8 +89,8 @@ class Runner(object):
         """
         localization.check_compatibility(version.__version__)
 
-        if not self.config.localize_output:
-            localization.disable()
+        # if not self.config.localize_output:
+        #     localization.disable()
 
         terminal.skip_escapes(not sys.stdout.isatty())
         terminal.set_stdout_encoding()
