@@ -17,15 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
-try:
-    from shlex import quote
-except ImportError:
-    from pipes import quote
+from shlex import quote
 
 __since__ = ""
-
 __until__ = ""
-
 __ref__ = "HEAD"
 
 def has_interval():

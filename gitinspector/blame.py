@@ -22,7 +22,6 @@ import multiprocessing
 import re
 import subprocess
 import threading
-from .localization import N_
 from .changes import FileDiff
 from . import comment, extensions, filtering, format, interval, terminal
 
@@ -123,10 +122,19 @@ class BlameThread(threading.Thread):
 
         __thread_lock__.release() # Lock controlling the number of threads running
 
-PROGRESS_TEXT = N_("Checking how many rows belong to each author (2 of 2): {0:.0f}%")
+
+PROGRESS_TEXT = _("Checking how many rows belong to each author (2 of 2): {0:.0f}%")
+
 
 class Blame(object):
-    def __init__(self, repo, hard, useweeks, changes, silent=False):
+
+    @classmethod
+    def empty(cls):
+        blame = Blame.__new__(Blame)
+        blame.blames = {}
+        return blame
+
+    def __init__(self, repo, hard, useweeks, changes, progress=True):
         self.blames = {}
         ls_tree_p = subprocess.Popen(["git", "ls-tree", "--name-only", "-r",
                                       interval.get_ref()], bufsize=1,
@@ -156,7 +164,7 @@ class Blame(object):
                     thread.daemon = True
                     thread.start()
 
-                    if format.is_interactive_format() and not silent:
+                    if progress and format.is_interactive_format():
                         terminal.output_progress(progress_text, i, len(lines))
 
             # Make sure all threads have completed.

@@ -90,6 +90,9 @@ def skip_escapes(skip):
 def printb(string):
     print(__bold__ + string + __normal__)
 
+def writeb(out, string):
+    out.write(__bold__ + string + __normal__)
+
 def get_size():
     width = 0
     height = 0

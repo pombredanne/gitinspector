@@ -30,9 +30,6 @@ __installed__ = False
 __translation__ = None
 
 #Dummy function used to handle string constants
-def N_(message):
-    return message
-
 def init():
     global __enabled__
     global __installed__
@@ -68,12 +65,19 @@ def init():
         __installed__ = True
         __translation__.install(True)
 
+
+def init_null():
+    __translation__ = gettext.NullTranslations()
+    __translation__.install(True)
+
+
 def check_compatibility(version):
     if isinstance(__translation__, gettext.GNUTranslations):
         header_pattern = re.compile("^([^:\n]+): *(.*?) *$", re.MULTILINE)
         header_entries = dict(header_pattern.findall(_("")))
 
-        if header_entries["Project-Id-Version"] != "gitinspector {0}".format(version):
+        if "Project-Id-Version" in header_entries.keys() and \
+           header_entries["Project-Id-Version"] != "gitinspector {0}".format(version):
             print("WARNING: The translation for your system locale is not up to date with the current gitinspector "
                   "version. The current maintainer of this locale is {0}.".format(header_entries["Last-Translator"]),
                   file=sys.stderr)

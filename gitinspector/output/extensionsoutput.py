@@ -18,21 +18,20 @@
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
 import textwrap
-from ..localization import N_
 from .. import extensions, terminal
 from .outputable import Outputable
 
 
-EXTENSIONS_INFO_TEXT = N_("The extensions below were found in the repository history")
-EXTENSIONS_MARKED_TEXT = N_("(extensions used during statistical analysis are marked)")
+EXTENSIONS_INFO_TEXT = lambda: _("The extensions below were found in the repository history")
+EXTENSIONS_MARKED_TEXT = lambda: _("(extensions used during statistical analysis are marked)")
 
 class ExtensionsOutput(Outputable):
     output_order = 700
 
-    def __init__(self, repos):
+    def __init__(self, runner):
         Outputable.__init__(self)
-        self.display = bool(repos.changes.commits) and bool(repos.list_file_types)
-
+        self.display = bool(runner.changes.commits) and bool(runner.config.list_file_types)
+        self.out = runner.out
 
     @staticmethod
     def is_marked(extension):
@@ -44,7 +43,7 @@ class ExtensionsOutput(Outputable):
     def output_html(self):
         if extensions.__located_extensions__:
             extensions_xml = "<div><div class=\"box\">"
-            extensions_xml += "<p>{0} {1}.</p><p>".format(_(EXTENSIONS_INFO_TEXT), _(EXTENSIONS_MARKED_TEXT))
+            extensions_xml += "<p>{0} {1}.</p><p>".format(EXTENSIONS_INFO_TEXT(), EXTENSIONS_MARKED_TEXT())
 
             for i in sorted(extensions.__located_extensions__):
                 if ExtensionsOutput.is_marked(i):
@@ -54,11 +53,11 @@ class ExtensionsOutput(Outputable):
                 extensions_xml += " "
 
             extensions_xml += "</p></div></div>"
-            print(extensions_xml)
+            self.out.writeln(extensions_xml)
 
     def output_json(self):
         if extensions.__located_extensions__:
-            message_json = "\t\t\t\"message\": \"" + _(EXTENSIONS_INFO_TEXT) + "\",\n"
+            message_json = "\t\t\t\"message\": \"" + EXTENSIONS_INFO_TEXT() + "\",\n"
             used_extensions_json = ""
             unused_extensions_json = ""
 
@@ -71,24 +70,26 @@ class ExtensionsOutput(Outputable):
             used_extensions_json = used_extensions_json[:-2]
             unused_extensions_json = unused_extensions_json[:-2]
 
-            print(",\n\t\t\"extensions\": {\n" + message_json + "\t\t\t\"used\": [ " + used_extensions_json +
-                  " ],\n\t\t\t\"unused\": [ " + unused_extensions_json + " ]\n" + "\t\t}", end="")
+            self.out.write(",\n\t\t\"extensions\": {\n" + message_json + "\t\t\t\"used\": [ " +
+                           used_extensions_json + " ],\n\t\t\t\"unused\": [ " +
+                           unused_extensions_json + " ]\n" + "\t\t}")
 
     def output_text(self):
         if extensions.__located_extensions__:
-            print("\n" + textwrap.fill("{0} {1}:".format(_(EXTENSIONS_INFO_TEXT), _(EXTENSIONS_MARKED_TEXT)),
-                                       width=terminal.get_size()[0]))
+            self.out.writeln("\n" +
+                             textwrap.fill("{0} {1}:".format(EXTENSIONS_INFO_TEXT(),
+                                                             EXTENSIONS_MARKED_TEXT()),
+                                           width=terminal.get_size()[0]))
 
             for i in sorted(extensions.__located_extensions__):
                 if ExtensionsOutput.is_marked(i):
-                    print("[" + terminal.__bold__ + i + terminal.__normal__ + "]", end=" ")
+                    self.out.write("[" + terminal.__bold__ + i + terminal.__normal__ + "] ")
                 else:
-                    print(i, end=" ")
-            print("")
+                    self.out.write(i + " ")
 
     def output_xml(self):
         if extensions.__located_extensions__:
-            message_xml = "\t\t<message>" + _(EXTENSIONS_INFO_TEXT) + "</message>\n"
+            message_xml = "\t\t<message>" + EXTENSIONS_INFO_TEXT() + "</message>\n"
             used_extensions_xml = ""
             unused_extensions_xml = ""
 
@@ -98,5 +99,7 @@ class ExtensionsOutput(Outputable):
                 else:
                     unused_extensions_xml += "\t\t\t<extension>" + i + "</extension>\n"
 
-            print("\t<extensions>\n" + message_xml + "\t\t<used>\n" + used_extensions_xml + "\t\t</used>\n" +
-                  "\t\t<unused>\n" + unused_extensions_xml + "\t\t</unused>\n" + "\t</extensions>")
+            self.out.writeln("\t<extensions>\n" + message_xml + "\t\t<used>\n" +
+                             used_extensions_xml + "\t\t</used>\n" +
+                             "\t\t<unused>\n" + unused_extensions_xml +
+                             "\t\t</unused>\n" + "\t</extensions>")

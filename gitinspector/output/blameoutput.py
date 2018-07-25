@@ -20,29 +20,30 @@
 import json
 import sys
 import textwrap
-from ..localization import N_
 from .. import format, gravatar, terminal
 from ..blame import Blame
 from .outputable import Outputable
 
-BLAME_INFO_TEXT = N_("Below are the number of rows from each author that have survived and are still "
-                     "intact in the current revision")
+BLAME_INFO_TEXT = lambda: _("Below are the number of rows from each author that have survived and "
+                            "are still intact in the current revision")
 
 class BlameOutput(Outputable):
     output_order = 200
 
     def __init__(self, runner):
-        if format.is_interactive_format():
+        if runner.config.progress and format.is_interactive_format():
             print("")
 
         Outputable.__init__(self)
         self.changes = runner.changes
         self.blame = runner.blames
         self.display = bool(self.changes.commits)
+        self.out = runner.out
+        self.progress = runner.config.progress
 
     def output_html(self):
         blame_xml = "<div><div class=\"box\">"
-        blame_xml += "<p>" + _(BLAME_INFO_TEXT) + ".</p><div><table id=\"blame\" class=\"git\">"
+        blame_xml += "<p>" + BLAME_INFO_TEXT() + ".</p><div><table id=\"blame\" class=\"git\">"
         blame_xml += "<thead><tr>"
         blame_xml += "<th>{0}</th> ".format(_("Author"))
         blame_xml += "<th>{0}</th> ".format(_("Rows"))
@@ -98,10 +99,10 @@ class BlameOutput(Outputable):
         blame_xml += "    });"
         blame_xml += "</script></div></div>"
 
-        print(blame_xml)
+        self.out.writeln(blame_xml)
 
     def output_json(self):
-        message_json = "\t\t\t\"message\": \"" + _(BLAME_INFO_TEXT) + "\",\n"
+        message_json = "\t\t\t\"message\": \"" + BLAME_INFO_TEXT() + "\",\n"
         blame_json = ""
 
         for i in sorted(self.blame.get_summed_blames().items()):
@@ -121,25 +122,27 @@ class BlameOutput(Outputable):
         # Removing the last trailing ','
         blame_json = blame_json[:-1]
 
-        print(",\n\t\t\"blame\": {\n" + message_json + "\t\t\t\"authors\": [\n\t\t\t" + blame_json + "]\n\t\t}", end="")
+        self.out.write(",\n\t\t\"blame\": {\n" + message_json + "\t\t\t\"authors\": [\n\t\t\t" + blame_json + "]\n\t\t}", end="")
 
     def output_text(self):
-        if sys.stdout.isatty() and format.is_interactive_format():
+        if self.progress and sys.stdout.isatty() and format.is_interactive_format():
             terminal.clear_row()
 
-        print(textwrap.fill(_(BLAME_INFO_TEXT) + ":", width=terminal.get_size()[0]) + "\n")
-        terminal.printb(terminal.ljust(_("Author"), 21) + terminal.rjust(_("Rows"), 10) + terminal.rjust(_("Stability"), 15) +
-                        terminal.rjust(_("Age"), 13) + terminal.rjust(_("% in comments"), 20))
+        self.out.writeln(textwrap.fill(BLAME_INFO_TEXT() + ":", width=terminal.get_size()[0]) + "\n")
+        terminal.writeb(self.out,
+                        terminal.ljust(_("Author"), 21) + terminal.rjust(_("Rows"), 10) +
+                        terminal.rjust(_("Stability"), 15) +
+                        terminal.rjust(_("Age"), 13) + terminal.rjust(_("% in comments"), 20) + "\n")
 
         for i in sorted(self.blame.get_summed_blames().items()):
-            print(terminal.ljust(i[0], 20)[0:20 - terminal.get_excess_column_count(i[0])], end=" ")
-            print(str(i[1].rows).rjust(10), end=" ")
-            print("{0:.1f}".format(Blame.get_stability(i[0], i[1].rows, self.changes)).rjust(14), end=" ")
-            print("{0:.1f}".format(float(i[1].skew) / i[1].rows).rjust(12), end=" ")
-            print("{0:.2f}".format(100.0 * i[1].comments / i[1].rows).rjust(19))
+            self.out.write(terminal.ljust(i[0], 20)[0:20 - terminal.get_excess_column_count(i[0])])
+            self.out.write(str(i[1].rows).rjust(11))
+            self.out.write("{0:.1f}".format(Blame.get_stability(i[0], i[1].rows, self.changes)).rjust(15))
+            self.out.write("{0:.1f}".format(float(i[1].skew) / i[1].rows).rjust(13))
+            self.out.writeln("{0:.2f}".format(100.0 * i[1].comments / i[1].rows).rjust(20))
 
     def output_xml(self):
-        message_xml = "\t\t<message>" + _(BLAME_INFO_TEXT) + "</message>\n"
+        message_xml = "\t\t<message>" + BLAME_INFO_TEXT() + "</message>\n"
         blame_xml = ""
 
         for i in sorted(self.blame.get_summed_blames().items()):
@@ -157,4 +160,5 @@ class BlameOutput(Outputable):
             blame_xml += ("\t\t\t<author>\n" + name_xml + email_xml + gravatar_xml + rows_xml + stability_xml +
                           age_xml + percentage_in_comments_xml + "\t\t\t</author>\n")
 
-        print("\t<blame>\n" + message_xml + "\t\t<authors>\n" + blame_xml + "\t\t</authors>\n\t</blame>")
+        self.out.writeln("\t<blame>\n" + message_xml + "\t\t<authors>\n" +
+                         blame_xml + "\t\t</authors>\n\t</blame>")

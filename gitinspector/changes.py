@@ -23,7 +23,6 @@ import multiprocessing
 import os
 import subprocess
 import threading
-from .localization import N_
 from . import extensions, filtering, format, interval, terminal
 
 CHANGES_PER_THREAD = 200
@@ -31,6 +30,7 @@ NUM_THREADS = multiprocessing.cpu_count()
 
 __thread_lock__ = threading.BoundedSemaphore(NUM_THREADS)
 __changes_lock__ = threading.Lock()
+
 
 class FileDiff(object):
     def __init__(self, string):
@@ -63,6 +63,7 @@ class FileDiff(object):
             if (extension == "" and i == "*") or extension == i or i == '**':
                 return True
         return False
+
 
 class Commit(object):
     def __init__(self, string):
@@ -97,11 +98,13 @@ class Commit(object):
     def is_commit_line(string):
         return string.split("|").__len__() == 5
 
+
 class AuthorInfo(object):
     email = None
     insertions = 0
     deletions = 0
     commits = 0
+
 
 class ChangesThread(threading.Thread):
     def __init__(self, hard, changes, first_hash, second_hash, offset):
@@ -176,16 +179,29 @@ class ChangesThread(threading.Thread):
         __changes_lock__.release() # ...to here.
         __thread_lock__.release() # Lock controlling the number of threads running
 
-PROGRESS_TEXT = N_("Fetching and calculating primary statistics (1 of 2): {0:.0f}%")
+
+PROGRESS_TEXT = _("Fetching and calculating primary statistics (1 of 2): {0:.0f}%")
+
 
 class Changes(object):
-    authors = {}
-    authors_dateinfo = {}
-    authors_by_email = {}
-    emails_by_author = {}
 
-    def __init__(self, repo, hard, silent=False):
+    @classmethod
+    def empty(cls):
+        changes = Changes.__new__(Changes)
+        changes.commits = []
+        changes.authors = {}
+        changes.authors_dateinfo = {}
+        changes.authors_by_email = {}
+        changes.emails_by_author = {}
+        return changes
+
+    def __init__(self, repo, hard, progress=True):
         self.commits = []
+        self.authors = {}
+        self.authors_dateinfo = {}
+        self.authors_by_email = {}
+        self.emails_by_author = {}
+
         interval.set_ref("HEAD")
         git_rev_list_p = subprocess.Popen(filter(None, ["git", "rev-list", "--reverse", "--no-merges",
                                                         interval.get_since(), interval.get_until(), "HEAD"]),
@@ -210,7 +226,7 @@ class Changes(object):
                     ChangesThread.create(hard, self, first_hash, second_hash, i)
                     first_hash = entry + ".."
 
-                    if not(silent) and format.is_interactive_format():
+                    if progress and format.is_interactive_format():
                         terminal.output_progress(progress_text, i, len(lines))
             else:
                 if CHANGES_PER_THREAD - 1 != i % CHANGES_PER_THREAD:
@@ -258,29 +274,28 @@ class Changes(object):
     def get_commits(self):
         return self.commits
 
-    @staticmethod
-    def modify_authorinfo(authors, key, commit):
-        if authors.get(key, None) is None:
-            authors[key] = AuthorInfo()
+    def update_dict_commit(self, dict, key, commit):
+        if dict.get(key, None) is None:
+            dict[key] = AuthorInfo()
 
         if commit.get_filediffs():
-            authors[key].commits += 1
+            dict[key].commits += 1
 
         for j in commit.get_filediffs():
-            authors[key].insertions += j.insertions
-            authors[key].deletions += j.deletions
+            dict[key].insertions += j.insertions
+            dict[key].deletions += j.deletions
 
     def get_authorinfo_list(self):
         if not self.authors:
             for i in self.commits:
-                Changes.modify_authorinfo(self.authors, i.author, i)
+                self.update_dict_commit(self.authors, i.author, i)
 
         return self.authors
 
     def get_authordateinfo_list(self):
         if not self.authors_dateinfo:
             for i in self.commits:
-                Changes.modify_authorinfo(self.authors_dateinfo, (i.date, i.author), i)
+                self.update_dict_commit(self.authors_dateinfo, (i.date, i.author), i)
 
         return self.authors_dateinfo
 
