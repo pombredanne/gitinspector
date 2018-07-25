@@ -167,38 +167,38 @@ def __get_validated_git_repos__(repos_relative):
 
 def __parse_arguments__():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=
-                        _("List information about the repository in REPOSITORY. If no repository is \n"
-                         "specified, the current directory is used. If multiple repositories are \n"
-                          "given, information will be merged into a unified statistical report."),epilog=
-                        _("gitinspector will filter statistics to only include commits that modify, \n"
-                          "add or remove one of the specified extensions, see -f or --file-types for \n"
-                          "more information. \n\n"
-                          "gitinspector requires that the git executable is available in your PATH. \n"
-                          "Report gitinspector bugs to gitinspector@ejwa.se."))
+                                     _("List information about the repository in REPOSITORY. If no repository is \n"
+                                       "specified, the current directory is used. If multiple repositories are \n"
+                                       "given, information will be merged into a unified statistical report."), epilog=
+                                     _("gitinspector will filter statistics to only include commits that modify, \n"
+                                       "add or remove one of the specified extensions, see -f or --file-types for \n"
+                                       "more information. \n\n"
+                                       "gitinspector requires that the git executable is available in your PATH. \n"
+                                       "Report gitinspector bugs to gitinspector@ejwa.se."))
     parser.add_argument('repositories', metavar='REPOSITORY', type=str, nargs='*',
                         help=_('the address of a repository to be analyzed'))
-    parser.add_argument('-f', '--file-types', metavar='TYPES',help=
+    parser.add_argument('-f', '--file-types', metavar='TYPES', help=
                         _("a comma separated list of file extensions to include when "
-                         "computing statistics. The default extensions used are: ") + str(DEFAULT_EXTENSIONS) + " " +
+                          "computing statistics. The default extensions used are: ") + str(DEFAULT_EXTENSIONS) + " " +
                         _("Specifying * includes files with no extension, while ** includes all files"),
                         default=",".join(DEFAULT_EXTENSIONS))
     parser.add_argument('-F', '--format', metavar='FORMAT', help=
                         _("define in which format output should be generated; the "
-                         "default format is 'text' and the available formats are: ") + str(__available_formats__),
+                          "default format is 'text' and the available formats are: ") + str(__available_formats__),
                         default="text", choices=__available_formats__)
     parser.add_argument('-g', '--grading', action='store_true', help=
                         _("show statistics and information in a way that is formatted "
-                         "for grading of student projects; this is the same as supplying "
-                         "the options -HlmrTw"))
+                          "for grading of student projects; this is the same as supplying "
+                          "the options -HlmrTw"))
     parser.add_argument('-H', '--hard', action='store_true', help=
                         _("track rows and look for duplicates harder;"
-                         "this can be quite slow with big repositories"))
+                          "this can be quite slow with big repositories"))
     parser.add_argument('-l', '--list-file-types', action='store_true', help=
                         _("list all the file extensions available in the current branch "
-                         "of the repository"))
+                          "of the repository"))
     parser.add_argument('-L', '--localize-output', action='store_true', help=
                         _("localize the generated output to the selected "
-                         "system language if a translation is available"))
+                          "system language if a translation is available"))
     parser.add_argument('-m', '--metrics', action='store_true', help=
                         _("include checks for certain metrics during the analysis of commits"))
     parser.add_argument('-r', '--responsibilities', action='store_true', help=
@@ -206,7 +206,7 @@ def __parse_arguments__():
     parser.add_argument('-s', '--since', metavar='DATE',
                         type=lambda s: datetime.datetime.strptime(s, '%Y-%m-%d'), help=
                         _("only show statistics for commits more recent than a specific date, "
-                         "specified as '%%Y-%%m-%%d'"),
+                          "specified as '%%Y-%%m-%%d'"),
                         default=None)
     parser.add_argument('-S', '--silent', action='store_true', help=
                         _("Silent output, mainly used for testing purposes"))
@@ -215,7 +215,7 @@ def __parse_arguments__():
     parser.add_argument('-u', '--until', metavar='DATE',
                         type=lambda s: datetime.datetime.strptime(s, '%Y-%m-%d'), help=
                         _("only show statistics for commits older than a specific date, "
-                         "specified as '%%Y-%%m-%%d'"),
+                          "specified as '%%Y-%%m-%%d'"),
                         default=None)
     parser.add_argument('-v', '--version', action='store_true', help=
                         _("display the current version of the program"))
@@ -223,9 +223,9 @@ def __parse_arguments__():
                         _("show all statistical information in weeks instead of in months"))
     parser.add_argument('-x', '--exclude', metavar='PATTERN', action='append', help=
                         _("an exclusion pattern of the form KEY=PAT, describing the file paths, "
-                         "revisions, revisions with certain commit messages, author names or "
-                         "author emails that should be excluded from the statistics; KEY must "
-                         "be in [ 'file', 'author', 'email', 'revision', 'message' ]"))
+                          "revisions, revisions with certain commit messages, author names or "
+                          "author emails that should be excluded from the statistics; KEY must "
+                          "be in [ 'file', 'author', 'email', 'revision', 'message' ]"))
 
     namespace = parser.parse_args()
     namespace.progress = True  # Display progress messages
