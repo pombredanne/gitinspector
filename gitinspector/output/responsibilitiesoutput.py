@@ -46,7 +46,7 @@ class ResponsibilitiesOutput(Outputable):
                                       reverse=True)
 
             if responsibilities:
-                self.out.writeln("\n" + i + MOSTLY_RESPONSIBLE_FOR_TEXT() + ":")
+                self.out.writeln("\n" + i + " " + MOSTLY_RESPONSIBLE_FOR_TEXT() + ":")
 
                 for j, entry in enumerate(responsibilities):
                     (width, _unused) = terminal.get_size()
