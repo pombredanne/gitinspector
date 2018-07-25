@@ -56,3 +56,16 @@ class Repository(object):
     def __init__(self, name, location):
         self.name = name
         self.location = location
+
+    def authors(self):
+        authors_cmd = subprocess.Popen(["git", "-C", self.location, "shortlog", "-esn"],
+                                       bufsize=1, stdout=subprocess.PIPE)
+        rows = authors_cmd.stdout.readlines()
+        authors_cmd.wait()
+        authors_cmd.stdout.close()
+
+        authors = []
+        for row in rows:
+            line = row.decode("utf-8", "replace").strip()
+            authors.append(line.split('\t')[1])
+        return authors

@@ -61,6 +61,8 @@ class RepositoryTest(unittest.TestCase):
         self.assertEqual(len(r.repos), 1)
         self.assertEqual(r.repos[0].name, "repository")
         self.assertTrue(r.repos[0].location.endswith("build/tests/repository"))
+        self.assertEqual(r.repos[0].authors(),
+                         ['Abraham Lincoln <abe@gov.us>', 'Andrew Johnson <jojo@gov.us>'])
         # Check the commits
         self.assertEqual(len(r.changes.commits), 2)
         authors = sorted(list(map(lambda c: c.author, r.changes.commits)))
