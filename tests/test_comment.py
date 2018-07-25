@@ -22,10 +22,10 @@ import unittest
 import gitinspector.comment
 
 # Returns the number of lines in a given `commented_file` with
-# extension `extension` that are comments. 
+# extension `extension` that are comments.
 def __test_extension__(commented_file, extension):
     base = os.path.dirname(os.path.realpath(__file__))
-    tex_file = open(base + commented_file, "r")
+    tex_file = open(base + commented_file, "r", encoding="utf-8")
     tex = tex_file.readlines()
     tex_file.close()
 
