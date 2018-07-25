@@ -160,7 +160,7 @@ class TimelineOutput(Outputable):
                                             not signs_str) else signs_str).rjust(11))
                 self.out.writeln("")
 
-        terminal.writeb(self.out, terminal.ljust(_(MODIFIED_ROWS_TEXT), 20) + " ")
+        terminal.writeb(self.out, terminal.ljust(_(MODIFIED_ROWS_TEXT), 20))
 
         for period in periods:
             total_changes = str(timeline_data.get_total_changes_in_period(period)[2])
@@ -168,7 +168,7 @@ class TimelineOutput(Outputable):
             if hasattr(total_changes, 'decode'):
                 total_changes = total_changes.decode("utf-8", "replace")
 
-            self.out.write(terminal.rjust(total_changes, 10))
+            self.out.write(terminal.rjust(total_changes, 11))
 
         self.out.writeln("")
 
