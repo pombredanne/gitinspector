@@ -42,7 +42,7 @@ class RepositoryTest(unittest.TestCase):
         opts.file_types = "c,txt"
         opts.metrics = True
         # Launch runner
-        r = Runner(opts)
+        r = Runner(opts, None)
         r.process()
         # Check the repositories
         self.assertEqual(len(r.repos), 1)
@@ -71,8 +71,7 @@ class RepositoryTest(unittest.TestCase):
         opts.timeline = True
         opts.format = "text"
         # Launch runner
-        r = Runner(opts)
-        r.out = FileWriter("/tmp/test.txt")
+        r = Runner(opts, FileWriter("/tmp/test.txt"))
         r.process()
 
     def test_output_html(self):
@@ -83,6 +82,5 @@ class RepositoryTest(unittest.TestCase):
         opts.timeline = True
         opts.format = "html"
         # Launch runner
-        r = Runner(opts)
-        r.out = FileWriter("/tmp/test.html")
+        r = Runner(opts, FileWriter("/tmp/test.html"))
         r.process()

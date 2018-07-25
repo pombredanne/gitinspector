@@ -37,7 +37,7 @@ from .format import __available_formats__
 
 localization.init()
 
-class StringWriter(io.StringIO):
+class StdoutWriter(io.StringIO):
     def __init__(self):
         io.StringIO.__init__(self)
     def writeln(self, string):
@@ -59,9 +59,9 @@ class FileWriter(object):
 
 
 class Runner(object):
-    def __init__(self, config):
+    def __init__(self, config, writer):
         self.config = config  # Namespace object containing the config
-        self.out = StringWriter()   # Buffer for containing the output
+        self.out = writer     # Buffer for containing the output
 
         # Initialize a list of Repository objects
         self.repos = __get_validated_git_repos__(config.repositories)
@@ -257,7 +257,7 @@ def main():
             version.output()
             sys.exit(0)
 
-        run = Runner(options)
+        run = Runner(options, StdoutWriter())
 
         run.process()
 
