@@ -37,7 +37,7 @@ msgstr "% en commentaires"
 
 #, python-format
 msgid "% of changes"
-msgstr "% de modifications"
+msgstr "% de modifs"
 
 msgid "(extensions used during statistical analysis are marked)"
 msgstr "(les extensions utilisées durant l'analyse statistique sont marquées)"
