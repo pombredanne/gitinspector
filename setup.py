@@ -43,7 +43,7 @@ class Coverage(distutils.cmd.Command):
     def run(self):
         """Run command."""
         run_command = [
-            'coverage', 'run', '-source=gitinspector', '-m', 'unittest', 'discover', '-v'
+            'coverage', 'run', '--source=gitinspector', '-m', 'unittest', 'discover', '-v'
         ]
         subprocess.check_call(run_command)
 
