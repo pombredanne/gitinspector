@@ -28,6 +28,29 @@ from setuptools import setup, find_packages
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+class Coverage(distutils.cmd.Command):
+    """A custom command to generate an HTML report of the code coverage of the tests."""
+
+    description = 'Output an HTML report of the code coverage performed by the tests (htmlcov/)'
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        """Run command."""
+        run_command = [
+            'coverage', 'run', '-source=gitinspector', '-m', 'unittest', 'discover', '-v'
+        ]
+        subprocess.check_call(run_command)
+
+        report_command = [
+            'coverage', 'html'
+        ]
+        subprocess.check_call(report_command)
 
 class MoGenerate(distutils.cmd.Command):
     """A custom command to generate the '.mo' localization files."""
@@ -82,5 +105,6 @@ setup(
         zip_safe = False,
         cmdclass = {
             'generate_mo': MoGenerate,
+            'coverage' : Coverage,
         },
 )

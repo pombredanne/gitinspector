@@ -5,7 +5,7 @@ function git_commit {
     GIT_COMMITTER_NAME="${1}" GIT_COMMITTER_EMAIL="${2}" GIT_COMMITTER_DATE="${3}" git commit --allow-empty-message --author "${1} <${2}>" --date "${3}" -m "${4}"
 }
 
-PROJECT_DIR=sample-01
+PROJECT_DIR=trie-repository
 
 BILBO_NAME="Bilbo Baggins"
 BILBO_MAIL="bilbo.baggins@shire.net"

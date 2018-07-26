@@ -17,12 +17,13 @@
 
 import hashlib
 import locale
-import gitinspector.localization as localization
 import os
 import shutil
 import tempfile
 import unittest
 import zipfile
+
+import gitinspector.localization as localization
 from gitinspector.gitinspector import Runner, FileWriter, StdoutWriter, __parse_arguments__
 
 
@@ -36,7 +37,7 @@ def file_md5(fname):
 
 # Test gitinspector over a git repository present in the resources/
 # dir, count the changes and the blames and check the metrics.
-class RepositoryTest(unittest.TestCase):
+class BasicRepositoryTest(unittest.TestCase):
 
     def setUp(self):
         zip_ref = zipfile.ZipFile("tests/resources/repository.zip", 'r')
@@ -116,4 +117,131 @@ class RepositoryTest(unittest.TestCase):
             self.assertTrue("The following historical commit" in contents)
             self.assertTrue("Below are the number of rows" in contents)
             self.assertTrue("The following history timeline" in contents)
+        os.remove(file.name)
+
+class TrieRepositoryTest(unittest.TestCase):
+
+    def setUp(self):
+        zip_ref = zipfile.ZipFile("tests/resources/trie-repository.zip", 'r')
+        zip_ref.extractall("build/tests")
+        zip_ref.close()
+
+    # def tearDown(self):
+    #     shutil.rmtree("build/tests/trie-repository")
+
+    def test_process(self):
+        # Set options
+        opts = __parse_arguments__()
+        opts.file_types = "c,h"
+        opts.repositories = ["build/tests/trie-repository"]
+        opts.hard = True
+        opts.list_file_types = True
+        opts.metrics = True
+        opts.progress = False
+        opts.responsibilities = True
+        opts.silent = True
+        opts.timeline = True
+        opts.weeks = True
+        # Launch runner
+        r = Runner(opts, None)
+        r.process()
+
+    def test_output_text(self):
+        opts = __parse_arguments__()
+        opts.format = "text"
+        opts.file_types = "c,h"
+        opts.repositories = ["build/tests/repository"]
+        opts.hard = True
+        opts.list_file_types = True
+        opts.metrics = True
+        opts.progress = False
+        opts.responsibilities = True
+        opts.timeline = True
+        opts.weeks = True
+        # Launch runner
+        localization.init_null()
+        file = tempfile.NamedTemporaryFile('w', delete=False)
+        r = Runner(opts, FileWriter(file))
+        r.process()
+        with open(file.name, 'r') as f:
+            contents = f.read()
+            self.assertTrue("Statistical information" in contents)
+            self.assertTrue("The following historical commit" in contents)
+            self.assertTrue("Below are the number of rows" in contents)
+            self.assertTrue("The following history timeline" in contents)
+        os.remove(file.name)
+
+    def test_output_html(self):
+        opts = __parse_arguments__()
+        opts.format = "html"
+        opts.file_types = "c,h"
+        opts.repositories = ["build/tests/repository"]
+        opts.hard = True
+        opts.list_file_types = True
+        opts.metrics = True
+        opts.progress = False
+        opts.responsibilities = True
+        opts.timeline = True
+        opts.weeks = True
+        # Launch runner
+        localization.init_null()
+        file = tempfile.NamedTemporaryFile('w', delete=False)
+        r = Runner(opts, FileWriter(file))
+        r.process()
+        with open(file.name, 'r') as f:
+            contents = f.read()
+            self.assertTrue("Statistical information" in contents)
+            self.assertTrue("The following historical commit" in contents)
+            self.assertTrue("Below are the number of rows" in contents)
+            self.assertTrue("The following history timeline" in contents)
+        os.remove(file.name)
+
+    def test_output_xml(self):
+        opts = __parse_arguments__()
+        opts.format = "xml"
+        opts.file_types = "c,h"
+        opts.repositories = ["build/tests/repository"]
+        opts.hard = True
+        opts.list_file_types = True
+        opts.metrics = True
+        opts.progress = False
+        opts.responsibilities = True
+        opts.timeline = True
+        opts.weeks = True
+        # Launch runner
+        localization.init_null()
+        file = tempfile.NamedTemporaryFile('w', delete=False)
+        r = Runner(opts, FileWriter(file))
+        r.process()
+        # with open(file.name, 'r') as f:
+        #     contents = f.read()
+        #     self.assertTrue("Statistical information" in contents)
+        #     self.assertTrue("The following historical commit" in contents)
+        #     self.assertTrue("Below are the number of rows" in contents)
+        #     self.assertTrue("The following history timeline" in contents)
+        os.remove(file.name)
+
+    def test_output_json(self):
+        opts = __parse_arguments__()
+        opts.format = "json"
+        opts.file_types = "c,h"
+        opts.repositories = ["build/tests/repository"]
+        opts.hard = True
+        opts.list_file_types = True
+        opts.metrics = True
+        opts.progress = False
+        opts.responsibilities = True
+        opts.timeline = True
+        opts.weeks = True
+        # Launch runner
+        localization.init_null()
+        file = tempfile.NamedTemporaryFile('w', delete=False)
+        r = Runner(opts, FileWriter(file))
+        r.process()
+        # with open(file.name, 'r') as f:
+        #     contents = f.read()
+        #     self.assertTrue("Statistical information" in contents)
+        #     self.assertTrue("The following historical commit" in contents)
+        #     self.assertTrue("Below are the number of rows" in contents)
+        #     self.assertTrue("The following history timeline" in contents)
         os.remove(file.name)
