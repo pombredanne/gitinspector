@@ -18,6 +18,7 @@
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import ast
 import atexit
 import datetime
 import io
@@ -133,6 +134,7 @@ class Runner(object):
         self.__load__()
         self.__output__()
 
+
 def __check_python_version__():
     """
     Check for a sufficiently recent python version.
@@ -177,6 +179,9 @@ def __parse_arguments__():
                                        "Report gitinspector bugs to gitinspector@ejwa.se."))
     parser.add_argument('repositories', metavar='REPOSITORY', type=str, nargs='*',
                         help=_('the address of a repository to be analyzed'))
+    parser.add_argument('-a', '--aliases', metavar='ALIASES', help=
+                        _("a dictionary string indicating aliases for the authors"),
+                        type=lambda s: ast.literal_eval(s), default = {})
     parser.add_argument('-f', '--file-types', metavar='TYPES', help=
                         _("a comma separated list of file extensions to include when "
                           "computing statistics. The default extensions used are: ") + str(DEFAULT_EXTENSIONS) + " " +

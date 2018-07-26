@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
+import ast
 import os
 import subprocess
 from . import extensions, filtering, format, interval
@@ -74,6 +75,10 @@ class GitConfig(object):
         var = self.__read_git_config_string__("format")
         if var[0] and not format.select(var[1]):
             raise format.InvalidFormatError(_("specified output format not supported."))
+
+        var = self.__read_git_config_string__("aliases")
+        if var[0]:
+            self.run.config.aliases = ast.literal_eval(var[1])
 
         if self.__read_git_config_bool__("hard"):
             self.run.config.hard = True
