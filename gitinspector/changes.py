@@ -66,16 +66,18 @@ class FileDiff(object):
 
 
 class Commit(object):
-    def __init__(self, string):
+    def __init__(self, string, config):
         self.filediffs = []
+        self.config = config
         commit_line = string.split("|")
 
         if commit_line.__len__() == 5:
             self.timestamp = commit_line[0]
             self.date = commit_line[1]
             self.sha = commit_line[2]
-            self.author = commit_line[3].strip()
-            self.email = commit_line[4].strip()
+            author = commit_line[3].strip()
+            email = commit_line[4].strip()
+            (self.author, self.email) = Commit.get_alias(author, email, self.config)
 
     def __lt__(self, other):
         return self.timestamp.__lt__(other.timestamp) # only used for sorting; we just consider the timestamp.
@@ -87,10 +89,21 @@ class Commit(object):
         return self.filediffs
 
     @staticmethod
-    def get_author_and_email(string):
+    def get_alias(author, email, config):
+        author_mail = "{0} <{1}>".format(author, email)
+        if author_mail in config.aliases.keys():
+            new_author_mail = config.aliases[author_mail].split("<")
+            return (new_author_mail[0].strip(), new_author_mail[1][0:-1])
+        else:
+            return (author,email)
+
+    @staticmethod
+    def get_author_and_email(config, string):
         commit_line = string.split("|")
         try:
-            return (commit_line[3].strip(), commit_line[4].strip())
+            author = commit_line[3].strip()
+            email = commit_line[4].strip()
+            return Commit.get_alias(author, email, config)
         except IndexError:
             return "Unknown Author"
 
@@ -107,19 +120,19 @@ class AuthorInfo(object):
 
 
 class ChangesThread(threading.Thread):
-    def __init__(self, hard, changes, first_hash, second_hash, offset):
+    def __init__(self, config, changes, first_hash, second_hash, offset):
         __thread_lock__.acquire() # Lock controlling the number of threads running
         threading.Thread.__init__(self)
 
-        self.hard = hard
+        self.config = config
         self.changes = changes
         self.first_hash = first_hash
         self.second_hash = second_hash
         self.offset = offset
 
     @staticmethod
-    def create(hard, changes, first_hash, second_hash, offset):
-        thread = ChangesThread(hard, changes, first_hash, second_hash, offset)
+    def create(config, changes, first_hash, second_hash, offset):
+        thread = ChangesThread(config, changes, first_hash, second_hash, offset)
         thread.daemon = True
         thread.start()
 
@@ -128,7 +141,7 @@ class ChangesThread(threading.Thread):
                                             ["git", "log", "--reverse", "--pretty=%ct|%cd|%H|%aN|%aE",
                                              "--stat=100000,8192", "--no-merges", "-w", interval.get_since(),
                                              interval.get_until(),
-                                             "--date=short"] + (["-C", "-C", "-M"] if self.hard else []) +
+                                             "--date=short"] + (["-C", "-C", "-M"] if self.config.hard else []) +
                                             [self.first_hash + self.second_hash]), bufsize=1, stdout=subprocess.PIPE)
         lines = git_log_r.stdout.readlines()
         git_log_r.wait()
@@ -147,7 +160,7 @@ class ChangesThread(threading.Thread):
             j = j.decode("utf-8", "replace")
 
             if Commit.is_commit_line(j):
-                (author, email) = Commit.get_author_and_email(j)
+                (author, email) = Commit.get_author_and_email(self.config, j)
                 self.changes.emails_by_author[author] = email
                 self.changes.authors_by_email[email] = author
 
@@ -157,7 +170,7 @@ class ChangesThread(threading.Thread):
 
                 found_valid_extension = False
                 is_filtered = False
-                commit = Commit(j)
+                commit = Commit(j, self.config)
 
                 if Commit.is_commit_line(j) and \
                    (filtering.set_filtered(commit.author, "author") or \
@@ -195,12 +208,13 @@ class Changes(object):
         changes.emails_by_author = {}
         return changes
 
-    def __init__(self, repo, hard, progress=True):
+    def __init__(self, repo, config):
         self.commits = []
         self.authors = {}
         self.authors_dateinfo = {}
         self.authors_by_email = {}
         self.emails_by_author = {}
+        self.config = config
 
         interval.set_ref("HEAD")
         git_rev_list_p = subprocess.Popen(filter(None, ["git", "rev-list", "--reverse", "--no-merges",
@@ -223,16 +237,16 @@ class Changes(object):
                 if i % CHANGES_PER_THREAD == CHANGES_PER_THREAD - 1:
                     entry = entry.decode("utf-8", "replace").strip()
                     second_hash = entry
-                    ChangesThread.create(hard, self, first_hash, second_hash, i)
+                    ChangesThread.create(self.config, self, first_hash, second_hash, i)
                     first_hash = entry + ".."
 
-                    if progress and format.is_interactive_format():
+                    if self.config.progress and format.is_interactive_format():
                         terminal.output_progress(progress_text, i, len(lines))
             else:
                 if CHANGES_PER_THREAD - 1 != i % CHANGES_PER_THREAD:
                     entry = entry.decode("utf-8", "replace").strip()
                     second_hash = entry
-                    ChangesThread.create(hard, self, first_hash, second_hash, i)
+                    ChangesThread.create(self.config, self, first_hash, second_hash, i)
 
         # Make sure all threads have completed.
         for i in range(0, NUM_THREADS):
