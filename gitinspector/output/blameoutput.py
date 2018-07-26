@@ -122,7 +122,7 @@ class BlameOutput(Outputable):
         # Removing the last trailing ','
         blame_json = blame_json[:-1]
 
-        self.out.write(",\n\t\t\"blame\": {\n" + message_json + "\t\t\t\"authors\": [\n\t\t\t" + blame_json + "]\n\t\t}", end="")
+        self.out.write(",\n\t\t\"blame\": {\n" + message_json + "\t\t\t\"authors\": [\n\t\t\t" + blame_json + "]\n\t\t}")
 
     def output_text(self):
         if self.progress and sys.stdout.isatty() and format.is_interactive_format():
