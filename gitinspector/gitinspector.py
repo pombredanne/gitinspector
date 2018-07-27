@@ -167,7 +167,7 @@ def __get_validated_git_repos__(repos_relative):
     return repos
 
 
-def __parse_arguments__():
+def __parse_arguments__(args=None):
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=
                                      _("List information about the repository in REPOSITORY. If no repository is \n"
                                        "specified, the current directory is used. If multiple repositories are \n"
@@ -232,22 +232,22 @@ def __parse_arguments__():
                           "author emails that should be excluded from the statistics; KEY must "
                           "be in [ 'file', 'author', 'email', 'revision', 'message' ]"))
 
-    namespace = parser.parse_args()
-    namespace.progress = True  # Display progress messages
+    options = parser.parse_args() if args is None else parser.parse_args(args)
+    options.progress = True  # Display progress messages
 
-    if namespace.grading:
-        namespace.metrics = True
-        namespace.list_file_types = True
-        namespace.responsibilities = True
-        namespace.hard = True
-        namespace.timeline = True
-        namespace.weeks = True
+    if options.grading:
+        options.metrics = True
+        options.list_file_types = True
+        options.responsibilities = True
+        options.hard = True
+        options.timeline = True
+        options.weeks = True
 
-    if namespace.exclude:
-        for pat in namespace.exclude:
+    if options.exclude:
+        for pat in options.exclude:
             filtering.add(pat)
 
-    return namespace
+    return options
 
 
 def main():
@@ -263,7 +263,6 @@ def main():
             sys.exit(0)
 
         run = Runner(options, StdoutWriter())
-
         run.process()
 
     except (filtering.InvalidRegExpError, format.InvalidFormatError) as exception:

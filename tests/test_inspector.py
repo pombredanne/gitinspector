@@ -34,6 +34,92 @@ def file_md5(fname):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
 
+class CommandLineOptionsTest(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        # TODO: We definitely need to rewrite the 'filtering' and the
+        # 'interval' modules to be part of the Runner context and NOT
+        # BEING GLOBAL! (for our own sake!)...
+        filtering.clear()
+        interval.__since__ = ""
+        interval.__until__ = ""
+
+    def test_help(self):
+        # Set options
+        import sys
+        from io import StringIO
+        from gitinspector.gitinspector import main
+
+        # Setting a fake sys.argv and ssys.stdout
+        argv_orig = sys.argv
+        stdout_orig = sys.stdout
+        sys.stdout = custom_stdout = StringIO()
+
+        # Running the software on '--help'
+        sys.argv = ['./gitinspector.py', '--help']
+        try:
+            main()
+        except SystemExit:
+            self.assertTrue(sys.stdout)
+
+        # Restoring the original context
+        sys.argv = argv_orig
+        sys.stdout.close()
+        sys.stdout = stdout_orig
+ 
+    def test_version(self):
+        # Set options
+        import sys
+        from io import StringIO
+        from gitinspector.gitinspector import main
+
+        # Setting a fake sys.argv and ssys.stdout
+        argv_orig = sys.argv
+        stdout_orig = sys.stdout
+        sys.stdout = custom_stdout = StringIO()
+
+        # Running the software on '--version'
+        sys.argv = ['./gitinspector.py', '--version']
+        try:
+            main()
+        except SystemExit:
+            self.assertTrue(sys.stdout)
+
+        # Restoring the original context
+        sys.argv = argv_orig
+        sys.stdout.close()
+        sys.stdout = stdout_orig
+
+    def test_repository_analysis(self):
+        # Set options
+        import sys
+        from io import StringIO
+        from gitinspector.gitinspector import main
+
+        # Setting a fake sys.argv and sys.stdout
+        argv_orig = sys.argv
+        stdout_orig = sys.stdout
+        sys.stdout = custom_stdout = StringIO()
+
+        # Extracting the repository
+        zip_ref = zipfile.ZipFile("tests/resources/basic-repository.zip", 'r')
+        zip_ref.extractall("build/tests")
+        zip_ref.close()
+
+        # Running the software
+        sys.argv = ['gitinspector.py', 'build/tests/basic-repository']
+        main()
+        self.assertTrue(sys.stdout)
+
+        # Restoring the original context
+        sys.argv = argv_orig
+        sys.stdout.close()
+        sys.stdout = stdout_orig
+        shutil.rmtree("build/tests/basic-repository")
+
 # Test gitinspector over a git repository present in the resources/
 # dir, count the changes and the blames and check the metrics.
 class BasicRepositoryTest(unittest.TestCase):
@@ -55,14 +141,11 @@ class BasicRepositoryTest(unittest.TestCase):
 
     def test_process(self):
        # Set options
-        import sys
-        sys.argv = ['gitinspector',
-                    '--grading',
-                    '--file-types', 'c,txt',
-                    '--exclude', 'author:John Doe',
-                    '--silent',
-                    'build/tests/basic-repository']
-        opts = __parse_arguments__()
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'c,txt',
+                                         '--exclude', 'author:John Doe',
+                                         '--silent',
+                                         'build/tests/basic-repository'])
         opts.progress = False
 
         # Launch runner
@@ -95,14 +178,11 @@ class BasicRepositoryTest(unittest.TestCase):
 
     def test_output_text(self):
        # Set options
-        import sys
-        sys.argv = ['gitinspector',
-                    '--grading',
-                    '--file-types', 'c,txt',
-                    '--exclude', 'author:John Doe',
-                    '--format', 'text',
-                    'build/tests/basic-repository']
-        opts = __parse_arguments__()
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'c,txt',
+                                         '--exclude', 'author:John Doe',
+                                         '--format', 'text',
+                                         'build/tests/basic-repository'])
         opts.progress = False
 
         # Launch runner
@@ -120,14 +200,11 @@ class BasicRepositoryTest(unittest.TestCase):
 
     def test_output_html(self):
         # Set options
-        import sys
-        sys.argv = ['gitinspector',
-                    '--grading',
-                    '--file-types', 'c,txt',
-                    '--exclude', 'author:John Doe',
-                    '--format', 'html',
-                    'build/tests/basic-repository']
-        opts = __parse_arguments__()
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'c,txt',
+                                         '--exclude', 'author:John Doe',
+                                         '--format', 'html',
+                                         'build/tests/basic-repository'])
         opts.progress = False
 
         # Launch runner
@@ -145,14 +222,11 @@ class BasicRepositoryTest(unittest.TestCase):
 
     def test_output_xml(self):
         # Set options
-        import sys
-        sys.argv = ['gitinspector',
-                    '--grading',
-                    '--file-types', 'c,txt',
-                    '--exclude', 'author:John Doe',
-                    '--format', 'xml',
-                    'build/tests/basic-repository']
-        opts = __parse_arguments__()
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'c,txt',
+                                         '--exclude', 'author:John Doe',
+                                         '--format', 'xml',
+                                         'build/tests/basic-repository'])
         opts.progress = False
 
         # Launch runner
@@ -170,14 +244,11 @@ class BasicRepositoryTest(unittest.TestCase):
 
     def test_output_json(self):
         # Set options
-        import sys
-        sys.argv = ['gitinspector',
-                    '--grading',
-                    '--file-types', 'c,txt',
-                    '--exclude', 'author:John Doe',
-                    '--format', 'json',
-                    'build/tests/basic-repository']
-        opts = __parse_arguments__()
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'c,txt',
+                                         '--exclude', 'author:John Doe',
+                                         '--format', 'json',
+                                         'build/tests/basic-repository'])
         opts.progress = False
 
         # Launch runner
@@ -215,16 +286,13 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
 
     def test_process(self):
         # Set options
-        import sys
-        sys.argv = ['gitinspector',
-                    '--grading',
-                    '--file-types', 'c,txt',
-                    '--exclude', 'author:Abraham Lincoln,message:README',
-                    '--since', '2001-01-01',
-                    '--until', '2020-01-01',
-                    '--silent',
-                    'build/tests/basic-repository']
-        opts = __parse_arguments__()
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'c,txt',
+                                         '--exclude', 'author:Abraham Lincoln,message:README',
+                                         '--since', '2001-01-01',
+                                         '--until', '2020-01-01',
+                                         '--silent',
+                                         'build/tests/basic-repository'])
         opts.progress = False
 
         # Launch runner
@@ -254,16 +322,13 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
 
     def test_output_text(self):
         # Set options
-        import sys
-        sys.argv = ['gitinspector',
-                    '--grading',
-                    '--file-types', 'c,txt',
-                    '--exclude', 'author:Abraham Lincoln',
-                    '--since', '2001-01-01',
-                    '--until', '2020-01-01',
-                    '--format', 'text',
-                    'build/tests/basic-repository']
-        opts = __parse_arguments__()
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'c,txt',
+                                         '--exclude', 'author:Abraham Lincoln',
+                                         '--since', '2001-01-01',
+                                         '--until', '2020-01-01',
+                                         '--format', 'text',
+                                         'build/tests/basic-repository'])
         opts.progress = False
 
         # Launch runner
@@ -281,16 +346,13 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
 
     def test_output_html(self):
         # Set options
-        import sys
-        sys.argv = ['gitinspector',
-                    '--grading',
-                    '--file-types', 'c,txt',
-                    '--exclude', 'author:Abraham Lincoln',
-                    '--since', '2001-01-01',
-                    '--until', '2020-01-01',
-                    '--format', 'html',
-                    'build/tests/basic-repository']
-        opts = __parse_arguments__()
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'c,txt',
+                                         '--exclude', 'author:Abraham Lincoln',
+                                         '--since', '2001-01-01',
+                                         '--until', '2020-01-01',
+                                         '--format', 'html',
+                                         'build/tests/basic-repository'])
         opts.progress = False
 
         # Launch runner
@@ -308,16 +370,13 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
 
     def test_output_xml(self):
         # Set options
-        import sys
-        sys.argv = ['gitinspector',
-                    '--grading',
-                    '--file-types', 'c,txt',
-                    '--exclude', 'author:Abraham Lincoln',
-                    '--since', '2001-01-01',
-                    '--until', '2020-01-01',
-                    '--format', 'xml',
-                    'build/tests/basic-repository']
-        opts = __parse_arguments__()
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'c,txt',
+                                         '--exclude', 'author:Abraham Lincoln',
+                                         '--since', '2001-01-01',
+                                         '--until', '2020-01-01',
+                                         '--format', 'xml',
+                                         'build/tests/basic-repository'])
         opts.progress = False
 
         # Launch runner
@@ -335,16 +394,13 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
 
     def test_output_json(self):
         # Set options
-        import sys
-        sys.argv = ['gitinspector',
-                    '--grading',
-                    '--file-types', 'c,txt',
-                    '--exclude', 'author:Abraham Lincoln',
-                    '--since', '2001-01-01',
-                    '--until', '2020-01-01',
-                    '--format', 'json',
-                    'build/tests/basic-repository']
-        opts = __parse_arguments__()
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'c,txt',
+                                         '--exclude', 'author:Abraham Lincoln',
+                                         '--since', '2001-01-01',
+                                         '--until', '2020-01-01',
+                                         '--format', 'json',
+                                         'build/tests/basic-repository'])
         opts.progress = False
 
         # Launch runner
@@ -379,13 +435,10 @@ class TrieRepositoryTest(unittest.TestCase):
 
     def test_process(self):
         # Set options
-        import sys
-        sys.argv = ['gitinspector',
-                    '--grading',
-                    '--file-types', 'c,h',
-                    '--silent',
-                    'build/tests/trie-repository']
-        opts = __parse_arguments__()
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'c,h',
+                                         '--silent',
+                                         'build/tests/trie-repository'])
         opts.progress = False
 
         # Launch runner
@@ -394,13 +447,10 @@ class TrieRepositoryTest(unittest.TestCase):
 
     def test_output_text(self):
         # Set options
-        import sys
-        sys.argv = ['gitinspector',
-                    '--grading',
-                    '--file-types', 'c,h',
-                    '--format=text',
-                    'build/tests/trie-repository']
-        opts = __parse_arguments__()
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'c,h',
+                                         '--format=text',
+                                         'build/tests/trie-repository'])
         opts.progress = False
 
         # Launch runner
@@ -418,13 +468,10 @@ class TrieRepositoryTest(unittest.TestCase):
 
     def test_output_html(self):
         # Set options
-        import sys
-        sys.argv = ['gitinspector',
-                    '--grading',
-                    '--file-types', 'c,h',
-                    '--format=html',
-                    'build/tests/trie-repository']
-        opts = __parse_arguments__()
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'c,h',
+                                         '--format=html',
+                                         'build/tests/trie-repository'])
         opts.progress = False
 
         # Launch runner
@@ -442,13 +489,10 @@ class TrieRepositoryTest(unittest.TestCase):
 
     def test_output_xml(self):
         # Set options
-        import sys
-        sys.argv = ['gitinspector',
-                    '--grading',
-                    '--file-types', 'c,h',
-                    '--format', 'xml',
-                    'build/tests/trie-repository']
-        opts = __parse_arguments__()
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'c,h',
+                                         '--format', 'xml',
+                                         'build/tests/trie-repository'])
         opts.progress = False
 
         # Launch runner
@@ -466,13 +510,10 @@ class TrieRepositoryTest(unittest.TestCase):
 
     def test_output_json(self):
         # Set options
-        import sys
-        sys.argv = ['gitinspector',
-                    '--grading',
-                    '--file-types', 'c,h',
-                    '--format', 'json',
-                    'build/tests/trie-repository']
-        opts = __parse_arguments__()
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'c,h',
+                                         '--format', 'json',
+                                         'build/tests/trie-repository'])
         opts.progress = False
 
         # Launch runner
@@ -491,6 +532,11 @@ class TrieRepositoryTest(unittest.TestCase):
 class PelicanRepositoryTest(unittest.TestCase):
 
     def setUp(self):
+        # Lowering artificially the threshold of cyclomatic complexity
+        # density to trigger it within this test.
+        import gitinspector.metrics
+        gitinspector.metrics.METRIC_CYCLOMATIC_COMPLEXITY_DENSITY_THRESHOLD = 0.15
+
         zip_ref = zipfile.ZipFile("tests/resources/pelican-repository.zip", 'r')
         zip_ref.extractall("build/tests")
         zip_ref.close()
@@ -507,13 +553,10 @@ class PelicanRepositoryTest(unittest.TestCase):
 
     def test_process(self):
         # Set options
-        import sys
-        sys.argv = ['gitinspector',
-                    '--grading',
-                    '--file-types', 'py',
-                    '--silent',
-                    'build/tests/pelican-repository']
-        opts = __parse_arguments__()
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'py',
+                                         '--silent',
+                                         'build/tests/pelican-repository'])
         opts.progress = False
 
         # Launch runner
@@ -522,13 +565,10 @@ class PelicanRepositoryTest(unittest.TestCase):
 
     def test_output_text(self):
         # Set options
-        import sys
-        sys.argv = ['gitinspector',
-                    '--grading',
-                    '--file-types', 'py',
-                    '--format=text',
-                    'build/tests/pelican-repository']
-        opts = __parse_arguments__()
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'py',
+                                         '--format=text',
+                                         'build/tests/pelican-repository'])
         opts.progress = False
 
         # Launch runner
@@ -546,13 +586,10 @@ class PelicanRepositoryTest(unittest.TestCase):
 
     def test_output_html(self):
         # Set options
-        import sys
-        sys.argv = ['gitinspector',
-                    '--grading',
-                    '--file-types', 'py',
-                    '--format=html',
-                    'build/tests/pelican-repository']
-        opts = __parse_arguments__()
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'py',
+                                         '--format=html',
+                                         'build/tests/pelican-repository'])
         opts.progress = False
 
         # Launch runner
@@ -570,13 +607,10 @@ class PelicanRepositoryTest(unittest.TestCase):
 
     def test_output_xml(self):
         # Set options
-        import sys
-        sys.argv = ['gitinspector',
-                    '--grading',
-                    '--file-types', 'py',
-                    '--format', 'xml',
-                    'build/tests/pelican-repository']
-        opts = __parse_arguments__()
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'py',
+                                         '--format', 'xml',
+                                         'build/tests/pelican-repository'])
         opts.progress = False
 
         # Launch runner
@@ -594,13 +628,10 @@ class PelicanRepositoryTest(unittest.TestCase):
 
     def test_output_json(self):
         # Set options
-        import sys
-        sys.argv = ['gitinspector',
-                    '--grading',
-                    '--file-types', 'py',
-                    '--format', 'json',
-                    'build/tests/pelican-repository']
-        opts = __parse_arguments__()
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'py',
+                                         '--format', 'json',
+                                         'build/tests/pelican-repository'])
         opts.progress = False
 
         # Launch runner
