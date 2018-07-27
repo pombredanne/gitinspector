@@ -24,7 +24,7 @@ import unittest
 import zipfile
 
 import gitinspector.localization as localization
-from gitinspector.gitinspector import Runner, FileWriter, filtering, StdoutWriter, __parse_arguments__
+from gitinspector.gitinspector import Runner, FileWriter, filtering, interval, StdoutWriter, __parse_arguments__
 
 
 def file_md5(fname):
@@ -33,7 +33,6 @@ def file_md5(fname):
         for chunk in iter(lambda: f.read(4096), b""):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
-
 
 # Test gitinspector over a git repository present in the resources/
 # dir, count the changes and the blames and check the metrics.
@@ -44,32 +43,45 @@ class BasicRepositoryTest(unittest.TestCase):
         zip_ref.extractall("build/tests")
         zip_ref.close()
 
-    # def tearDown(self):
-    #     shutil.rmtree("build/tests/repository")
+    def tearDown(self):
+        # TODO: We definitely need to rewrite the 'filtering' and the
+        # 'interval' modules to be part of the Runner context and NOT
+        # BEING GLOBAL! (for our own sake!)...
+
+        filtering.clear()
+        interval.__since__ = ""
+        interval.__until__ = ""
+        # shutil.rmtree("build/tests/repository")
 
     def test_process(self):
-        # Set options
+       # Set options
+        import sys
+        sys.argv = ['gitinspector',
+                    '--grading',
+                    '--file-types', 'c,txt',
+                    '--exclude', 'author:John Doe',
+                    '--silent',
+                    'build/tests/repository']
         opts = __parse_arguments__()
-        opts.repositories = ["build/tests/repository"]
-        filtering.__filters__["author"][0].add("John Doe")
-        opts.silent = True
         opts.progress = False
-        opts.file_types = "c,txt"
-        opts.metrics = True
+
         # Launch runner
         r = Runner(opts, None)
         r.process()
+
         # Check the repositories
         self.assertEqual(len(r.repos), 1)
         self.assertEqual(r.repos[0].name, "repository")
         self.assertTrue(r.repos[0].location.endswith("build/tests/repository"))
         self.assertEqual(r.repos[0].authors(),
                          ['Abraham Lincoln <abe@gov.us>', 'Andrew Johnson <jojo@gov.us>'])
+
         # Check the commits
         self.assertEqual(len(r.changes.commits), 2)
         authors = sorted(list(map(lambda c: c.author, r.changes.commits)))
         self.assertEqual(authors[0], "Abraham Lincoln")
         self.assertEqual(authors[1], "Andrew Johnson")
+
         # Check the blames
         self.assertEqual(len(r.blames.blames.keys()), 2)
         blame_keys = sorted(list(r.blames.blames.keys()))
@@ -77,17 +89,22 @@ class BasicRepositoryTest(unittest.TestCase):
         self.assertEqual(blame_keys[1], ('Andrew Johnson', 'file.c'))
         self.assertEqual(r.blames.blames[blame_keys[0]].rows, 1) # README.txt is 1 line long
         self.assertEqual(r.blames.blames[blame_keys[1]].rows, 6) # main.c     is 6 lines long
+
         # Check the metrics
         self.assertEqual(r.metrics.eloc, {}) # Both files are too short, no metrics to report
 
     def test_output_text(self):
+       # Set options
+        import sys
+        sys.argv = ['gitinspector',
+                    '--grading',
+                    '--file-types', 'c,txt',
+                    '--exclude', 'author:John Doe',
+                    '--format', 'text',
+                    'build/tests/repository']
         opts = __parse_arguments__()
-        opts.repositories = ["build/tests/repository"]
-        filtering.__filters__["author"][0].add("John Doe")
         opts.progress = False
-        opts.file_types = "c,txt"
-        opts.timeline = True
-        opts.format = "text"
+
         # Launch runner
         localization.init_null()
         file = tempfile.NamedTemporaryFile('w', delete=False)
@@ -102,13 +119,17 @@ class BasicRepositoryTest(unittest.TestCase):
         os.remove(file.name)
 
     def test_output_html(self):
+        # Set options
+        import sys
+        sys.argv = ['gitinspector',
+                    '--grading',
+                    '--file-types', 'c,txt',
+                    '--exclude', 'author:John Doe',
+                    '--format', 'html',
+                    'build/tests/repository']
         opts = __parse_arguments__()
-        opts.repositories = ["build/tests/repository"]
-        filtering.__filters__["author"][0].add("John Doe")
         opts.progress = False
-        opts.file_types = "c,txt"
-        opts.timeline = True
-        opts.format = "html"
+
         # Launch runner
         localization.init_null()
         file = tempfile.NamedTemporaryFile('w', delete=False)
@@ -123,18 +144,17 @@ class BasicRepositoryTest(unittest.TestCase):
         os.remove(file.name)
 
     def test_output_xml(self):
+        # Set options
+        import sys
+        sys.argv = ['gitinspector',
+                    '--grading',
+                    '--file-types', 'c,txt',
+                    '--exclude', 'author:John Doe',
+                    '--format', 'xml',
+                    'build/tests/repository']
         opts = __parse_arguments__()
-        opts.format = "xml"
-        opts.file_types = "c,h"
-        opts.repositories = ["build/tests/repository"]
-        filtering.__filters__["author"][0].add("John Doe")
-        opts.hard = True
-        opts.list_file_types = True
-        opts.metrics = True
         opts.progress = False
-        opts.responsibilities = True
-        opts.timeline = True
-        opts.weeks = True
+
         # Launch runner
         localization.init_null()
         file = tempfile.NamedTemporaryFile('w', delete=False)
@@ -149,18 +169,184 @@ class BasicRepositoryTest(unittest.TestCase):
         os.remove(file.name)
 
     def test_output_json(self):
+        # Set options
+        import sys
+        sys.argv = ['gitinspector',
+                    '--grading',
+                    '--file-types', 'c,txt',
+                    '--exclude', 'author:John Doe',
+                    '--format', 'json',
+                    'build/tests/repository']
         opts = __parse_arguments__()
-        opts.format = "json"
-        opts.file_types = "c,h"
-        opts.repositories = ["build/tests/repository"]
-        filtering.__filters__["author"][0].add("John Doe")
-        opts.hard = True
-        opts.list_file_types = True
-        opts.metrics = True
         opts.progress = False
-        opts.responsibilities = True
-        opts.timeline = True
-        opts.weeks = True
+
+        # Launch runner
+        localization.init_null()
+        file = tempfile.NamedTemporaryFile('w', delete=False)
+        r = Runner(opts, FileWriter(file))
+        r.process()
+        # with open(file.name, 'r') as f:
+        #     contents = f.read()
+        #     self.assertTrue("Statistical information" in contents)
+        #     self.assertTrue("The following historical commit" in contents)
+        #     self.assertTrue("Below are the number of rows" in contents)
+        #     self.assertTrue("The following history timeline" in contents)
+        os.remove(file.name)
+
+
+# Test gitinspector over a git repository present in the resources/
+# dir, count the changes and the blames and check the metrics.
+class BasicFilteredRepositoryTest(unittest.TestCase):
+
+    def setUp(self):
+        zip_ref = zipfile.ZipFile("tests/resources/repository.zip", 'r')
+        zip_ref.extractall("build/tests")
+        zip_ref.close()
+
+    def tearDown(self):
+        # TODO: We definitely need to rewrite the 'filtering' and the
+        # 'interval' modules to be part of the Runner context and NOT
+        # BEING GLOBAL! (for our own sake!)...
+
+        filtering.clear()
+        interval.__since__ = ""
+        interval.__until__ = ""
+        # shutil.rmtree("build/tests/repository")
+
+    def test_process(self):
+        # Set options
+        import sys
+        sys.argv = ['gitinspector',
+                    '--grading',
+                    '--file-types', 'c,txt',
+                    '--exclude', 'author:Abraham Lincoln,message:README',
+                    '--since', '2001-01-01',
+                    '--until', '2020-01-01',
+                    '--silent',
+                    'build/tests/repository']
+        opts = __parse_arguments__()
+        opts.progress = False
+
+        # Launch runner
+        r = Runner(opts, None)
+        r.process()
+
+        # Check the repositories
+        self.assertEqual(len(r.repos), 1)
+        self.assertEqual(r.repos[0].name, "repository")
+        self.assertTrue(r.repos[0].location.endswith("build/tests/repository"))
+        self.assertEqual(r.repos[0].authors(),
+                         ['Abraham Lincoln <abe@gov.us>', 'Andrew Johnson <jojo@gov.us>'])
+
+        # Check the commits
+        self.assertEqual(len(r.changes.commits), 1)
+        authors = sorted(list(map(lambda c: c.author, r.changes.commits)))
+        self.assertEqual(authors[0], "Andrew Johnson")
+
+        # Check the blames
+        self.assertEqual(len(r.blames.blames.keys()), 1)
+        blame_keys = sorted(list(r.blames.blames.keys()))
+        self.assertEqual(blame_keys[0], ('Andrew Johnson', 'file.c'))
+        self.assertEqual(r.blames.blames[blame_keys[0]].rows, 6) # main.c     is 6 lines long
+
+        # Check the metrics
+        self.assertEqual(r.metrics.eloc, {}) # Both files are too short, no metrics to report
+
+    def test_output_text(self):
+        # Set options
+        import sys
+        sys.argv = ['gitinspector',
+                    '--grading',
+                    '--file-types', 'c,txt',
+                    '--exclude', 'author:Abraham Lincoln',
+                    '--since', '2001-01-01',
+                    '--until', '2020-01-01',
+                    '--format', 'text',
+                    'build/tests/repository']
+        opts = __parse_arguments__()
+        opts.progress = False
+
+        # Launch runner
+        localization.init_null()
+        file = tempfile.NamedTemporaryFile('w', delete=False)
+        r = Runner(opts, FileWriter(file))
+        r.process()
+        with open(file.name, 'r') as f:
+            contents = f.read()
+            self.assertTrue("Statistical information" in contents)
+            self.assertTrue("The following historical commit" in contents)
+            self.assertTrue("Below are the number of rows" in contents)
+            self.assertTrue("The following history timeline" in contents)
+        os.remove(file.name)
+
+    def test_output_html(self):
+        # Set options
+        import sys
+        sys.argv = ['gitinspector',
+                    '--grading',
+                    '--file-types', 'c,txt',
+                    '--exclude', 'author:Abraham Lincoln',
+                    '--since', '2001-01-01',
+                    '--until', '2020-01-01',
+                    '--format', 'html',
+                    'build/tests/repository']
+        opts = __parse_arguments__()
+        opts.progress = False
+
+        # Launch runner
+        localization.init_null()
+        file = tempfile.NamedTemporaryFile('w', delete=False)
+        r = Runner(opts, FileWriter(file))
+        r.process()
+        with open(file.name, 'r') as f:
+            contents = f.read()
+            self.assertTrue("Statistical information" in contents)
+            self.assertTrue("The following historical commit" in contents)
+            self.assertTrue("Below are the number of rows" in contents)
+            self.assertTrue("The following history timeline" in contents)
+        os.remove(file.name)
+
+    def test_output_xml(self):
+        # Set options
+        import sys
+        sys.argv = ['gitinspector',
+                    '--grading',
+                    '--file-types', 'c,txt',
+                    '--exclude', 'author:Abraham Lincoln',
+                    '--since', '2001-01-01',
+                    '--until', '2020-01-01',
+                    '--format', 'xml',
+                    'build/tests/repository']
+        opts = __parse_arguments__()
+        opts.progress = False
+
+        # Launch runner
+        localization.init_null()
+        file = tempfile.NamedTemporaryFile('w', delete=False)
+        r = Runner(opts, FileWriter(file))
+        r.process()
+        # with open(file.name, 'r') as f:
+        #     contents = f.read()
+        #     self.assertTrue("Statistical information" in contents)
+        #     self.assertTrue("The following historical commit" in contents)
+        #     self.assertTrue("Below are the number of rows" in contents)
+        #     self.assertTrue("The following history timeline" in contents)
+        os.remove(file.name)
+
+    def test_output_json(self):
+        # Set options
+        import sys
+        sys.argv = ['gitinspector',
+                    '--grading',
+                    '--file-types', 'c,txt',
+                    '--exclude', 'author:Abraham Lincoln',
+                    '--since', '2001-01-01',
+                    '--until', '2020-01-01',
+                    '--format', 'json',
+                    'build/tests/repository']
+        opts = __parse_arguments__()
+        opts.progress = False
+
         # Launch runner
         localization.init_null()
         file = tempfile.NamedTemporaryFile('w', delete=False)
@@ -181,38 +367,42 @@ class TrieRepositoryTest(unittest.TestCase):
         zip_ref.extractall("build/tests")
         zip_ref.close()
 
-    # def tearDown(self):
-    #     shutil.rmtree("build/tests/trie-repository")
+    def tearDown(self):
+        # TODO: We definitely need to rewrite the 'filtering' and the
+        # 'interval' modules to be part of the Runner context and NOT
+        # BEING GLOBAL! (for our own sake!)...
+
+        filtering.clear()
+        interval.__since__ = ""
+        interval.__until__ = ""
+        # shutil.rmtree("build/tests/repository")
 
     def test_process(self):
         # Set options
+        import sys
+        sys.argv = ['gitinspector',
+                    '--grading',
+                    '--file-types', 'c,h',
+                    '--silent',
+                    'build/tests/trie-repository']
         opts = __parse_arguments__()
-        opts.file_types = "c,h"
-        opts.repositories = ["build/tests/trie-repository"]
-        opts.hard = True
-        opts.list_file_types = True
-        opts.metrics = True
         opts.progress = False
-        opts.responsibilities = True
-        opts.silent = True
-        opts.timeline = True
-        opts.weeks = True
+
         # Launch runner
         r = Runner(opts, None)
         r.process()
 
     def test_output_text(self):
+        # Set options
+        import sys
+        sys.argv = ['gitinspector',
+                    '--grading',
+                    '--file-types', 'c,h',
+                    '--format=text',
+                    'build/tests/trie-repository']
         opts = __parse_arguments__()
-        opts.format = "text"
-        opts.file_types = "c,h"
-        opts.repositories = ["build/tests/repository"]
-        opts.hard = True
-        opts.list_file_types = True
-        opts.metrics = True
         opts.progress = False
-        opts.responsibilities = True
-        opts.timeline = True
-        opts.weeks = True
+
         # Launch runner
         localization.init_null()
         file = tempfile.NamedTemporaryFile('w', delete=False)
@@ -227,17 +417,16 @@ class TrieRepositoryTest(unittest.TestCase):
         os.remove(file.name)
 
     def test_output_html(self):
+        # Set options
+        import sys
+        sys.argv = ['gitinspector',
+                    '--grading',
+                    '--file-types', 'c,h',
+                    '--format=html',
+                    'build/tests/trie-repository']
         opts = __parse_arguments__()
-        opts.format = "html"
-        opts.file_types = "c,h"
-        opts.repositories = ["build/tests/repository"]
-        opts.hard = True
-        opts.list_file_types = True
-        opts.metrics = True
         opts.progress = False
-        opts.responsibilities = True
-        opts.timeline = True
-        opts.weeks = True
+
         # Launch runner
         localization.init_null()
         file = tempfile.NamedTemporaryFile('w', delete=False)
@@ -252,17 +441,16 @@ class TrieRepositoryTest(unittest.TestCase):
         os.remove(file.name)
 
     def test_output_xml(self):
+        # Set options
+        import sys
+        sys.argv = ['gitinspector',
+                    '--grading',
+                    '--file-types', 'c,h',
+                    '--format', 'xml',
+                    'build/tests/trie-repository']
         opts = __parse_arguments__()
-        opts.format = "xml"
-        opts.file_types = "c,h"
-        opts.repositories = ["build/tests/repository"]
-        opts.hard = True
-        opts.list_file_types = True
-        opts.metrics = True
         opts.progress = False
-        opts.responsibilities = True
-        opts.timeline = True
-        opts.weeks = True
+
         # Launch runner
         localization.init_null()
         file = tempfile.NamedTemporaryFile('w', delete=False)
@@ -277,17 +465,16 @@ class TrieRepositoryTest(unittest.TestCase):
         os.remove(file.name)
 
     def test_output_json(self):
+        # Set options
+        import sys
+        sys.argv = ['gitinspector',
+                    '--grading',
+                    '--file-types', 'c,h',
+                    '--format', 'json',
+                    'build/tests/trie-repository']
         opts = __parse_arguments__()
-        opts.format = "json"
-        opts.file_types = "c,h"
-        opts.repositories = ["build/tests/repository"]
-        opts.hard = True
-        opts.list_file_types = True
-        opts.metrics = True
         opts.progress = False
-        opts.responsibilities = True
-        opts.timeline = True
-        opts.weeks = True
+
         # Launch runner
         localization.init_null()
         file = tempfile.NamedTemporaryFile('w', delete=False)
