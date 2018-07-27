@@ -1701,3 +1701,116 @@ rm -f patch.diff
 git add src/trie.c
 
 git_pippin_commit "Sun, 1 Nov 2015 02:04:22" "Refactoring code"
+
+
+##### Commit (adding licensing) #####
+
+cat > patch.diff <<EOF
+diff --git a/include/trie.h b/include/trie.h
+index 22b6990..e0cb878 100644
+--- a/include/trie.h
++++ b/include/trie.h
+@@ -1,3 +1,20 @@
++/*
++ * This file is part of the trie library.
++ *
++ * The trie library is free software: you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation, either version 3 of the
++ * License, or at your option) any later version.
++ *
++ * The trie library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with the trie library. If not, see http://www.gnu.org/licenses/.
++ */
++
+ #ifndef TRIE_H
+ #define TRIE_H
+ 
+diff --git a/src/trie.c b/src/trie.c
+index 3e0f319..b9f2f18 100644
+--- a/src/trie.c
++++ b/src/trie.c
+@@ -1,3 +1,20 @@
++/*
++ * This file is part of the trie library.
++ *
++ * The trie library is free software: you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation, either version 3 of the
++ * License, or at your option) any later version.
++ *
++ * The trie library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with the trie library. If not, see http://www.gnu.org/licenses/.
++ */
++
+ #include "trie.h"
+ 
+ #include <stdio.h>
+diff --git a/test/trie_test-01.c b/test/trie_test-01.c
+index 0bfbe01..7688ccf 100644
+--- a/test/trie_test-01.c
++++ b/test/trie_test-01.c
+@@ -1,3 +1,20 @@
++/*
++ * This file is part of the trie library.
++ *
++ * The trie library is free software: you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation, either version 3 of the
++ * License, or at your option) any later version.
++ *
++ * The trie library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with the trie library. If not, see http://www.gnu.org/licenses/.
++ */
++
+ #include <stdbool.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+diff --git a/test/trie_test-02.c b/test/trie_test-02.c
+index 73d7915..a13f5e9 100644
+--- a/test/trie_test-02.c
++++ b/test/trie_test-02.c
+@@ -1,3 +1,20 @@
++/*
++ * This file is part of the trie library.
++ *
++ * The trie library is free software: you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation, either version 3 of the
++ * License, or at your option) any later version.
++ *
++ * The trie library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with the trie library. If not, see http://www.gnu.org/licenses/.
++ */
++
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <unistd.h>
+EOF
+
+git apply patch.diff
+rm -f patch.diff
+
+git add include/trie.h src/trie.c test/trie_test-01.c test/trie_test-02.c
+
+git_pippin_commit "Sun, 1 Nov 2015 02:17:37" "Adding code licensing"
