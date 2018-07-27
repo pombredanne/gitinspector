@@ -449,7 +449,7 @@ class TrieRepositoryTest(unittest.TestCase):
         # Set options
         opts = __parse_arguments__(args=['--grading',
                                          '--file-types', 'c,h',
-                                         '--format=text',
+                                         '--format', 'text',
                                          'build/tests/trie-repository'])
         opts.progress = False
 
@@ -470,7 +470,7 @@ class TrieRepositoryTest(unittest.TestCase):
         # Set options
         opts = __parse_arguments__(args=['--grading',
                                          '--file-types', 'c,h',
-                                         '--format=html',
+                                         '--format', 'html',
                                          'build/tests/trie-repository'])
         opts.progress = False
 
@@ -557,7 +557,7 @@ class PelicanRepositoryTest(unittest.TestCase):
                                          '--file-types', 'py',
                                          '--silent',
                                          'build/tests/pelican-repository'])
-        opts.progress = False
+        opts.progress = True
 
         # Launch runner
         r = Runner(opts, None)
@@ -567,9 +567,9 @@ class PelicanRepositoryTest(unittest.TestCase):
         # Set options
         opts = __parse_arguments__(args=['--grading',
                                          '--file-types', 'py',
-                                         '--format=text',
+                                         '--format', 'text',
                                          'build/tests/pelican-repository'])
-        opts.progress = False
+        opts.progress = True
 
         # Launch runner
         localization.init_null()
@@ -588,9 +588,30 @@ class PelicanRepositoryTest(unittest.TestCase):
         # Set options
         opts = __parse_arguments__(args=['--grading',
                                          '--file-types', 'py',
-                                         '--format=html',
+                                         '--format', 'html',
                                          'build/tests/pelican-repository'])
-        opts.progress = False
+        opts.progress = True
+
+        # Launch runner
+        localization.init_null()
+        file = tempfile.NamedTemporaryFile('w', delete=False)
+        r = Runner(opts, FileWriter(file))
+        r.process()
+        with open(file.name, 'r') as f:
+            contents = f.read()
+            self.assertTrue("Statistical information" in contents)
+            self.assertTrue("The following historical commit" in contents)
+            self.assertTrue("Below are the number of rows" in contents)
+            self.assertTrue("The following history timeline" in contents)
+        os.remove(file.name)
+
+    def test_output_htmlembedded(self):
+        # Set options
+        opts = __parse_arguments__(args=['--grading',
+                                         '--file-types', 'py',
+                                         '--format', 'htmlembedded',
+                                         'build/tests/pelican-repository'])
+        opts.progress = True
 
         # Launch runner
         localization.init_null()
@@ -611,7 +632,7 @@ class PelicanRepositoryTest(unittest.TestCase):
                                          '--file-types', 'py',
                                          '--format', 'xml',
                                          'build/tests/pelican-repository'])
-        opts.progress = False
+        opts.progress = True
 
         # Launch runner
         localization.init_null()
@@ -632,7 +653,7 @@ class PelicanRepositoryTest(unittest.TestCase):
                                          '--file-types', 'py',
                                          '--format', 'json',
                                          'build/tests/pelican-repository'])
-        opts.progress = False
+        opts.progress = True
 
         # Launch runner
         localization.init_null()

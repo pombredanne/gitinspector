@@ -181,7 +181,7 @@ def __parse_arguments__(args=None):
                         help=_('the address of a repository to be analyzed'))
     parser.add_argument('-a', '--aliases', metavar='ALIASES', help=
                         _("a dictionary string indicating aliases for the authors"),
-                        type=lambda s: ast.literal_eval(s), default = {})
+                        type=lambda s: ast.literal_eval(s), default={})
     parser.add_argument('-f', '--file-types', metavar='TYPES', help=
                         _("a comma separated list of file extensions to include when "
                           "computing statistics. The default extensions used are: ") + str(DEFAULT_EXTENSIONS) + " " +
