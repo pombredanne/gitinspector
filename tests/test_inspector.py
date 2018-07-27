@@ -39,7 +39,7 @@ def file_md5(fname):
 class BasicRepositoryTest(unittest.TestCase):
 
     def setUp(self):
-        zip_ref = zipfile.ZipFile("tests/resources/repository.zip", 'r')
+        zip_ref = zipfile.ZipFile("tests/resources/basic-repository.zip", 'r')
         zip_ref.extractall("build/tests")
         zip_ref.close()
 
@@ -51,7 +51,7 @@ class BasicRepositoryTest(unittest.TestCase):
         filtering.clear()
         interval.__since__ = ""
         interval.__until__ = ""
-        # shutil.rmtree("build/tests/repository")
+        shutil.rmtree("build/tests/basic-repository")
 
     def test_process(self):
        # Set options
@@ -61,7 +61,7 @@ class BasicRepositoryTest(unittest.TestCase):
                     '--file-types', 'c,txt',
                     '--exclude', 'author:John Doe',
                     '--silent',
-                    'build/tests/repository']
+                    'build/tests/basic-repository']
         opts = __parse_arguments__()
         opts.progress = False
 
@@ -71,8 +71,8 @@ class BasicRepositoryTest(unittest.TestCase):
 
         # Check the repositories
         self.assertEqual(len(r.repos), 1)
-        self.assertEqual(r.repos[0].name, "repository")
-        self.assertTrue(r.repos[0].location.endswith("build/tests/repository"))
+        self.assertEqual(r.repos[0].name, "basic-repository")
+        self.assertTrue(r.repos[0].location.endswith("build/tests/basic-repository"))
         self.assertEqual(r.repos[0].authors(),
                          ['Abraham Lincoln <abe@gov.us>', 'Andrew Johnson <jojo@gov.us>'])
 
@@ -101,7 +101,7 @@ class BasicRepositoryTest(unittest.TestCase):
                     '--file-types', 'c,txt',
                     '--exclude', 'author:John Doe',
                     '--format', 'text',
-                    'build/tests/repository']
+                    'build/tests/basic-repository']
         opts = __parse_arguments__()
         opts.progress = False
 
@@ -126,7 +126,7 @@ class BasicRepositoryTest(unittest.TestCase):
                     '--file-types', 'c,txt',
                     '--exclude', 'author:John Doe',
                     '--format', 'html',
-                    'build/tests/repository']
+                    'build/tests/basic-repository']
         opts = __parse_arguments__()
         opts.progress = False
 
@@ -151,7 +151,7 @@ class BasicRepositoryTest(unittest.TestCase):
                     '--file-types', 'c,txt',
                     '--exclude', 'author:John Doe',
                     '--format', 'xml',
-                    'build/tests/repository']
+                    'build/tests/basic-repository']
         opts = __parse_arguments__()
         opts.progress = False
 
@@ -176,7 +176,7 @@ class BasicRepositoryTest(unittest.TestCase):
                     '--file-types', 'c,txt',
                     '--exclude', 'author:John Doe',
                     '--format', 'json',
-                    'build/tests/repository']
+                    'build/tests/basic-repository']
         opts = __parse_arguments__()
         opts.progress = False
 
@@ -199,7 +199,7 @@ class BasicRepositoryTest(unittest.TestCase):
 class BasicFilteredRepositoryTest(unittest.TestCase):
 
     def setUp(self):
-        zip_ref = zipfile.ZipFile("tests/resources/repository.zip", 'r')
+        zip_ref = zipfile.ZipFile("tests/resources/basic-repository.zip", 'r')
         zip_ref.extractall("build/tests")
         zip_ref.close()
 
@@ -211,7 +211,7 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
         filtering.clear()
         interval.__since__ = ""
         interval.__until__ = ""
-        # shutil.rmtree("build/tests/repository")
+        shutil.rmtree("build/tests/basic-repository")
 
     def test_process(self):
         # Set options
@@ -223,7 +223,7 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
                     '--since', '2001-01-01',
                     '--until', '2020-01-01',
                     '--silent',
-                    'build/tests/repository']
+                    'build/tests/basic-repository']
         opts = __parse_arguments__()
         opts.progress = False
 
@@ -233,8 +233,8 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
 
         # Check the repositories
         self.assertEqual(len(r.repos), 1)
-        self.assertEqual(r.repos[0].name, "repository")
-        self.assertTrue(r.repos[0].location.endswith("build/tests/repository"))
+        self.assertEqual(r.repos[0].name, "basic-repository")
+        self.assertTrue(r.repos[0].location.endswith("build/tests/basic-repository"))
         self.assertEqual(r.repos[0].authors(),
                          ['Abraham Lincoln <abe@gov.us>', 'Andrew Johnson <jojo@gov.us>'])
 
@@ -262,7 +262,7 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
                     '--since', '2001-01-01',
                     '--until', '2020-01-01',
                     '--format', 'text',
-                    'build/tests/repository']
+                    'build/tests/basic-repository']
         opts = __parse_arguments__()
         opts.progress = False
 
@@ -289,7 +289,7 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
                     '--since', '2001-01-01',
                     '--until', '2020-01-01',
                     '--format', 'html',
-                    'build/tests/repository']
+                    'build/tests/basic-repository']
         opts = __parse_arguments__()
         opts.progress = False
 
@@ -316,7 +316,7 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
                     '--since', '2001-01-01',
                     '--until', '2020-01-01',
                     '--format', 'xml',
-                    'build/tests/repository']
+                    'build/tests/basic-repository']
         opts = __parse_arguments__()
         opts.progress = False
 
@@ -343,7 +343,7 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
                     '--since', '2001-01-01',
                     '--until', '2020-01-01',
                     '--format', 'json',
-                    'build/tests/repository']
+                    'build/tests/basic-repository']
         opts = __parse_arguments__()
         opts.progress = False
 
@@ -375,7 +375,7 @@ class TrieRepositoryTest(unittest.TestCase):
         filtering.clear()
         interval.__since__ = ""
         interval.__until__ = ""
-        # shutil.rmtree("build/tests/repository")
+        shutil.rmtree("build/tests/trie-repository")
 
     def test_process(self):
         # Set options
@@ -472,6 +472,134 @@ class TrieRepositoryTest(unittest.TestCase):
                     '--file-types', 'c,h',
                     '--format', 'json',
                     'build/tests/trie-repository']
+        opts = __parse_arguments__()
+        opts.progress = False
+
+        # Launch runner
+        localization.init_null()
+        file = tempfile.NamedTemporaryFile('w', delete=False)
+        r = Runner(opts, FileWriter(file))
+        r.process()
+        # with open(file.name, 'r') as f:
+        #     contents = f.read()
+        #     self.assertTrue("Statistical information" in contents)
+        #     self.assertTrue("The following historical commit" in contents)
+        #     self.assertTrue("Below are the number of rows" in contents)
+        #     self.assertTrue("The following history timeline" in contents)
+        os.remove(file.name)
+
+class PelicanRepositoryTest(unittest.TestCase):
+
+    def setUp(self):
+        zip_ref = zipfile.ZipFile("tests/resources/pelican-repository.zip", 'r')
+        zip_ref.extractall("build/tests")
+        zip_ref.close()
+
+    def tearDown(self):
+        # TODO: We definitely need to rewrite the 'filtering' and the
+        # 'interval' modules to be part of the Runner context and NOT
+        # BEING GLOBAL! (for our own sake!)...
+
+        filtering.clear()
+        interval.__since__ = ""
+        interval.__until__ = ""
+        shutil.rmtree("build/tests/pelican-repository")
+
+    def test_process(self):
+        # Set options
+        import sys
+        sys.argv = ['gitinspector',
+                    '--grading',
+                    '--file-types', 'py',
+                    '--silent',
+                    'build/tests/pelican-repository']
+        opts = __parse_arguments__()
+        opts.progress = False
+
+        # Launch runner
+        r = Runner(opts, None)
+        r.process()
+
+    def test_output_text(self):
+        # Set options
+        import sys
+        sys.argv = ['gitinspector',
+                    '--grading',
+                    '--file-types', 'py',
+                    '--format=text',
+                    'build/tests/pelican-repository']
+        opts = __parse_arguments__()
+        opts.progress = False
+
+        # Launch runner
+        localization.init_null()
+        file = tempfile.NamedTemporaryFile('w', delete=False)
+        r = Runner(opts, FileWriter(file))
+        r.process()
+        with open(file.name, 'r') as f:
+            contents = f.read()
+            self.assertTrue("Statistical information" in contents)
+            self.assertTrue("The following historical commit" in contents)
+            self.assertTrue("Below are the number of rows" in contents)
+            self.assertTrue("The following history timeline" in contents)
+        os.remove(file.name)
+
+    def test_output_html(self):
+        # Set options
+        import sys
+        sys.argv = ['gitinspector',
+                    '--grading',
+                    '--file-types', 'py',
+                    '--format=html',
+                    'build/tests/pelican-repository']
+        opts = __parse_arguments__()
+        opts.progress = False
+
+        # Launch runner
+        localization.init_null()
+        file = tempfile.NamedTemporaryFile('w', delete=False)
+        r = Runner(opts, FileWriter(file))
+        r.process()
+        with open(file.name, 'r') as f:
+            contents = f.read()
+            self.assertTrue("Statistical information" in contents)
+            self.assertTrue("The following historical commit" in contents)
+            self.assertTrue("Below are the number of rows" in contents)
+            self.assertTrue("The following history timeline" in contents)
+        os.remove(file.name)
+
+    def test_output_xml(self):
+        # Set options
+        import sys
+        sys.argv = ['gitinspector',
+                    '--grading',
+                    '--file-types', 'py',
+                    '--format', 'xml',
+                    'build/tests/pelican-repository']
+        opts = __parse_arguments__()
+        opts.progress = False
+
+        # Launch runner
+        localization.init_null()
+        file = tempfile.NamedTemporaryFile('w', delete=False)
+        r = Runner(opts, FileWriter(file))
+        r.process()
+        # with open(file.name, 'r') as f:
+        #     contents = f.read()
+        #     self.assertTrue("Statistical information" in contents)
+        #     self.assertTrue("The following historical commit" in contents)
+        #     self.assertTrue("Below are the number of rows" in contents)
+        #     self.assertTrue("The following history timeline" in contents)
+        os.remove(file.name)
+
+    def test_output_json(self):
+        # Set options
+        import sys
+        sys.argv = ['gitinspector',
+                    '--grading',
+                    '--file-types', 'py',
+                    '--format', 'json',
+                    'build/tests/pelican-repository']
         opts = __parse_arguments__()
         opts.progress = False
 
