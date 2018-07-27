@@ -50,9 +50,9 @@ def add(string):
 
 def clear():
     for i in __filters__:
-        __filters__[i][0] = set()
+        __filters__[i] = [set(), set()]
 
-def get_filered(filter_type="file"):
+def get_filtered(filter_type="file"):
     return __filters__[filter_type][1]
 
 def has_filtered():
