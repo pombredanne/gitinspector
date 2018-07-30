@@ -134,7 +134,7 @@ class Blame(object):
         blame.blames = {}
         return blame
 
-    def __init__(self, repo, hard, useweeks, changes, progress=True):
+    def __init__(self, repo, changes, config):
         self.blames = {}
         ls_tree_p = subprocess.Popen(["git", "ls-tree", "--name-only", "-r",
                                       interval.get_ref()], bufsize=1,
@@ -157,14 +157,14 @@ class Blame(object):
                 if FileDiff.get_extension(row) in extensions.get_located() and \
                    FileDiff.is_valid_extension(row) and not filtering.set_filtered(FileDiff.get_filename(row)):
                     blame_command = filter(None, ["git", "blame", "--line-porcelain", "-w"] + \
-                                           (["-C", "-C", "-M"] if hard else []) +
+                                           (["-C", "-C", "-M"] if config.hard else []) +
                                            [interval.get_since(), interval.get_ref(), "--", row])
-                    thread = BlameThread(useweeks, changes, blame_command, FileDiff.get_extension(row),
+                    thread = BlameThread(config.weeks, changes, blame_command, FileDiff.get_extension(row),
                                          self.blames, row.strip())
                     thread.daemon = True
                     thread.start()
 
-                    if progress and format.is_interactive_format():
+                    if config.progress and format.is_interactive_format():
                         terminal.output_progress(progress_text, i, len(lines))
 
             # Make sure all threads have completed.

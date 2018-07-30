@@ -101,8 +101,7 @@ class Runner(object):
             os.chdir(repo.location)
             repo = repo if len(self.repos) > 1 else None
             repo_changes = Changes(repo, self.config)
-            self.blames += Blame(repo, self.config.hard, self.config.weeks,
-                                 repo_changes, progress=self.config.progress)
+            self.blames += Blame(repo, repo_changes, self.config)
             self.changes += repo_changes
 
             if self.config.metrics:
