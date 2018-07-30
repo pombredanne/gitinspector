@@ -557,7 +557,7 @@ class PelicanRepositoryTest(unittest.TestCase):
                                          '--file-types', 'py',
                                          '--silent',
                                          'build/tests/pelican-repository'])
-        opts.progress = True
+        opts.progress = False
 
         # Launch runner
         r = Runner(opts, None)
@@ -569,7 +569,7 @@ class PelicanRepositoryTest(unittest.TestCase):
                                          '--file-types', 'py',
                                          '--format', 'text',
                                          'build/tests/pelican-repository'])
-        opts.progress = True
+        opts.progress = False
 
         # Launch runner
         localization.init_null()
@@ -590,7 +590,7 @@ class PelicanRepositoryTest(unittest.TestCase):
                                          '--file-types', 'py',
                                          '--format', 'html',
                                          'build/tests/pelican-repository'])
-        opts.progress = True
+        opts.progress = False
 
         # Launch runner
         localization.init_null()
@@ -611,7 +611,7 @@ class PelicanRepositoryTest(unittest.TestCase):
                                          '--file-types', 'py',
                                          '--format', 'htmlembedded',
                                          'build/tests/pelican-repository'])
-        opts.progress = True
+        opts.progress = False
 
         # Launch runner
         localization.init_null()
@@ -632,7 +632,7 @@ class PelicanRepositoryTest(unittest.TestCase):
                                          '--file-types', 'py',
                                          '--format', 'xml',
                                          'build/tests/pelican-repository'])
-        opts.progress = True
+        opts.progress = False
 
         # Launch runner
         localization.init_null()
@@ -653,7 +653,7 @@ class PelicanRepositoryTest(unittest.TestCase):
                                          '--file-types', 'py',
                                          '--format', 'json',
                                          'build/tests/pelican-repository'])
-        opts.progress = True
+        opts.progress = False
 
         # Launch runner
         localization.init_null()
