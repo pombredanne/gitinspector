@@ -234,12 +234,11 @@ class BasicRepositoryTest(unittest.TestCase):
         file = tempfile.NamedTemporaryFile('w', delete=False)
         r = Runner(opts, FileWriter(file))
         r.process()
-        # with open(file.name, 'r') as f:
-        #     contents = f.read()
-        #     self.assertTrue("Statistical information" in contents)
-        #     self.assertTrue("The following historical commit" in contents)
-        #     self.assertTrue("Below are the number of rows" in contents)
-        #     self.assertTrue("The following history timeline" in contents)
+        with open(file.name, 'r') as f:
+            contents = f.read()
+            self.assertTrue("The following historical commit" in contents)
+            self.assertTrue("Below are the number of rows" in contents)
+            self.assertTrue("The following history timeline" in contents)
         os.remove(file.name)
 
     def test_output_json(self):
@@ -256,12 +255,11 @@ class BasicRepositoryTest(unittest.TestCase):
         file = tempfile.NamedTemporaryFile('w', delete=False)
         r = Runner(opts, FileWriter(file))
         r.process()
-        # with open(file.name, 'r') as f:
-        #     contents = f.read()
-        #     self.assertTrue("Statistical information" in contents)
-        #     self.assertTrue("The following historical commit" in contents)
-        #     self.assertTrue("Below are the number of rows" in contents)
-        #     self.assertTrue("The following history timeline" in contents)
+        with open(file.name, 'r') as f:
+            contents = f.read()
+            self.assertTrue("The following historical commit" in contents)
+            self.assertTrue("Below are the number of rows" in contents)
+            self.assertTrue("The following history timeline" in contents)
         os.remove(file.name)
 
 
@@ -384,12 +382,11 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
         file = tempfile.NamedTemporaryFile('w', delete=False)
         r = Runner(opts, FileWriter(file))
         r.process()
-        # with open(file.name, 'r') as f:
-        #     contents = f.read()
-        #     self.assertTrue("Statistical information" in contents)
-        #     self.assertTrue("The following historical commit" in contents)
-        #     self.assertTrue("Below are the number of rows" in contents)
-        #     self.assertTrue("The following history timeline" in contents)
+        with open(file.name, 'r') as f:
+            contents = f.read()
+            self.assertTrue("The following historical commit" in contents)
+            self.assertTrue("Below are the number of rows" in contents)
+            self.assertTrue("The following history timeline" in contents)
         os.remove(file.name)
 
     def test_output_json(self):
@@ -408,12 +405,11 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
         file = tempfile.NamedTemporaryFile('w', delete=False)
         r = Runner(opts, FileWriter(file))
         r.process()
-        # with open(file.name, 'r') as f:
-        #     contents = f.read()
-        #     self.assertTrue("Statistical information" in contents)
-        #     self.assertTrue("The following historical commit" in contents)
-        #     self.assertTrue("Below are the number of rows" in contents)
-        #     self.assertTrue("The following history timeline" in contents)
+        with open(file.name, 'r') as f:
+            contents = f.read()
+            self.assertTrue("The following historical commit" in contents)
+            self.assertTrue("Below are the number of rows" in contents)
+            self.assertTrue("The following history timeline" in contents)
         os.remove(file.name)
 
 class TrieRepositoryTest(unittest.TestCase):
@@ -500,12 +496,11 @@ class TrieRepositoryTest(unittest.TestCase):
         file = tempfile.NamedTemporaryFile('w', delete=False)
         r = Runner(opts, FileWriter(file))
         r.process()
-        # with open(file.name, 'r') as f:
-        #     contents = f.read()
-        #     self.assertTrue("Statistical information" in contents)
-        #     self.assertTrue("The following historical commit" in contents)
-        #     self.assertTrue("Below are the number of rows" in contents)
-        #     self.assertTrue("The following history timeline" in contents)
+        with open(file.name, 'r') as f:
+            contents = f.read()
+            self.assertTrue("The following historical commit" in contents)
+            self.assertTrue("Below are the number of rows" in contents)
+            self.assertTrue("The following history timeline" in contents)
         os.remove(file.name)
 
     def test_output_json(self):
@@ -521,12 +516,11 @@ class TrieRepositoryTest(unittest.TestCase):
         file = tempfile.NamedTemporaryFile('w', delete=False)
         r = Runner(opts, FileWriter(file))
         r.process()
-        # with open(file.name, 'r') as f:
-        #     contents = f.read()
-        #     self.assertTrue("Statistical information" in contents)
-        #     self.assertTrue("The following historical commit" in contents)
-        #     self.assertTrue("Below are the number of rows" in contents)
-        #     self.assertTrue("The following history timeline" in contents)
+        with open(file.name, 'r') as f:
+            contents = f.read()
+            self.assertTrue("The following historical commit" in contents)
+            self.assertTrue("Below are the number of rows" in contents)
+            self.assertTrue("The following history timeline" in contents)
         os.remove(file.name)
 
 class PelicanRepositoryTest(unittest.TestCase):
@@ -639,12 +633,11 @@ class PelicanRepositoryTest(unittest.TestCase):
         file = tempfile.NamedTemporaryFile('w', delete=False)
         r = Runner(opts, FileWriter(file))
         r.process()
-        # with open(file.name, 'r') as f:
-        #     contents = f.read()
-        #     self.assertTrue("Statistical information" in contents)
-        #     self.assertTrue("The following historical commit" in contents)
-        #     self.assertTrue("Below are the number of rows" in contents)
-        #     self.assertTrue("The following history timeline" in contents)
+        with open(file.name, 'r') as f:
+            contents = f.read()
+            self.assertTrue("The following historical commit" in contents)
+            self.assertTrue("Below are the number of rows" in contents)
+            self.assertTrue("The following history timeline" in contents)
         os.remove(file.name)
 
     def test_output_json(self):
@@ -660,10 +653,9 @@ class PelicanRepositoryTest(unittest.TestCase):
         file = tempfile.NamedTemporaryFile('w', delete=False)
         r = Runner(opts, FileWriter(file))
         r.process()
-        # with open(file.name, 'r') as f:
-        #     contents = f.read()
-        #     self.assertTrue("Statistical information" in contents)
-        #     self.assertTrue("The following historical commit" in contents)
-        #     self.assertTrue("Below are the number of rows" in contents)
-        #     self.assertTrue("The following history timeline" in contents)
+        with open(file.name, 'r') as f:
+            contents = f.read()
+            self.assertTrue("The following historical commit" in contents)
+            self.assertTrue("Below are the number of rows" in contents)
+            self.assertTrue("The following history timeline" in contents)
         os.remove(file.name)
