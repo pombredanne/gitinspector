@@ -98,12 +98,15 @@ class Commit(object):
         return (author, email)
 
     @staticmethod
-    def get_author_and_email(config, string):
+    def get_author_and_email(config, changes, string):
         commit_line = string.split("|")
         try:
             author = commit_line[3].strip()
             email = commit_line[4].strip()
-            return Commit.get_alias(author, email, config)
+            (real_author, real_email) = Commit.get_alias(author, email, config)
+            changes.emails_by_author[author] = real_email
+            changes.authors_by_email[email]  = real_author
+            return (real_author, real_email)
         except IndexError:
             return "Unknown Author"
 
@@ -160,9 +163,7 @@ class ChangesThread(threading.Thread):
             j = j.decode("utf-8", "replace")
 
             if Commit.is_commit_line(j):
-                (author, email) = Commit.get_author_and_email(self.config, j)
-                self.changes.emails_by_author[author] = email
-                self.changes.authors_by_email[email] = author
+                (author, email) = Commit.get_author_and_email(self.config, self.changes, j)
 
             if Commit.is_commit_line(j) or i is lines[-1]:
                 if found_valid_extension:
@@ -313,15 +314,15 @@ class Changes(object):
 
         return self.authors_dateinfo
 
-    def get_latest_author_by_email(self, name):
-        if not hasattr(name, "decode"):
-            name = str.encode(name)
+    def get_latest_author_by_email(self, email):
+        if not hasattr(email, "decode"):
+            email = str.encode(email)
         try:
-            name = name.decode("unicode_escape", "ignore")
+            email = email.decode("unicode_escape", "ignore")
         except UnicodeEncodeError:
             pass
 
-        return self.authors_by_email[name]
+        return self.authors_by_email[email]
 
     def get_latest_email_by_author(self, name):
         return self.emails_by_author[name]
