@@ -1,0 +1,93 @@
+		Private TODO-list for gitinspector
+		==================================
+
+Code Refactoring
+----------------
+
+- Remove all global variables...
+
+
+
+Commit linter
+-------------
+See: https://sethrobertson.github.io/GitBestPractices/
+See: https://about.gitlab.com/2016/07/27/the-11-rules-of-gitlab-flow/
+See: https://chris.beams.io/posts/git-commit/
+
+++++++++++++++++[ Example (begin) ]++++++++++++++++
+
+Summarize changes in around 50 characters or less
+
+More detailed explanatory text, if necessary. Wrap it to about 72
+characters or so. In some contexts, the first line is treated as the
+subject of the commit and the rest of the text as the body. The
+blank line separating the summary from the body is critical (unless
+you omit the body entirely); various tools like `log`, `shortlog`
+and `rebase` can get confused if you run the two together.
+
+Explain the problem that this commit is solving. Focus on why you
+are making this change as opposed to how (the code explains that).
+Are there side effects or other unintuitive consequences of this
+change? Here's the place to explain them.
+
+Further paragraphs come after blank lines.
+
+ - Bullet points are okay, too
+
+ - Typically a hyphen or asterisk is used for the bullet, preceded
+   by a single space, with blank lines in between, but conventions
+   vary here
+
+If you use an issue tracker, put references to them at the bottom,
+like this:
+
+Resolves: #123
+See also: #456, #789
+
+++++++++++++++++[ Example (end) ]++++++++++++++++
+
+Rules: Message, Code, File, History
+
+***** Message *****
+- Empty log message
+- One word message
+- No title found
+- Title line too long (> 50)
+- Title line has a trailing punctuation
+- Second line is not empty
+- Body is missing
+- Body line too long (> 72)
+- Trailing whitespace
+- Non-ASCII character
+- Spellchecking is wrong
+- Tabulation character found
+- Invalid author e-mail address
+- First letter of a block is smallcap
+  (a block is a title, a paragraph or an item in a list)
+- No WIP allowed (WIP = Work In Progress)
+
+***** Code *****
+- Conflict has been committed unsolved
+  (regexp to detect '<<<<<' and '>>>>>')
+- Too many changes at once (> 25 chunks)
+- Too many files changed at once (> 25 files)
+
+
+***** File *****
+- Added unnecessary binary file spawned from licit file
+  (detect, eg: %.c -> %.o, %.tex -> %.pdf, ...)
+- File renaming across different commits
+- Added unnecessary temporary files (*~, *.bak, ...)
+- Too many files added at once (> 100 files)
+- Too many binary files added at once (> 25 files)
+
+***** History *****
+- Branch has no common file with master
+  (then why making a branch?)
+- Dangling commit
+- Branch with no head
+- Too many branches at the time
+  (number of active devs x2)
+- Long time since last commit (>4 days)
+- Commit has totally been removed by another commit afterward
+- Commit squash totally one (or several) past commit(s)
