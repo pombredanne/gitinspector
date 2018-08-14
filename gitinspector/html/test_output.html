@@ -1,0 +1,144 @@
+<div>
+  <div class="box">
+
+    <p>
+      The following historical commit information, by author, was found in the repository.
+    </p>
+
+    <div style="display: flex; align-items: center">
+      <div style="width: 75%">
+        <table id="changes_table" style="width: 100%" class="git2">
+          <thead>
+            <tr>
+              <th>Author</th>
+              <th>Commits</th>
+              <th>Insertions</th>
+              <th>Deletions</th>
+              <th>% of changes</th>
+              <th/>
+            </tr>
+          </thead>
+          <tbody></tbody>
+          <tfoot>
+            <tr>
+              <td class="hoverable" colspan="6">
+                Display minor authors
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div>
+        <svg id="changes_svg" width="330" height="270">
+        </svg>
+      </div>
+    </div>
+
+    <script src="https://d3js.org/d3.v5.js"></script>
+    <script>
+      var data = $data;
+
+      var titles = Object.keys(data[0]);
+
+      var svg = d3.select("svg#changes_svg"),
+          width = svg.attr("width"),
+          height = svg.attr("height"),
+          radius = Math.min(width, height) / 2,
+          g = svg.append("g").attr("transform",
+                                   "translate(" + width / 2 + "," + height / 2 + ")"),
+          thead = d3.select("table#changes_table thead");
+          tbody = d3.select("table#changes_table tbody");
+
+      var color = d3.scaleOrdinal(d3.schemeCategory10);
+
+      // Generator for the pie
+      var pie_maker = d3.pie().value(function(d) { return d.changes; });
+
+      // Generator for the arcs
+      var arc_maker = d3.arc()
+          .innerRadius(radius/2.5)
+          .outerRadius(radius);
+
+      // Generate groups
+      var arcs = g.selectAll("arc") // there is no arc, in fact the empty string is valid
+          .data(pie_maker(data))
+          .enter()
+          .append("g")
+          .attr("class", "arc"); // now there are <g class="arc"> empty
+                                // elements with data attached
+      // Draw arc paths
+      arcs.filter(function(d, i) { return d["value"] > 0.5; })
+            .append("path")
+            .attr("id", function(d, i) { return "path_" + i; })
+            .attr("fill", function(d, i) { return color(i); })
+            .attr("stroke", "white")
+            .attr("d", arc_maker);
+
+      // Fill lines of table
+      var lines = tbody.selectAll()
+          .data(data)
+          .enter()
+          .append("tr")
+          .attr("id", function (d,i) { return "line_" + i; });
+
+      titles.forEach(function (t) {
+          lines.append("td").text(function(d) { return d[t]; });
+      });
+      lines.append("td").append("svg")
+                           .attr("width", 30).attr("height", 30)
+                        .append("rect")
+                           .attr("x", 5).attr("y", 5)
+                           .attr("width", 20).attr("height", 20)
+                           .attr("fill", function(d,i) { return color(i); });
+
+      // Hide authors with minimal involvement
+      lines.filter(function (d,i) { return d["changes"] < 0.5; }).style("display", "none");
+
+      // Display these same authors wen clicking on footer
+      d3.select("table#changes_table tfoot tr td").on("click", function(d) {
+          if (this.className == "visible") {
+              lines.filter(function (d,i) { return d["changes"] < 0.5; }).style("display", "none");
+              d3.select(this).text("Display minor authors");
+              this.className = "";
+          } else {
+              lines.filter(function (d,i) { return d["changes"] < 0.5; }).style("display", "");
+              d3.select(this).text("Hide minor authors");
+              this.className = "visible";
+          }
+      });
+
+      // Link pie chart sections with lines
+      arcs.on("mouseover", function(d, i){
+          d3.select(this).select("path").attr("fill", "#eedd99");
+          tbody.select("tr#line_" + i).classed("hovered", true);
+      });
+      arcs.on("mouseout", function(d, i){
+          d3.select(this).select("path").attr("fill", color(i));
+          tbody.select("tr#line_" + i).classed("hovered", false);
+      });
+
+      // Link lines with pie chart sections
+      lines.on("mouseover", function(d, i){
+          d3.select(this).classed("hovered", true);
+          svg.select("path#path_" + i).style("fill", "#eedd99");
+      });
+      lines.on("mouseout", function(d, i){
+          d3.select(this).classed("hovered", false);
+          svg.select("path#path_" + i).style("fill", "");
+      });
+
+      // Make the table sortable
+      thead.selectAll("tr th").data(titles).on("click", function(d) {
+          if (this.className == "asc") {
+              lines.sort(function(a, b) { return b[d] > a[d]; });
+              this.className = "desc";
+          } else {
+              lines.sort(function(a, b) { return b[d] < a[d]; });
+              this.className = "asc";
+          }
+      });
+    </script>
+
+  </div>
+</div>
