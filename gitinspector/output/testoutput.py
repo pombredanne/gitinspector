@@ -1,4 +1,5 @@
 from .outputable import Outputable
+from .. import gravatar
 import string
 
 
@@ -14,7 +15,8 @@ class TestOutput(Outputable):
     def output_html(self):
         authorinfo_dict = self.changes.get_authorinfo_list()
         author_list = list(authorinfo_dict.keys())
-        author_list.sort(key=lambda x: authorinfo_dict[x].insertions + authorinfo_dict[x].deletions, reverse=True)
+        author_list.sort(key=lambda x: authorinfo_dict[x].insertions + \
+                         authorinfo_dict[x].deletions, reverse=True)
         data_array = []
 
         # Compute total changes
@@ -28,7 +30,8 @@ class TestOutput(Outputable):
             percentage = 0 if total_changes == 0 else \
                 (authorinfo.insertions + authorinfo.deletions) / total_changes * 100
             data_array.append({
-                "name":entry,
+                "avatar": "<img src=\"{0}\"/>".format(gravatar.get_url(self.changes.get_latest_email_by_author(entry))),
+                "name":  entry,
                 "commits" : authorinfo.commits,
                 "insertions" : authorinfo.insertions,
                 "deletions" : authorinfo.deletions,

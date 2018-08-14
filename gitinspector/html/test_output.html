@@ -10,6 +10,7 @@
         <table id="changes_table" style="width: 100%" class="git2">
           <thead>
             <tr>
+              <th/>
               <th>Author</th>
               <th>Commits</th>
               <th>Insertions</th>
@@ -21,7 +22,7 @@
           <tbody></tbody>
           <tfoot>
             <tr>
-              <td class="hoverable" colspan="6">
+              <td class="hoverable" colspan="7">
                 Display minor authors
               </td>
             </tr>
@@ -30,7 +31,7 @@
       </div>
 
       <div>
-        <svg id="changes_svg" width="330" height="270">
+        <svg id="changes_svg" width="330" height="250">
         </svg>
       </div>
     </div>
@@ -38,6 +39,17 @@
     <script src="https://d3js.org/d3.v5.js"></script>
     <script>
       var data = $data;
+      for (var i = 0; i < data.length; i++) {
+          data[i].changes = parseFloat(data[i].changes);
+      }
+      // data_pie contains only the element to show in the pie
+      var data_pie = data.filter(function (d) { return d.changes > 0.5; });
+      var sum_changes = 0;
+      for (var i = 0; i < data_pie.length; i++) {
+          sum_changes += data_pie[i].changes;
+      }
+      // append the remaining changes as the last element of the pie
+      data_pie.push({changes: 100-sum_changes});
 
       var titles = Object.keys(data[0]);
 
@@ -61,15 +73,14 @@
           .outerRadius(radius);
 
       // Generate groups
-      var arcs = g.selectAll("arc") // there is no arc, in fact the empty string is valid
-          .data(pie_maker(data))
+      var arcs = g.selectAll("arc")
+          .data(pie_maker(data_pie))
           .enter()
           .append("g")
-          .attr("class", "arc"); // now there are <g class="arc"> empty
-                                // elements with data attached
+          .attr("class", "arc");
+
       // Draw arc paths
-      arcs.filter(function(d, i) { return d["value"] > 0.5; })
-            .append("path")
+      arcs.append("path")
             .attr("id", function(d, i) { return "path_" + i; })
             .attr("fill", function(d, i) { return color(i); })
             .attr("stroke", "white")
@@ -82,27 +93,42 @@
           .append("tr")
           .attr("id", function (d,i) { return "line_" + i; });
 
+      function changes_table_recolor_lines() {
+          var cpt = 0;
+          d3.selectAll("table#changes_table tbody tr").each(function() {
+              var elem = d3.select(this);
+              if (this.style["display"] == "") {
+                  this.className = (cpt % 2 == 0) ? "even" : "odd";
+                  cpt++;
+              }
+          });
+      }
+
       titles.forEach(function (t) {
-          lines.append("td").text(function(d) { return d[t]; });
+          lines.append("td").html(function(d) { return d[t]; });
       });
-      lines.append("td").append("svg")
+      lines.append("td").filter(function(d, i) { return d["changes"] > 0.5; })
+           .append("svg")
                            .attr("width", 30).attr("height", 30)
                         .append("rect")
                            .attr("x", 5).attr("y", 5)
-                           .attr("width", 20).attr("height", 20)
+                           .attr("width", 15).attr("height", 15)
                            .attr("fill", function(d,i) { return color(i); });
 
       // Hide authors with minimal involvement
       lines.filter(function (d,i) { return d["changes"] < 0.5; }).style("display", "none");
+      changes_table_recolor_lines();
 
       // Display these same authors wen clicking on footer
       d3.select("table#changes_table tfoot tr td").on("click", function(d) {
           if (this.className == "visible") {
               lines.filter(function (d,i) { return d["changes"] < 0.5; }).style("display", "none");
+              changes_table_recolor_lines();
               d3.select(this).text("Display minor authors");
               this.className = "";
           } else {
               lines.filter(function (d,i) { return d["changes"] < 0.5; }).style("display", "");
+              changes_table_recolor_lines();
               d3.select(this).text("Hide minor authors");
               this.className = "visible";
           }
@@ -110,31 +136,41 @@
 
       // Link pie chart sections with lines
       arcs.on("mouseover", function(d, i){
-          d3.select(this).select("path").attr("fill", "#eedd99");
-          tbody.select("tr#line_" + i).classed("hovered", true);
+          if (i+1 != data_pie.length) {
+              d3.select(this).select("path").attr("fill", "#eedd99");
+              tbody.select("tr#line_" + i).classed("hovered", true);
+          }
       });
       arcs.on("mouseout", function(d, i){
-          d3.select(this).select("path").attr("fill", color(i));
-          tbody.select("tr#line_" + i).classed("hovered", false);
+          if (i+1 != data_pie.length) {
+              d3.select(this).select("path").attr("fill", color(i));
+              tbody.select("tr#line_" + i).classed("hovered", false);
+          }
       });
 
       // Link lines with pie chart sections
       lines.on("mouseover", function(d, i){
-          d3.select(this).classed("hovered", true);
-          svg.select("path#path_" + i).style("fill", "#eedd99");
+          if (i+1 != data_pie.length) {
+              d3.select(this).classed("hovered", true);
+              svg.select("path#path_" + i).style("fill", "#eedd99");
+          }
       });
       lines.on("mouseout", function(d, i){
-          d3.select(this).classed("hovered", false);
-          svg.select("path#path_" + i).style("fill", "");
+          if (i+1 != data_pie.length) {
+              d3.select(this).classed("hovered", false);
+              svg.select("path#path_" + i).style("fill", "");
+          }
       });
 
       // Make the table sortable
       thead.selectAll("tr th").data(titles).on("click", function(d) {
           if (this.className == "asc") {
               lines.sort(function(a, b) { return b[d] > a[d]; });
-              this.className = "desc";
+              changes_table_recolor_lines();
+             this.className = "desc";
           } else {
               lines.sort(function(a, b) { return b[d] < a[d]; });
+              changes_table_recolor_lines();
               this.className = "asc";
           }
       });
