@@ -1,11 +1,24 @@
 <div>
   <div class="box">
 
-    <p>
-      The following historical commit information, by author, was found in the repository.
-    </p>
+    <div style="width: 20px; position: absolute">
+      <div id="changes_div" class="visible"
+	   style="position: absolute;
+		  transform: rotate(90deg) translate(-10px,10px);
+		  transform-origin: left top;
+		  white-space: nowrap;
+		  background-color: #f0d6d6;
+		  border: 4px solid #ccc;
+		  border-radius: 5px;
+		  padding: 5px;
+		  font-weight: bold">
+	Changes Output
+      </div>
+    </div>
 
-    <div style="display: flex; align-items: center">
+    <div id="changes_box"
+	 style="display: flex; align-items: center">
+
       <div style="width: 75%">
         <table id="changes_table" style="width: 100%" class="git2">
           <thead>
@@ -22,16 +35,16 @@
           <tbody></tbody>
           <tfoot>
             <tr>
-              <td class="hoverable" colspan="7">
+              <th class="hoverable" colspan="7">
                 Display minor authors
-              </td>
+              </th>
             </tr>
           </tfoot>
         </table>
       </div>
 
       <div>
-        <svg id="changes_svg" width="330" height="250">
+        <svg id="changes_svg" width="330" height="220">
         </svg>
       </div>
     </div>
@@ -120,7 +133,7 @@
       changes_table_recolor_lines();
 
       // Display these same authors wen clicking on footer
-      d3.select("table#changes_table tfoot tr td").on("click", function(d) {
+      d3.select("table#changes_table tfoot tr th").on("click", function(d) {
           if (this.className == "visible") {
               lines.filter(function (d,i) { return d["changes"] < 0.5; }).style("display", "none");
               changes_table_recolor_lines();
@@ -137,7 +150,7 @@
       // Link pie chart sections with lines
       arcs.on("mouseover", function(d, i){
           if (i+1 != data_pie.length) {
-              d3.select(this).select("path").attr("fill", "#eedd99");
+              d3.select(this).select("path").attr("fill", d3.color(color(i)).brighter());
               tbody.select("tr#line_" + i).classed("hovered", true);
           }
       });
@@ -152,13 +165,13 @@
       lines.on("mouseover", function(d, i){
           if (i+1 != data_pie.length) {
               d3.select(this).classed("hovered", true);
-              svg.select("path#path_" + i).style("fill", "#eedd99");
+              svg.select("path#path_" + i).attr("fill", d3.color(color(i)).brighter());
           }
       });
       lines.on("mouseout", function(d, i){
           if (i+1 != data_pie.length) {
               d3.select(this).classed("hovered", false);
-              svg.select("path#path_" + i).style("fill", "");
+              svg.select("path#path_" + i).attr("fill", color(i));
           }
       });
 
@@ -174,6 +187,20 @@
               this.className = "asc";
           }
       });
+
+      // Make the div hideable
+      d3.select("div#changes_div").on("click", function () {
+          if (this.className == "visible") {
+	      d3.select("div#changes_box").style("display", "none");
+	      d3.select(this).style("transform", "rotate(0deg) translate(0px,-15px)");
+	      this.className = "";
+	  } else {
+	      d3.select("div#changes_box").style("display", "flex");
+	      d3.select(this).style("transform", "rotate(90deg) translate(-10px,10px)");
+	      this.className = "visible";
+	  }
+      });
+
     </script>
 
   </div>

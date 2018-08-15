@@ -291,8 +291,8 @@
                         table.git2 {{
                                 font-size: small;
                         }}
-                        table.git2 th, table.git2 tfoot tr td {{
-                                padding: 0.3em;
+                        table.git2 th {{
+                                padding: 0.5em;
                                 background-color: #ddcece;
                                 border-radius: 8px 8px 0px 0px;
                                 -moz-border-radius: 8px 8px 0px 0px;
