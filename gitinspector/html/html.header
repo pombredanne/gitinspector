@@ -288,14 +288,31 @@
                         table.git tr.piehover {{
                                 background-color: #dddece;
                         }}
+                        div.git2 {{
+				position: absolute;
+				transform: rotate(90deg) translate(-10px,10px);
+				transform-origin: left top;
+				white-space: nowrap;
+				background-color: #f0d6d6;
+				border: 4px solid #ccc;
+				border-radius: 5px;
+				padding: 5px;
+				font-weight: bold
+                        }}
                         table.git2 {{
                                 font-size: small;
                         }}
-                        table.git2 th {{
+                        table.git2 thead th {{
                                 padding: 0.5em;
                                 background-color: #ddcece;
                                 border-radius: 8px 8px 0px 0px;
-                                -moz-border-radius: 8px 8px 0px 0px;
+                                border: 1px solid #eeeeee;
+                        }}
+                        table.git2 tfoot th {{
+                                padding: 0.5em;
+                                background-color: #ddcece;
+                                border-radius: 0px 0px 8px 8px;
+                                border: 1px solid #eeeeee;
                         }}
                         table.git2 th:hover {{
                                 background-color: #f0d6d6;
