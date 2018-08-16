@@ -69,7 +69,7 @@ class CommandLineOptionsTest(unittest.TestCase):
         sys.argv = argv_orig
         sys.stdout.close()
         sys.stdout = stdout_orig
- 
+
     def test_version(self):
         # Set options
         import sys
@@ -522,6 +522,7 @@ class TrieRepositoryTest(unittest.TestCase):
             self.assertTrue("Below are the number of rows" in contents)
             self.assertTrue("The following history timeline" in contents)
         os.remove(file.name)
+
 
 class PelicanRepositoryTest(unittest.TestCase):
 

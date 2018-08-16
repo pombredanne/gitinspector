@@ -30,6 +30,7 @@ class TestOutput(Outputable):
             authorinfo = authorinfo_dict.get(entry)
             percentage = 0 if total_changes == 0 else \
                 (authorinfo.insertions + authorinfo.deletions) / total_changes * 100
+
             data_array.append({
                 "avatar": "<img src=\"{0}\"/>".format(gravatar.get_url(self.changes.get_latest_email_by_author(entry))),
                 "name":  entry,
