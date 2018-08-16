@@ -2,7 +2,7 @@
   <div class="box">
 
     <div style="width: 20px; position: absolute">
-      <div id="remains_div" class="git2 visible">
+      <div id="remains_label" class="git2 visible">
         Remains Output
       </div>
     </div>
@@ -44,135 +44,35 @@
       (function () {
           var remains_data = $remains_data;
           var sum_rows = 0;
-	  remains_data.forEach(function (d) { sum_rows += d.rows; });
-	  // Control which data appear inside the pie
-	  var remains_filter = function (d) { return d.rows > 0.01 * sum_rows; };
+          remains_data.forEach(function (d) { sum_rows += d.rows; });
+          // Control which data appear inside the pie
+          var remains_filter = d => d.rows > 0.01 * sum_rows;
           var remains_data_pie = remains_data.filter(remains_filter);
-	  var eff_rows = 0;
-	  remains_data_pie.forEach(function (d) { eff_rows += d.rows; });
+          var eff_rows = 0;
+          remains_data_pie.forEach(function (d) { eff_rows += d.rows; });
           // Append the remaining changes as the last element of the pie
           remains_data_pie.push({rows: sum_rows-eff_rows, color: "#cccccc" });
 
-          var titles = Object.keys(remains_data[0]).filter(function (t) {return t != "color";});
+          var titles = Object.keys(remains_data[0]).filter(t => t != "color");
 
           var svg = d3.select("svg#remains_svg"),
               width = svg.attr("width"),
               height = svg.attr("height"),
               radius = Math.min(width, height) / 2,
-              g = svg.append("g").attr("transform",
-                                       "translate(" + width / 2 + "," + height / 2 + ")"),
-              thead = d3.select("table#remains_table thead"),
-              tbody = d3.select("table#remains_table tbody");
+              group = svg.append("g").attr("transform",
+                                       "translate(" + width / 2 + "," + height / 2 + ")");
 
-          // Generator for the pie
-          var pie_maker = d3.pie().value(function(d) { return d.rows; });
-
-          // Generator for the arcs
-          var arc_maker = d3.arc()
-              .innerRadius(radius/2.5)
-              .outerRadius(radius);
-
-          // Generate groups
-          var arcs = g.selectAll("arc")
-              .data(pie_maker(remains_data_pie))
-              .enter()
-              .append("g")
-              .attr("class", "arc");
-
-          // Draw arc paths
-          arcs.append("path")
-              .attr("id", function(d, i) { return "path_" + i; })
-              .attr("fill", function(d, i) { return d.data.color; })
-              .attr("stroke", "white")
-              .attr("d", arc_maker);
-
-          // Create lines of table
-          var lines = tbody.selectAll()
-              .data(remains_data)
-              .enter()
-              .append("tr")
-              .attr("id", function (d,i) { return "line_" + i; });
-
-          // Fill the lines with data
-          titles.forEach(function (t) {
-              lines.append("td").html(function(d) { return d[t]; });
-          });
-          lines.append("td").filter(remains_filter)
-              .append("svg")
-              .attr("width", 30).attr("height", 30)
-              .append("rect")
-              .attr("x", 5).attr("y", 5)
-              .attr("width", 15).attr("height", 15)
-              .attr("fill", function(d,i) { return d.color; });
-
-          // Hide authors with minimal involvement
-          var filtered_lines = lines.filter(function (d) { return !remains_filter(d); });
-          filtered_lines.style("display", "none");
-          recolor_table_rows("remains_table");
-
-          // Display these same authors when clicking on footer
-          if (filtered_lines.size() > 0) {
-              var th = d3.select("table#remains_table tfoot tr th");
-              var th_txt = "Display minor authors (" + filtered_lines.size() + ")";
-              th.text(th_txt);
-              th.on("click", function(d) {
-                  if (this.className == "visible") {
-                      filtered_lines.style("display", "none");
-                      recolor_table_rows("remains_table");
-                      d3.select(this).text(th_txt);
-                      this.className = "";
-                  } else {
-                      filtered_lines.style("display", "");
-                      recolor_table_rows("remains_table");
-                      d3.select(this).text("Hide minor authors");
-                      this.className = "visible";
-                  }
-              });
-          }
+          // Generate the pie
+          var arcs = generate_pie(group, radius, remains_data_pie,
+                                  d => d.rows, d => d.data.color);
+          // Generate the table
+          var lines = generate_sortable_table("remains_table", titles, remains_data, remains_filter);
 
           // Link pie chart sections with lines
-          arcs.on("mouseover", function(d, i){
-              if (i+1 != remains_data_pie.length) {
-                  d3.select(this).select("path").attr("fill", d3.color(d.data.color).brighter());
-                  tbody.select("tr#line_" + i).classed("hovered", true);
-              }
-          });
-          arcs.on("mouseout", function(d, i){
-              if (i+1 != remains_data_pie.length) {
-                  d3.select(this).select("path").attr("fill", d.data.color);
-                  tbody.select("tr#line_" + i).classed("hovered", false);
-              }
-          });
-
-          // Link lines with pie chart sections
-          lines.on("mouseover", function(d, i){
-              if (i+1 != remains_data_pie.length) {
-                  d3.select(this).classed("hovered", true);
-                  svg.select("path#path_" + i).attr("fill", d3.color(d.color).brighter());
-              }
-          });
-          lines.on("mouseout", function(d, i){
-              if (i+1 != remains_data_pie.length) {
-                  d3.select(this).classed("hovered", false);
-                  svg.select("path#path_" + i).attr("fill", d.color);
-              }
-          });
-
-          // Make the table sortable
-	  make_table_sortable("remains_table", titles, lines);
+          link_table_and_pie(lines, arcs);
 
           // Make the div hideable
-          d3.select("div#remains_div").on("click", function () {
-              if (this.className == "git2 visible") {
-                  d3.select("div#remains_box").style("display", "none");
-                  d3.select(this).style("transform", "rotate(0deg) translate(-50px,-15px)");
-                  this.className = "git2";
-              } else {
-                  d3.select("div#remains_box").style("display", "flex");
-                  d3.select(this).style("transform", "rotate(90deg) translate(-10px,10px)");
-                  this.className = "git2 visible";
-              }
-          });
+          make_box_hideable("remains_label", "remains_box");
       })();
     </script>
 

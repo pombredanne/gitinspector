@@ -2,7 +2,7 @@
   <div class="box">
 
     <div style="width: 20px; position: absolute">
-      <div id="changes_div" class="git2 visible">
+      <div id="changes_label" class="git2 visible">
         Changes Output
       </div>
     </div>
@@ -42,134 +42,34 @@
     <script>
       (function () {
           var changes_data = $changes_data;
-	  // Control which data appear inside the pie
-	  var changes_filter = function (d) { return d.changes > 0.5; };
+          // Control which data appear inside the pie
+          var changes_filter = d => d.changes > 0.5;
           var changes_data_pie = changes_data.filter(changes_filter);
           var sum_changes = 0;
-	  changes_data_pie.forEach(function (d) { sum_changes += d.changes; });
+          changes_data_pie.forEach(function (d) { sum_changes += d.changes; });
           // Append the remaining changes as the last element of the pie
           changes_data_pie.push({changes: 100-sum_changes, color: "#cccccc"});
 
-          var titles = Object.keys(changes_data[0]).filter(function (t) {return t != "color";});
+          var titles = Object.keys(changes_data[0]).filter(t => t != "color");
 
           var svg = d3.select("svg#changes_svg"),
               width = svg.attr("width"),
               height = svg.attr("height"),
               radius = Math.min(width, height) / 2,
-              g = svg.append("g").attr("transform",
-                                       "translate(" + width / 2 + "," + height / 2 + ")"),
-              thead = d3.select("table#changes_table thead"),
-              tbody = d3.select("table#changes_table tbody");
+              group = svg.append("g").attr("transform",
+                                       "translate(" + width / 2 + "," + height / 2 + ")");
 
-          // Generator for the pie
-          var pie_maker = d3.pie().value(function(d) { return d.changes; });
-
-          // Generator for the arcs
-          var arc_maker = d3.arc()
-              .innerRadius(radius/2.5)
-              .outerRadius(radius);
-
-          // Generate groups
-          var arcs = g.selectAll("arc")
-              .data(pie_maker(changes_data_pie))
-              .enter()
-              .append("g")
-              .attr("class", "arc");
-
-          // Draw arc paths
-          arcs.append("path")
-              .attr("id", function(d, i) { return "path_" + i; })
-              .attr("fill", function(d, i) { return d.data.color; })
-              .attr("stroke", "white")
-              .attr("d", arc_maker);
-
-          // Create lines of table
-          var lines = tbody.selectAll()
-              .data(changes_data)
-              .enter()
-              .append("tr")
-              .attr("id", function (d,i) { return "line_" + i; });
-
-          // Fill the lines with data
-          titles.forEach(function (t) {
-              lines.append("td").html(function(d) { return d[t]; });
-          });
-          lines.append("td").filter(changes_filter)
-              .append("svg")
-              .attr("width", 30).attr("height", 30)
-              .append("rect")
-              .attr("x", 5).attr("y", 5)
-              .attr("width", 15).attr("height", 15)
-              .attr("fill", function(d,i) { return d.color; });
-
-          // Hide authors with minimal involvement
-	  var filtered_lines = lines.filter(function (d) { return !changes_filter(d); });
-          filtered_lines.style("display", "none");
-          recolor_table_rows("changes_table");
-
-          // Display these same authors when clicking on footer
-          if (filtered_lines.size() > 0) {
-              var th = d3.select("table#changes_table tfoot tr th")
-              var th_txt = "Display minor authors (" + filtered_lines.size() + ")";
-              th.text(th_txt);
-              th.on("click", function(d) {
-                  if (this.className == "visible") {
-                      filtered_lines.style("display", "none");
-                      recolor_table_rows("changes_table");
-                      d3.select(this).text(th_txt);
-                      this.className = "";
-                  } else {
-                      filtered_lines.style("display", "");
-                      recolor_table_rows("changes_table");
-                      d3.select(this).text("Hide minor authors");
-                      this.className = "visible";
-                  }
-              });
-          }
+          // Generate the pie
+          var arcs = generate_pie(group, radius, changes_data_pie,
+                                  d => d.changes, d => d.data.color);
+          // Generate the table
+          var lines = generate_sortable_table("changes_table", titles, changes_data, changes_filter);
 
           // Link pie chart sections with lines
-          arcs.on("mouseover", function(d, i){
-              if (i+1 != changes_data_pie.length) {
-                  d3.select(this).select("path").attr("fill", d3.color(d.data.color).brighter());
-                  tbody.select("tr#line_" + i).classed("hovered", true);
-              }
-          });
-          arcs.on("mouseout", function(d, i){
-              if (i+1 != changes_data_pie.length) {
-                  d3.select(this).select("path").attr("fill", d.data.color);
-                  tbody.select("tr#line_" + i).classed("hovered", false);
-              }
-          });
-
-          // Link lines with pie chart sections
-          lines.on("mouseover", function(d, i){
-              if (i+1 != changes_data_pie.length) {
-                  d3.select(this).classed("hovered", true);
-                  svg.select("path#path_" + i).attr("fill", d3.color(d.color).brighter());
-              }
-          });
-          lines.on("mouseout", function(d, i){
-              if (i+1 != changes_data_pie.length) {
-                  d3.select(this).classed("hovered", false);
-                  svg.select("path#path_" + i).attr("fill", d.color);
-              }
-          });
-
-          // Make the table sortable
-	  make_table_sortable("changes_table", titles, lines);
+          link_table_and_pie(lines, arcs);
 
           // Make the div hideable
-          d3.select("div#changes_div").on("click", function () {
-              if (this.className == "git2 visible") {
-                  d3.select("div#changes_box").style("display", "none");
-                  d3.select(this).style("transform", "rotate(0deg) translate(-50px,-15px)");
-                  this.className = "git2";
-              } else {
-                  d3.select("div#changes_box").style("display", "flex");
-                  d3.select(this).style("transform", "rotate(90deg) translate(-10px,10px)");
-                  this.className = "git2 visible";
-              }
-          });
+          make_box_hideable("changes_label", "changes_box");
       })();
     </script>
 
