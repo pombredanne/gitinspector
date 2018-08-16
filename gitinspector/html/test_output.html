@@ -42,9 +42,6 @@
     <script>
       (function () {
           var changes_data = $changes_data;
-          for (var i = 0; i < changes_data.length; i++) {
-              changes_data[i].changes = parseFloat(changes_data[i].changes);
-          }
           // data_pie contains only the element to show in the pie
           var changes_data_pie = changes_data.filter(function (d) { return d.changes > 0.5; });
           var sum_changes = 0;

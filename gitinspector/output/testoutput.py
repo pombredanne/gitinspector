@@ -38,7 +38,7 @@ class TestOutput(Outputable):
                 "commits" : authorinfo.commits,
                 "insertions" : authorinfo.insertions,
                 "deletions" : authorinfo.deletions,
-                "changes" : "{0:.2f}".format(percentage),
+                "changes" : round(percentage,2),
                 })
 
         with open("gitinspector/html/test_output.html", 'r') as infile:
@@ -83,9 +83,9 @@ class TestOutput2(Outputable):
                 "color": self.changes.colors_by_author[name],
                 "name":  name,
                 "rows": entry[1].rows,
-                "stability": "{0:.1f}".format(Blame.get_stability(name, entry[1].rows, self.changes)),
-                "age": "{0:.1f}".format(float(entry[1].skew) / entry[1].rows),
-                "comments": "{0:.2f}".format(100.0 * entry[1].comments / entry[1].rows),
+                "stability": round(Blame.get_stability(name, entry[1].rows, self.changes),1),
+                "age": round(float(entry[1].skew) / entry[1].rows,1),
+                "comments": round(100.0 * entry[1].comments / entry[1].rows,2),
             })
 
         with open("gitinspector/html/test_output2.html", 'r') as infile:
