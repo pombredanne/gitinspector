@@ -27,7 +27,6 @@
           <tfoot>
             <tr>
               <th class="hoverable" colspan="7">
-                Display minor authors
               </th>
             </tr>
           </tfoot>
@@ -121,23 +120,29 @@
               .attr("fill", function(d,i) { return d.color; });
 
           // Hide authors with minimal involvement
-          lines.filter(function (d,i) { return d["rows"] < 0.01 * sum_rows; }).style("display", "none");
+          var filtered_lines = lines.filter(function (d,i) { return d["rows"] < 0.01 * sum_rows; });
+          filtered_lines.style("display", "none");
           remains_table_recolor_lines();
 
           // Display these same authors when clicking on footer
-          d3.select("table#remains_table tfoot tr th").on("click", function(d) {
-              if (this.className == "visible") {
-                  lines.filter(function (d,i) { return d["rows"] < 0.01 * sum_rows; }).style("display", "none");
-                  remains_table_recolor_lines();
-                  d3.select(this).text("Display minor authors");
-                  this.className = "";
-              } else {
-                  lines.filter(function (d,i) { return d["rows"] < 0.01 * sum_rows; }).style("display", "");
-                  remains_table_recolor_lines();
-                  d3.select(this).text("Hide minor authors");
-                  this.className = "visible";
-              }
-          });
+          if (filtered_lines.size() > 0) {
+              var th = d3.select("table#remains_table tfoot tr th");
+              var th_txt = "Display minor authors (" + filtered_lines.size() + ")";
+              th.text(th_txt);
+              th.on("click", function(d) {
+                  if (this.className == "visible") {
+                      filtered_lines.style("display", "none");
+                      remains_table_recolor_lines();
+                      d3.select(this).text(th_txt);
+                      this.className = "";
+                  } else {
+                      filtered_lines.style("display", "");
+                      remains_table_recolor_lines();
+                      d3.select(this).text("Hide minor authors");
+                      this.className = "visible";
+                  }
+              });
+          }
 
           // Link pie chart sections with lines
           arcs.on("mouseover", function(d, i){
