@@ -41,7 +41,7 @@ class TestOutput(Outputable):
                 "changes" : round(percentage,2),
                 })
 
-        with open("gitinspector/html/test_output.html", 'r') as infile:
+        with open("gitinspector/templates/changes_output.html", 'r') as infile:
             src = string.Template( infile.read() )
             self.out.write(src.substitute(
                 changes_data=str(data_array),
@@ -88,7 +88,7 @@ class TestOutput2(Outputable):
                 "comments": round(100.0 * entry[1].comments / entry[1].rows,2),
             })
 
-        with open("gitinspector/html/test_output2.html", 'r') as infile:
+        with open("gitinspector/templates/blames_output.html", 'r') as infile:
             src = string.Template( infile.read() )
             self.out.write(src.substitute(
                 remains_data=str(data_array),
