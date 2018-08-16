@@ -64,7 +64,7 @@ class TestOutput2(Outputable):
         Outputable.__init__(self)
         self.changes = runner.changes
         self.blames = runner.blames
-        self.display = True
+        self.display = bool(self.changes.commits)
         self.out = runner.out
 
     def output_html(self):
