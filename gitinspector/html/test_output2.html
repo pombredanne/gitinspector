@@ -43,15 +43,14 @@
     <script>
       (function () {
           var remains_data = $remains_data;
-          var sum_rows = 0, eff_rows = 0;
-          for (var i = 0; i < remains_data.length; i++)
-              sum_rows += remains_data[i].rows;
-          for (var i = 0; i < remains_data.length; i++)
-              if (remains_data[i].rows > 0.01 * sum_rows)
-                  eff_rows += remains_data[i].rows;
-          var remains_data_pie = remains_data.filter(function (d) {
-              return d.rows > 0.01 * sum_rows; });
-          // append the remaining changes as the last element of the pie
+          var sum_rows = 0;
+	  remains_data.forEach(function (d) { sum_rows += d.rows; });
+	  // Control which data appear inside the pie
+	  var remains_filter = function (d) { return d.rows > 0.01 * sum_rows; };
+          var remains_data_pie = remains_data.filter(remains_filter);
+	  var eff_rows = 0;
+	  remains_data_pie.forEach(function (d) { eff_rows += d.rows; });
+          // Append the remaining changes as the last element of the pie
           remains_data_pie.push({rows: sum_rows-eff_rows, color: "#cccccc" });
 
           var titles = Object.keys(remains_data[0]).filter(function (t) {return t != "color";});
@@ -64,8 +63,6 @@
                                        "translate(" + width / 2 + "," + height / 2 + ")"),
               thead = d3.select("table#remains_table thead"),
               tbody = d3.select("table#remains_table tbody");
-
-          var color = d3.scaleOrdinal(d3.schemeCategory10);
 
           // Generator for the pie
           var pie_maker = d3.pie().value(function(d) { return d.rows; });
@@ -96,22 +93,11 @@
               .append("tr")
               .attr("id", function (d,i) { return "line_" + i; });
 
-          function remains_table_recolor_lines() {
-              var cpt = 0;
-              d3.selectAll("table#remains_table tbody tr").each(function() {
-                  var elem = d3.select(this);
-                  if (this.style["display"] == "") {
-                      this.className = (cpt % 2 == 0) ? "even" : "odd";
-                      cpt++;
-                  }
-              });
-          }
-
           // Fill the lines with data
           titles.forEach(function (t) {
               lines.append("td").html(function(d) { return d[t]; });
           });
-          lines.append("td").filter(function(d, i) { return d["rows"] > 0.01 * sum_rows; })
+          lines.append("td").filter(remains_filter)
               .append("svg")
               .attr("width", 30).attr("height", 30)
               .append("rect")
@@ -120,9 +106,9 @@
               .attr("fill", function(d,i) { return d.color; });
 
           // Hide authors with minimal involvement
-          var filtered_lines = lines.filter(function (d,i) { return d["rows"] < 0.01 * sum_rows; });
+          var filtered_lines = lines.filter(function (d) { return !remains_filter(d); });
           filtered_lines.style("display", "none");
-          remains_table_recolor_lines();
+          recolor_table_rows("remains_table");
 
           // Display these same authors when clicking on footer
           if (filtered_lines.size() > 0) {
@@ -132,12 +118,12 @@
               th.on("click", function(d) {
                   if (this.className == "visible") {
                       filtered_lines.style("display", "none");
-                      remains_table_recolor_lines();
+                      recolor_table_rows("remains_table");
                       d3.select(this).text(th_txt);
                       this.className = "";
                   } else {
                       filtered_lines.style("display", "");
-                      remains_table_recolor_lines();
+                      recolor_table_rows("remains_table");
                       d3.select(this).text("Hide minor authors");
                       this.className = "visible";
                   }
@@ -173,17 +159,7 @@
           });
 
           // Make the table sortable
-          thead.selectAll("tr th").data(titles).on("click", function(d) {
-              if (this.className == "asc") {
-                  lines.sort(function(a, b) { return b[d] > a[d]; });
-                  remains_table_recolor_lines();
-                  this.className = "desc";
-              } else {
-                  lines.sort(function(a, b) { return b[d] < a[d]; });
-                  remains_table_recolor_lines();
-                  this.className = "asc";
-              }
-          });
+	  make_table_sortable("remains_table", titles, lines);
 
           // Make the div hideable
           d3.select("div#remains_div").on("click", function () {

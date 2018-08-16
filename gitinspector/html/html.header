@@ -205,6 +205,31 @@
                                 }});
                         }});
                 </script>
+		<script type="application/javascript">
+		  function recolor_table_rows(id) {{
+		      var cpt = 0;
+		      d3.selectAll("table#" + id + " tbody tr").each(function() {{
+			  var elem = d3.select(this);
+			  if (this.style["display"] == "") {{
+			      this.className = (cpt % 2 == 0) ? "even" : "odd";
+			      cpt++;
+			  }}
+		      }});
+		  }}
+		  function make_table_sortable(id, titles, lines) {{
+		      d3.selectAll("table#" + id + " tr th").data(titles).on("click", function(d) {{
+			  if (this.className == "asc") {{
+			      lines.sort(function(a, b) {{ return b[d] > a[d]; }});
+			      recolor_table_rows(id);
+			      this.className = "desc";
+			  }} else {{
+			      lines.sort(function(a, b) {{ return b[d] < a[d]; }});
+			      recolor_table_rows(id);
+			      this.className = "asc";
+			  }}
+		      }});
+		  }}
+		</script>
                 <style type="text/css">
                         body {{
                                 background: -webkit-linear-gradient(left, #8f8a9a, #dad2d7, #8f8a9a);
