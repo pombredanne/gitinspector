@@ -38,6 +38,7 @@ from .format import __available_formats__
 
 localization.init()
 
+
 class StdoutWriter(io.StringIO):
     def __init__(self):
         io.StringIO.__init__(self)

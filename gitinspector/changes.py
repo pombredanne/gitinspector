@@ -32,6 +32,24 @@ __thread_lock__ = threading.BoundedSemaphore(NUM_THREADS)
 __changes_lock__ = threading.Lock()
 
 
+class AuthorColors(object):
+
+    colors =  [
+        "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+        "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf",
+        "#77b41f", "#7f0eff", "#a02c2c", "#2728d6", "#67bd94",
+        "#564b8c", "#77c2e3", "#bd22bc", "#becf17",
+        "#b41f77", "#0eff7f", "#2c2ca0", "#28d627", "#bd9467",
+        "#4b8c56", "#c2e377", "#22bcbd", "#cf17be",
+    ]
+    index = -1
+
+    @staticmethod
+    def get_new_color():
+        AuthorColors.index += 1
+        return AuthorColors.colors[AuthorColors.index % len(AuthorColors.colors)]
+
+
 class FileDiff(object):
     def __init__(self, string):
         commit_line = string.split("|")
@@ -106,6 +124,9 @@ class Commit(object):
             (real_author, real_email) = Commit.get_alias(author, email, config)
             changes.emails_by_author[author] = real_email
             changes.authors_by_email[email]  = real_author
+            if changes.colors_by_author.get(real_author) is None:
+                changes.colors_by_author[real_author] = AuthorColors.get_new_color()
+            changes.colors_by_author[author] = changes.colors_by_author[real_author]
             return (real_author, real_email)
         except IndexError:
             return "Unknown Author"
@@ -207,6 +228,7 @@ class Changes(object):
         changes.authors_dateinfo = {}
         changes.authors_by_email = {}
         changes.emails_by_author = {}
+        changes.colors_by_author = {}
         return changes
 
     def __init__(self, repo, config):
@@ -215,6 +237,7 @@ class Changes(object):
         self.authors_dateinfo = {}
         self.authors_by_email = {}
         self.emails_by_author = {}
+        self.colors_by_author = {}
         self.config = config
 
         interval.set_ref("HEAD")
@@ -276,6 +299,7 @@ class Changes(object):
             self.authors_dateinfo.update(other.authors_dateinfo)
             self.authors_by_email.update(other.authors_by_email)
             self.emails_by_author.update(other.emails_by_author)
+            self.colors_by_author.update(other.colors_by_author)
 
             for commit in other.commits:
                 bisect.insort(self.commits, commit)

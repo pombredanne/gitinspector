@@ -3,12 +3,12 @@
 
     <div style="width: 20px; position: absolute">
       <div id="changes_div" class="git2 visible">
-	Changes Output
+        Changes Output
       </div>
     </div>
 
     <div id="changes_box"
-	 style="display: flex; align-items: center">
+         style="display: flex; align-items: center">
 
       <div style="width:75%">
         <table id="changes_table" style="width: 100%" class="git2">
@@ -43,22 +43,22 @@
     <script src="https://d3js.org/d3.v5.js"></script>
     <script>
       (function () {
-	  var changes_data = $changes_data;
-	  for (var i = 0; i < changes_data.length; i++) {
+          var changes_data = $changes_data;
+          for (var i = 0; i < changes_data.length; i++) {
               changes_data[i].changes = parseFloat(changes_data[i].changes);
-	  }
-	  // data_pie contains only the element to show in the pie
-	  var changes_data_pie = changes_data.filter(function (d) { return d.changes > 0.5; });
-	  var sum_changes = 0;
-	  for (var i = 0; i < changes_data_pie.length; i++) {
+          }
+          // data_pie contains only the element to show in the pie
+          var changes_data_pie = changes_data.filter(function (d) { return d.changes > 0.5; });
+          var sum_changes = 0;
+          for (var i = 0; i < changes_data_pie.length; i++) {
               sum_changes += changes_data_pie[i].changes;
-	  }
-	  // append the remaining changes as the last element of the pie
-	  changes_data_pie.push({changes: 100-sum_changes});
+          }
+          // append the remaining changes as the last element of the pie
+          changes_data_pie.push({changes: 100-sum_changes, color: "#cccccc"});
 
-	  var titles = Object.keys(changes_data[0]);
+          var titles = Object.keys(changes_data[0]).filter(function (t) {return t != "color";});
 
-	  var svg = d3.select("svg#changes_svg"),
+          var svg = d3.select("svg#changes_svg"),
               width = svg.attr("width"),
               height = svg.attr("height"),
               radius = Math.min(width, height) / 2,
@@ -67,132 +67,132 @@
               thead = d3.select("table#changes_table thead"),
               tbody = d3.select("table#changes_table tbody");
 
-	  var color = d3.scaleOrdinal(d3.schemeCategory10);
+          var color = d3.scaleOrdinal(d3.schemeCategory10);
 
-	  // Generator for the pie
-	  var pie_maker = d3.pie().value(function(d) { return d.changes; });
+          // Generator for the pie
+          var pie_maker = d3.pie().value(function(d) { return d.changes; });
 
-	  // Generator for the arcs
-	  var arc_maker = d3.arc()
+          // Generator for the arcs
+          var arc_maker = d3.arc()
               .innerRadius(radius/2.5)
               .outerRadius(radius);
 
-	  // Generate groups
-	  var arcs = g.selectAll("arc")
+          // Generate groups
+          var arcs = g.selectAll("arc")
               .data(pie_maker(changes_data_pie))
               .enter()
               .append("g")
               .attr("class", "arc");
 
-	  // Draw arc paths
-	  arcs.append("path")
+          // Draw arc paths
+          arcs.append("path")
               .attr("id", function(d, i) { return "path_" + i; })
-              .attr("fill", function(d, i) { return color(i); })
+              .attr("fill", function(d, i) { return d.data.color; })
               .attr("stroke", "white")
               .attr("d", arc_maker);
 
-	  // Create lines of table
-	  var lines = tbody.selectAll()
+          // Create lines of table
+          var lines = tbody.selectAll()
               .data(changes_data)
               .enter()
               .append("tr")
               .attr("id", function (d,i) { return "line_" + i; });
 
-	  function changes_table_recolor_lines() {
+          function changes_table_recolor_lines() {
               var cpt = 0;
               d3.selectAll("table#changes_table tbody tr").each(function() {
-		  var elem = d3.select(this);
-		  if (this.style["display"] == "") {
+                  var elem = d3.select(this);
+                  if (this.style["display"] == "") {
                       this.className = (cpt % 2 == 0) ? "even" : "odd";
                       cpt++;
-		  }
+                  }
               });
-	  }
+          }
 
-	  // Fill the lines with data
-	  titles.forEach(function (t) {
+          // Fill the lines with data
+          titles.forEach(function (t) {
               lines.append("td").html(function(d) { return d[t]; });
-	  });
-	  lines.append("td").filter(function(d, i) { return d["changes"] > 0.5; })
+          });
+          lines.append("td").filter(function(d, i) { return d["changes"] > 0.5; })
               .append("svg")
               .attr("width", 30).attr("height", 30)
               .append("rect")
               .attr("x", 5).attr("y", 5)
               .attr("width", 15).attr("height", 15)
-              .attr("fill", function(d,i) { return color(i); });
+              .attr("fill", function(d,i) { return d.color; });
 
-	  // Hide authors with minimal involvement
-	  lines.filter(function (d,i) { return d["changes"] < 0.5; }).style("display", "none");
-	  changes_table_recolor_lines();
+          // Hide authors with minimal involvement
+          lines.filter(function (d,i) { return d["changes"] < 0.5; }).style("display", "none");
+          changes_table_recolor_lines();
 
-	  // Display these same authors wen clicking on footer
-	  d3.select("table#changes_table tfoot tr th").on("click", function(d) {
+          // Display these same authors when clicking on footer
+          d3.select("table#changes_table tfoot tr th").on("click", function(d) {
               if (this.className == "visible") {
-		  lines.filter(function (d,i) { return d["changes"] < 0.5; }).style("display", "none");
-		  changes_table_recolor_lines();
-		  d3.select(this).text("Display minor authors");
-		  this.className = "";
+                  lines.filter(function (d,i) { return d["changes"] < 0.5; }).style("display", "none");
+                  changes_table_recolor_lines();
+                  d3.select(this).text("Display minor authors");
+                  this.className = "";
               } else {
-		  lines.filter(function (d,i) { return d["changes"] < 0.5; }).style("display", "");
-		  changes_table_recolor_lines();
-		  d3.select(this).text("Hide minor authors");
-		  this.className = "visible";
+                  lines.filter(function (d,i) { return d["changes"] < 0.5; }).style("display", "");
+                  changes_table_recolor_lines();
+                  d3.select(this).text("Hide minor authors");
+                  this.className = "visible";
               }
-	  });
+          });
 
-	  // Link pie chart sections with lines
-	  arcs.on("mouseover", function(d, i){
+          // Link pie chart sections with lines
+          arcs.on("mouseover", function(d, i){
               if (i+1 != changes_data_pie.length) {
-		  d3.select(this).select("path").attr("fill", d3.color(color(i)).brighter());
-		  tbody.select("tr#line_" + i).classed("hovered", true);
+                  d3.select(this).select("path").attr("fill", d3.color(d.data.color).brighter());
+                  tbody.select("tr#line_" + i).classed("hovered", true);
               }
-	  });
-	  arcs.on("mouseout", function(d, i){
+          });
+          arcs.on("mouseout", function(d, i){
               if (i+1 != changes_data_pie.length) {
-		  d3.select(this).select("path").attr("fill", color(i));
-		  tbody.select("tr#line_" + i).classed("hovered", false);
+                  d3.select(this).select("path").attr("fill", d.data.color);
+                  tbody.select("tr#line_" + i).classed("hovered", false);
               }
-	  });
+          });
 
-	  // Link lines with pie chart sections
-	  lines.on("mouseover", function(d, i){
+          // Link lines with pie chart sections
+          lines.on("mouseover", function(d, i){
               if (i+1 != changes_data_pie.length) {
-		  d3.select(this).classed("hovered", true);
-		  svg.select("path#path_" + i).attr("fill", d3.color(color(i)).brighter());
+                  d3.select(this).classed("hovered", true);
+                  svg.select("path#path_" + i).attr("fill", d3.color(d.color).brighter());
               }
-	  });
-	  lines.on("mouseout", function(d, i){
+          });
+          lines.on("mouseout", function(d, i){
               if (i+1 != changes_data_pie.length) {
-		  d3.select(this).classed("hovered", false);
-		  svg.select("path#path_" + i).attr("fill", color(i));
+                  d3.select(this).classed("hovered", false);
+                  svg.select("path#path_" + i).attr("fill", d.color);
               }
-	  });
+          });
 
-	  // Make the table sortable
-	  thead.selectAll("tr th").data(titles).on("click", function(d) {
+          // Make the table sortable
+          thead.selectAll("tr th").data(titles).on("click", function(d) {
               if (this.className == "asc") {
-		  lines.sort(function(a, b) { return b[d] > a[d]; });
-		  changes_table_recolor_lines();
-		  this.className = "desc";
+                  lines.sort(function(a, b) { return b[d] > a[d]; });
+                  changes_table_recolor_lines();
+                  this.className = "desc";
               } else {
-		  lines.sort(function(a, b) { return b[d] < a[d]; });
-		  changes_table_recolor_lines();
-		  this.className = "asc";
+                  lines.sort(function(a, b) { return b[d] < a[d]; });
+                  changes_table_recolor_lines();
+                  this.className = "asc";
               }
-	  });
+          });
 
-	  // Make the div hideable
-	  d3.select("div#changes_div").on("click", function () {
+          // Make the div hideable
+          d3.select("div#changes_div").on("click", function () {
               if (this.className == "git2 visible") {
-		  d3.select("div#changes_box").style("display", "none");
-		  d3.select(this).style("transform", "rotate(0deg) translate(-50px,-15px)");
-		  this.className = "git2";
-	      } else {
-		  d3.select("div#changes_box").style("display", "flex");
-		  d3.select(this).style("transform", "rotate(90deg) translate(-10px,10px)");
-		  this.className = "git2 visible";
-	      }
-	  });
+                  d3.select("div#changes_box").style("display", "none");
+                  d3.select(this).style("transform", "rotate(0deg) translate(-50px,-15px)");
+                  this.className = "git2";
+              } else {
+                  d3.select("div#changes_box").style("display", "flex");
+                  d3.select(this).style("transform", "rotate(90deg) translate(-10px,10px)");
+                  this.className = "git2 visible";
+              }
+          });
       })();
     </script>
 

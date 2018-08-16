@@ -33,6 +33,7 @@ class TestOutput(Outputable):
 
             data_array.append({
                 "avatar": "<img src=\"{0}\"/>".format(gravatar.get_url(self.changes.get_latest_email_by_author(entry))),
+                "color": self.changes.colors_by_author[entry],
                 "name":  entry,
                 "commits" : authorinfo.commits,
                 "insertions" : authorinfo.insertions,
@@ -76,11 +77,13 @@ class TestOutput2(Outputable):
         data_array = []
 
         for entry in blames_list:
+            name = entry[0]
             data_array.append({
-                "avatar": "<img src=\"{0}\"/>".format(gravatar.get_url(self.changes.get_latest_email_by_author(entry[0]))),
-                "name":  entry[0],
+                "avatar": "<img src=\"{0}\"/>".format(gravatar.get_url(self.changes.get_latest_email_by_author(name))),
+                "color": self.changes.colors_by_author[name],
+                "name":  name,
                 "rows": entry[1].rows,
-                "stability": "{0:.1f}".format(Blame.get_stability(entry[0], entry[1].rows, self.changes)),
+                "stability": "{0:.1f}".format(Blame.get_stability(name, entry[1].rows, self.changes)),
                 "age": "{0:.1f}".format(float(entry[1].skew) / entry[1].rows),
                 "comments": "{0:.2f}".format(100.0 * entry[1].comments / entry[1].rows),
             })
