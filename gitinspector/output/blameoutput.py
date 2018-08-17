@@ -18,6 +18,7 @@
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import string
 import sys
 import textwrap
 from .. import format, gravatar, terminal
@@ -36,76 +37,43 @@ class BlameOutput(Outputable):
 
         Outputable.__init__(self)
         self.changes = runner.changes
-        self.blame = runner.blames
+        self.blames = runner.blames
         self.display = bool(self.changes.commits)
         self.out = runner.out
         self.progress = runner.config.progress
 
     def output_html(self):
-        blame_xml = "<div><div class=\"box\">"
-        blame_xml += "<p>" + BLAME_INFO_TEXT() + ".</p><div><table id=\"blame\" class=\"git\">"
-        blame_xml += "<thead><tr>"
-        blame_xml += "<th>{0}</th> ".format(_("Author"))
-        blame_xml += "<th>{0}</th> ".format(_("Rows"))
-        blame_xml += "<th>{0}</th> ".format(_("Stability"))
-        blame_xml += "<th>{0}</th> ".format(_("Age"))
-        blame_xml += "<th>{0}</th> ".format(_("% in comments"))
-        blame_xml += "</tr></thead>"
-        blame_xml += "<tbody>"
-        chart_data = ""
-        blames = sorted(self.blame.get_summed_blames().items())
+        blames_list = list(self.blames.get_summed_blames().items())
+        blames_list.sort(key=lambda x: x[1].rows, reverse=True)
         total_blames = 0
-
-        for i in blames:
+        for i in blames_list:
             total_blames += i[1].rows
 
-        for i, entry in enumerate(blames):
-            work_percentage = str("{0:.2f}".format(100.0 * entry[1].rows / total_blames))
-            blame_xml += "<tr " + ("class=\"odd\">" if i % 2 == 1 else ">")
+        data_array = []
 
-            if format.get_selected() == "html":
-                author_email = self.changes.get_latest_email_by_author(entry[0])
-                blame_xml += "<td><img src=\"{0}\"/>{1}</td>".format(gravatar.get_url(author_email), entry[0])
-            else:
-                blame_xml += "<td>" + entry[0] + "</td>"
+        for entry in blames_list:
+            name = entry[0]
+            data_array.append({
+                "avatar": "<img src=\"{0}\"/>".format(gravatar.get_url(self.changes.get_latest_email_by_author(name))),
+                "color": self.changes.colors_by_author[name],
+                "name":  name,
+                "rows": entry[1].rows,
+                "stability": round(Blame.get_stability(name, entry[1].rows, self.changes),1),
+                "age": round(float(entry[1].skew) / entry[1].rows,1),
+                "comments": round(100.0 * entry[1].comments / entry[1].rows,2),
+            })
 
-            blame_xml += "<td>" + str(entry[1].rows) + "</td>"
-            blame_xml += "<td>" + ("{0:.1f}".format(Blame.get_stability(entry[0], entry[1].rows, self.changes)) + "</td>")
-            blame_xml += "<td>" + "{0:.1f}".format(float(entry[1].skew) / entry[1].rows) + "</td>"
-            blame_xml += "<td>" + "{0:.2f}".format(100.0 * entry[1].comments / entry[1].rows) + "</td>"
-            blame_xml += "<td style=\"display: none\">" + work_percentage + "</td>"
-            blame_xml += "</tr>"
-            chart_data += "{{label: {0}, data: {1}}}".format(json.dumps(entry[0]), work_percentage)
-
-            if blames[-1] != entry:
-                chart_data += ", "
-
-        blame_xml += "<tfoot><tr> <td colspan=\"5\">&nbsp;</td> </tr></tfoot></tbody></table>"
-        blame_xml += "<div class=\"chart\" id=\"blame_chart\"></div></div>"
-        blame_xml += "<script type=\"text/javascript\">"
-        blame_xml += "    blame_plot = $.plot($(\"#blame_chart\"), [{0}], {{".format(chart_data)
-        blame_xml += "    series: {"
-        blame_xml += "        pie: {"
-        blame_xml += "        innerRadius: 0.4,"
-        blame_xml += "        show: true,"
-        blame_xml += "        combine: {"
-        blame_xml += "            threshold: 0.01,"
-        blame_xml += "            label: \"" + _("Minor Authors") + "\""
-        blame_xml += "        }"
-        blame_xml += "        }"
-        blame_xml += "    }, grid: {"
-        blame_xml += "        hoverable: true"
-        blame_xml += "    }"
-        blame_xml += "    });"
-        blame_xml += "</script></div></div>"
-
-        self.out.writeln(blame_xml)
+        with open("gitinspector/templates/blames_output.html", 'r') as infile:
+            src = string.Template( infile.read() )
+            self.out.write(src.substitute(
+                remains_data=str(data_array),
+            ))
 
     def output_json(self):
         message_json = "\t\t\t\"message\": \"" + BLAME_INFO_TEXT() + "\",\n"
         blame_json = ""
 
-        for i in sorted(self.blame.get_summed_blames().items()):
+        for i in sorted(self.blames.get_summed_blames().items()):
             author_email = self.changes.get_latest_email_by_author(i[0])
 
             name_json = "\t\t\t\t\"name\": \"" + i[0] + "\",\n"
@@ -134,7 +102,7 @@ class BlameOutput(Outputable):
                         terminal.rjust(_("Stability"), 15) +
                         terminal.rjust(_("Age"), 13) + terminal.rjust(_("% in comments"), 20) + "\n")
 
-        for i in sorted(self.blame.get_summed_blames().items()):
+        for i in sorted(self.blames.get_summed_blames().items()):
             self.out.write(terminal.ljust(i[0], 20)[0:20 - terminal.get_excess_column_count(i[0])])
             self.out.write(str(i[1].rows).rjust(11))
             self.out.write("{0:.1f}".format(Blame.get_stability(i[0], i[1].rows, self.changes)).rjust(15))
@@ -145,7 +113,7 @@ class BlameOutput(Outputable):
         message_xml = "\t\t<message>" + BLAME_INFO_TEXT() + "</message>\n"
         blame_xml = ""
 
-        for i in sorted(self.blame.get_summed_blames().items()):
+        for i in sorted(self.blames.get_summed_blames().items()):
             author_email = self.changes.get_latest_email_by_author(i[0])
 
             name_xml = "\t\t\t\t<name>" + i[0] + "</name>\n"

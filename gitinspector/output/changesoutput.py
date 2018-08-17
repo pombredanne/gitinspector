@@ -18,6 +18,7 @@
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import string
 import textwrap
 from .. import format, gravatar, terminal
 from .outputable import Outputable
@@ -36,70 +37,38 @@ class ChangesOutput(Outputable):
         self.out = runner.out
 
     def output_html(self):
-        authorinfo_list = self.changes.get_authorinfo_list()
+        authorinfo_dict = self.changes.get_authorinfo_list()
+        author_list = list(authorinfo_dict.keys())
+        author_list.sort(key=lambda x: authorinfo_dict[x].insertions + \
+                         authorinfo_dict[x].deletions, reverse=True)
+        data_array = []
+
+        # Compute total changes
         total_changes = 0.0
-        changes_xml = "<div><div class=\"box\">"
-        chart_data = ""
+        for i in authorinfo_dict:
+            total_changes += authorinfo_dict.get(i).insertions
+            total_changes += authorinfo_dict.get(i).deletions
 
-        for i in authorinfo_list:
-            total_changes += authorinfo_list.get(i).insertions
-            total_changes += authorinfo_list.get(i).deletions
+        for entry in author_list:
+            authorinfo = authorinfo_dict.get(entry)
+            percentage = 0 if total_changes == 0 else \
+                (authorinfo.insertions + authorinfo.deletions) / total_changes * 100
 
-        if authorinfo_list:
-            changes_xml += "<p>" + HISTORICAL_INFO_TEXT() + ".</p><div><table id=\"changes\" class=\"git\">"
-            changes_xml += "<thead><tr><th>{0}</th> <th>{1}</th> <th>{2}</th> <th>{3}</th> <th>{4}</th>".format(_("Author"),
-                                                                                                                _("Commits"),
-                                                                                                                _("Insertions"),
-                                                                                                                _("Deletions"),
-                                                                                                                _("% of changes"))
-            changes_xml += "</tr></thead><tbody>"
+            data_array.append({
+                "avatar": "<img src=\"{0}\"/>".format(gravatar.get_url(self.changes.get_latest_email_by_author(entry))),
+                "color": self.changes.colors_by_author[entry],
+                "name":  entry,
+                "commits" : authorinfo.commits,
+                "insertions" : authorinfo.insertions,
+                "deletions" : authorinfo.deletions,
+                "changes" : round(percentage,2),
+                })
 
-            for i, entry in enumerate(sorted(authorinfo_list)):
-                authorinfo = authorinfo_list.get(entry)
-                percentage = 0 if total_changes == 0 else (authorinfo.insertions + authorinfo.deletions) / total_changes * 100
-
-                changes_xml += "<tr " + ("class=\"odd\">" if i % 2 == 1 else ">")
-
-                if format.get_selected() == "html":
-                    changes_xml += "<td>"
-                    changes_xml += "<img src=\"{0}\"/>".format(gravatar.get_url(self.changes.get_latest_email_by_author(entry)))
-                    changes_xml += "{0}</td>".format(entry)
-                else:
-                    changes_xml += "<td>" + entry + "</td>"
-
-                changes_xml += "<td>" + str(authorinfo.commits) + "</td>"
-                changes_xml += "<td>" + str(authorinfo.insertions) + "</td>"
-                changes_xml += "<td>" + str(authorinfo.deletions) + "</td>"
-                changes_xml += "<td>" + "{0:.2f}".format(percentage) + "</td>"
-                changes_xml += "</tr>"
-                chart_data += "{{label: {0}, data: {1}}}".format(json.dumps(entry), "{0:.2f}".format(percentage))
-
-                if sorted(authorinfo_list)[-1] != entry:
-                    chart_data += ", "
-
-            changes_xml += ("<tfoot><tr> <td colspan=\"5\">&nbsp;</td> </tr></tfoot></tbody></table>")
-            changes_xml += "<div class=\"chart\" id=\"changes_chart\"></div></div>"
-            changes_xml += "<script type=\"text/javascript\">"
-            changes_xml += "    changes_plot = $.plot($(\"#changes_chart\"), [{0}], {{".format(chart_data)
-            changes_xml += "    series: {"
-            changes_xml += "        pie: {"
-            changes_xml += "        innerRadius: 0.4,"
-            changes_xml += "        show: true,"
-            changes_xml += "        combine: {"
-            changes_xml += "            threshold: 0.01,"
-            changes_xml += "            label: \"" + _("Minor Authors") + "\""
-            changes_xml += "        }"
-            changes_xml += "        }"
-            changes_xml += "    }, grid: {"
-            changes_xml += "        hoverable: true"
-            changes_xml += "    }"
-            changes_xml += "    });"
-            changes_xml += "</script>"
-        else:
-            changes_xml += "<p>" + NO_COMMITED_FILES_TEXT() + ".</p>"
-
-        changes_xml += "</div></div>"
-        self.out.writeln(changes_xml)
+        with open("gitinspector/templates/changes_output.html", 'r') as infile:
+            src = string.Template( infile.read() )
+            self.out.write(src.substitute(
+                changes_data=str(data_array),
+            ))
 
     def output_json(self):
         authorinfo_list = self.changes.get_authorinfo_list()

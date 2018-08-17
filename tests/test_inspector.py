@@ -215,8 +215,6 @@ class BasicRepositoryTest(unittest.TestCase):
         with open(file.name, 'r') as f:
             contents = f.read()
             self.assertTrue("Statistical information" in contents)
-            self.assertTrue("The following historical commit" in contents)
-            self.assertTrue("Below are the number of rows" in contents)
             self.assertTrue("The following history timeline" in contents)
         os.remove(file.name)
 
@@ -361,8 +359,6 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
         with open(file.name, 'r') as f:
             contents = f.read()
             self.assertTrue("Statistical information" in contents)
-            self.assertTrue("The following historical commit" in contents)
-            self.assertTrue("Below are the number of rows" in contents)
             self.assertTrue("The following history timeline" in contents)
         os.remove(file.name)
 
@@ -478,8 +474,6 @@ class TrieRepositoryTest(unittest.TestCase):
         with open(file.name, 'r') as f:
             contents = f.read()
             self.assertTrue("Statistical information" in contents)
-            self.assertTrue("The following historical commit" in contents)
-            self.assertTrue("Below are the number of rows" in contents)
             self.assertTrue("The following history timeline" in contents)
         os.remove(file.name)
 
@@ -595,8 +589,6 @@ class PelicanRepositoryTest(unittest.TestCase):
         with open(file.name, 'r') as f:
             contents = f.read()
             self.assertTrue("Statistical information" in contents)
-            self.assertTrue("The following historical commit" in contents)
-            self.assertTrue("Below are the number of rows" in contents)
             self.assertTrue("The following history timeline" in contents)
         os.remove(file.name)
 
@@ -616,8 +608,6 @@ class PelicanRepositoryTest(unittest.TestCase):
         with open(file.name, 'r') as f:
             contents = f.read()
             self.assertTrue("Statistical information" in contents)
-            self.assertTrue("The following historical commit" in contents)
-            self.assertTrue("Below are the number of rows" in contents)
             self.assertTrue("The following history timeline" in contents)
         os.remove(file.name)
 
