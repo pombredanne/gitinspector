@@ -42,20 +42,16 @@ class ExtensionsOutput(Outputable):
         return False
 
     def output_html(self):
-        extensions_str = ""
-        for i in sorted(extensions.__located_extensions__):
-            if ExtensionsOutput.is_marked(i):
-                extensions_str += "<strong>" + i + "</strong>"
-            else:
-                extensions_str += i
-            extensions_str += " "
+        extensions_dict = {}
+        for e in sorted(extensions.__located_extensions__):
+            extensions_dict[e] = "marked" if ExtensionsOutput.is_marked(e) else ""
 
         with open("gitinspector/templates/extensions_output.html", 'r') as infile:
             src = string.Template( infile.read() )
             self.out.write(src.substitute(
                 extensions_info_text=EXTENSIONS_INFO_TEXT(),
                 extensions_marked_text=EXTENSIONS_MARKED_TEXT(),
-                extensions=extensions_str,
+                extensions=extensions_dict,
             ))
 
     def output_json(self):

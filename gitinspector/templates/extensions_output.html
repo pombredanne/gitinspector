@@ -3,23 +3,32 @@
   <div class="box">
     <div style="width: 20px; position: absolute">
       <div id="extensions_label" class="git2 visible">
-	Extensions
+        Extensions
       </div>
     </div>
 
     <div id="extensions_box">
       <p>
-	$extensions_info_text
-	$extensions_marked_text
+        $extensions_info_text
+        $extensions_marked_text
       </p>
-      <p>
-	$extensions
-      </p>
+      <div id="extensions_div"
+           style="text-align:center">
+      </div>
     </div>
   </div>
 
     <script>
       (function () {
+          var extensions = $extensions;
+          var exts_str = Object.keys(extensions).map(function (e) {
+              if (extensions[e] != "")
+                  return "<span class='marked'>" + e + "</span>"
+              else
+                  return e;
+          });
+          d3.select("div#extensions_div").html(exts_str.join(", "));
+
           make_box_hideable("extensions_label", "extensions_box", "");
       })();
     </script>

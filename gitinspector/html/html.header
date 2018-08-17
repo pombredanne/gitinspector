@@ -478,6 +478,10 @@
                                 background-color: #ddcece;
                                 text-align: center;
                         }}
+                        span.marked {{
+                                font-weight: bold;
+                                color: #3300ff
+                        }}
                         div.chart {{
                                 position: absolute;
                                 top: 5px;
