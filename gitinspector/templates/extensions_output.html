@@ -1,0 +1,26 @@
+<div>
+
+  <div class="box">
+    <div style="width: 20px; position: absolute">
+      <div id="extensions_label" class="git2 visible">
+	Extensions
+      </div>
+    </div>
+
+    <div id="extensions_box">
+      <p>
+	$extensions_info_text
+	$extensions_marked_text
+      </p>
+      <p>
+	$extensions
+      </p>
+    </div>
+  </div>
+
+    <script>
+      (function () {
+          make_box_hideable("extensions_label", "extensions_box", "");
+      })();
+    </script>
+</div>

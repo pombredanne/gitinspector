@@ -331,14 +331,14 @@
                           }}
                       }});
                   }}
-                  function make_box_hideable(label_id, box_id) {{
+                  function make_box_hideable(label_id, box_id, display) {{
                       d3.select("div#" + label_id).on("click", function () {{
                           if (this.className == "git2 visible") {{
                               d3.select("div#" + box_id).style("display", "none");
                               d3.select(this).style("transform", "rotate(0deg) translate(-50px,-15px)");
                               this.className = "git2";
                           }} else {{
-                              d3.select("div#" + box_id).style("display", "flex");
+                              d3.select("div#" + box_id).style("display", display);
                               d3.select(this).style("transform", "rotate(90deg) translate(-10px,10px)");
                               this.className = "git2 visible";
                           }}
@@ -384,7 +384,6 @@
                         body > div > div > div {{
                                 position: relative;
                                 width: 100%;
-                                min-height: 140px;
                         }}
                         table.git {{
                                 font-size: small;

@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
+import string
 import textwrap
 from .. import extensions, terminal
 from .outputable import Outputable
@@ -41,19 +42,21 @@ class ExtensionsOutput(Outputable):
         return False
 
     def output_html(self):
-        if extensions.__located_extensions__:
-            extensions_xml = "<div><div class=\"box\">"
-            extensions_xml += "<p>{0} {1}.</p><p>".format(EXTENSIONS_INFO_TEXT(), EXTENSIONS_MARKED_TEXT())
+        extensions_str = ""
+        for i in sorted(extensions.__located_extensions__):
+            if ExtensionsOutput.is_marked(i):
+                extensions_str += "<strong>" + i + "</strong>"
+            else:
+                extensions_str += i
+            extensions_str += " "
 
-            for i in sorted(extensions.__located_extensions__):
-                if ExtensionsOutput.is_marked(i):
-                    extensions_xml += "<strong>" + i + "</strong>"
-                else:
-                    extensions_xml += i
-                extensions_xml += " "
-
-            extensions_xml += "</p></div></div>"
-            self.out.writeln(extensions_xml)
+        with open("gitinspector/templates/extensions_output.html", 'r') as infile:
+            src = string.Template( infile.read() )
+            self.out.write(src.substitute(
+                extensions_info_text=EXTENSIONS_INFO_TEXT(),
+                extensions_marked_text=EXTENSIONS_MARKED_TEXT(),
+                extensions=extensions_str,
+            ))
 
     def output_json(self):
         if extensions.__located_extensions__:
