@@ -333,7 +333,7 @@
                   }}
                   function generate_table(div, id, data) {{
                       var tbody = div.append("table").attr("id", id)
-                          .classed("git2", "true").style("width", "100%").append("tbody");
+                          .classed("git2", "true").append("tbody");
 
                       var lines = tbody.selectAll()
                           .data(data).enter()
@@ -454,6 +454,7 @@
                         }}
                         table.git2 {{
                                 font-size: small;
+                                width: 100%;
                         }}
                         table.git2 thead th {{
                                 padding: 0.5em;

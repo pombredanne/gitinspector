@@ -1,0 +1,47 @@
+<div>
+  <div class="box">
+
+    <div style="width: 20px; position: absolute">
+      <div id="timeline_label" class="git2 visible">
+        Timeline
+      </div>
+    </div>
+
+    <div id="timeline_tmp"
+         style="display: flex; align-items: center">
+
+    </div>
+
+    <div id="timeline_box"
+         style="display: flex; align-items: center">
+
+    </div>
+
+    <script>
+      (function () {
+          var timeline = $timeline;
+          d3.select("div#timeline_tmp").html(JSON.stringify(timeline));
+
+          var table = d3.select("div#timeline_box").append("table").attr("id", "timeline_table").classed("git2", "true"),
+              thead = table.append("thead").append("tr"),
+              tbody = table.append("tbody");
+
+          thead.append("th").text("Author");
+          timeline.periods.forEach(function(p) { thead.append("th").text(p); });
+          timeline.authors.forEach(function(a) {
+              var line = tbody.append("tr");
+              line.append("td").text(a);
+              timeline.periods.forEach(function(p) {
+                  line.append("td").text(timeline.entries[a][p]);
+              });
+          });
+
+          recolor_table_rows("timeline_table");
+
+          // Make the div hideable
+          make_box_hideable("timeline_label", "timeline_box", "flex");
+      })();
+    </script>
+
+  </div>
+</div>
