@@ -3,29 +3,22 @@
   <div class="box">
     <div style="width: 20px; position: absolute">
       <div id="metrics_label" class="git2 visible">
-	Metrics
+        Metrics
       </div>
     </div>
 
     <div id="metrics_box">
 
-      <div style="display:$metrics_no_info_disp">
-	<div>$metrics_no_info_text</div>
+      <div id="metrics_no_info">
       </div>
 
-      <div style="display:$metrics_eloc_disp">
-	<h4>$metrics_eloc_head</h4>
-	<div>$metrics_eloc</div>
+      <div id="metrics_eloc" >
       </div>
 
-      <div style="display:$metrics_cyclo_disp">
-	<h4>$metrics_cyclo_head</h4>
-	<div>$metrics_cyclo</div>
+      <div id="metrics_cyclo">
       </div>
 
-      <div style="display:$metrics_comp_disp">
-	<h4>$metrics_comp_head</h4>
-	<div>$metrics_comp</div>
+      <div id="metrics_comp">
       </div>
 
     </div>
@@ -33,6 +26,31 @@
 
     <script>
       (function () {
+          var metrics_no_info = "$metrics_no_info_text";
+          var metrics_eloc    = $metrics_eloc;
+          var metrics_cyclo   = $metrics_cyclo;
+          var metrics_comp    = $metrics_comp;
+
+          d3.select("div#metrics_no_info").text(metrics_no_info);
+
+          if (metrics_eloc.length > 0) {
+              var div = d3.select("div#metrics_eloc");
+              div.append("h4").text("$metrics_eloc_head");
+              generate_table(div, "metrics_eloc_table", metrics_eloc);
+          }
+
+          if (metrics_cyclo.length > 0) {
+              var div = d3.select("div#metrics_cyclo");
+              div.append("h4").text("$metrics_cyclo_head");
+              generate_table(div, "metrics_cyclo_table", metrics_cyclo);
+          }
+
+          if (metrics_comp.length > 0) {
+              var div = d3.select("div#metrics_comp");
+              div.append("h4").text("$metrics_comp_head");
+              generate_table(div, "metrics_comp_table", metrics_comp);
+          }
+
           make_box_hideable("metrics_label", "metrics_box", "");
       })();
     </script>

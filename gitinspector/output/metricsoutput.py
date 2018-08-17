@@ -30,17 +30,13 @@ METRICS_MISSING_INFO_TEXT = lambda: _("No metrics violations were found in the r
 
 METRICS_VIOLATION_SCORES = [[1.0, "minimal"], [1.25, "minor"], [1.5, "medium"], [2.0, "bad"], [3.0, "severe"]]
 
+
 def __get_metrics_score__(ceiling, value):
     for i in reversed(METRICS_VIOLATION_SCORES):
         if value > ceiling * i[0]:
             return i[1]
-        return 0
+    return ""
 
-def __compute_disp__(str):
-    if (str == ""):
-        return "none"
-    else:
-        return ""
 
 class MetricsOutput(Outputable):
     output_order = 400
@@ -72,50 +68,52 @@ class MetricsOutput(Outputable):
                 self.out.writeln(_("{0} ({1:.3f} in cyclomatic complexity density)").format(i[1], i[0]))
 
     def output_html(self):
-        if not self.metrics.eloc and not self.metrics.cyclomatic_complexity and not self.metrics.cyclomatic_complexity_density:
+        if not self.metrics.eloc and not self.metrics.cyclomatic_complexity and \
+           not self.metrics.cyclomatic_complexity_density:
             metrics_info_str = METRICS_MISSING_INFO_TEXT()
         else:
             metrics_info_str = ""
 
-        metrics_eloc_str = ""
+        metrics_eloc_dict = []
         if self.metrics.eloc:
-            for num, i in enumerate(sorted(set([(j, i) for (i, j) in self.metrics.eloc.items()]), reverse=True)):
-                metrics_eloc_str += "<div class=\"" + \
-                    str(__get_metrics_score__(__metric_eloc__[FileDiff.get_extension(i[1])], i[0])) + \
-                    (" odd\">" if num % 2 == 1 else "\">") + \
-                    _("{0} ({1} estimated lines of code)").format(i[1], str(i[0])) + "</div>"
+            metrics_items = sorted(set([(j, i) for (i, j) in self.metrics.eloc.items()]), reverse=True)
+            for num, i in enumerate(metrics_items):
+                metrics_eloc_dict.append({
+                    "severity": __get_metrics_score__(__metric_eloc__[FileDiff.get_extension(i[1])], i[0]),
+                    "name": i[1],
+                    "score": _("{0} estimated lines of code").format(i[0]),
+                })
 
-        metrics_cyclo_str = ""
+        metrics_cyclo_dict = []
         if self.metrics.cyclomatic_complexity:
-            for num, i in enumerate(sorted(set([(j, i) for (i, j) in self.metrics.cyclomatic_complexity.items()]), reverse=True)):
-                metrics_cyclo_str += "<div class=\"" + \
-                    str(__get_metrics_score__(METRIC_CYCLOMATIC_COMPLEXITY_THRESHOLD, i[0])) + \
-                    (" odd\">" if num % 2 == 1 else "\">") + \
-                    _("{0} ({1} in cyclomatic complexity)").format(i[1], str(i[0])) + "</div>"
+            cyclo_items = sorted(set([(j, i) for (i, j) in self.metrics.cyclomatic_complexity.items()]), reverse=True)
+            for num, i in enumerate(cyclo_items):
+                metrics_cyclo_dict.append({
+                    "severity": __get_metrics_score__(METRIC_CYCLOMATIC_COMPLEXITY_THRESHOLD, i[0]),
+                    "name": i[1],
+                    "score": _("{0} in cyclomatic complexity").format(i[0]),
+                })
 
-        metrics_comp_str = ""
+        metrics_comp_dict = []
         if self.metrics.cyclomatic_complexity_density:
-            for num, i in \
-                enumerate(sorted(set([(j, i) for (i, j) in self.metrics.cyclomatic_complexity_density.items()]), reverse=True)):
-                metrics_comp_str += "<div class=\"" + \
-                    str(__get_metrics_score__(METRIC_CYCLOMATIC_COMPLEXITY_DENSITY_THRESHOLD, i[0])) + \
-                    (" odd\">" if num % 2 == 1 else "\">") + \
-                    _("{0} ({1:.3f} in cyclomatic complexity density)").format(i[1], i[0]) + "</div>"
+            dens_items = sorted(set([(j, i) for (i, j) in self.metrics.cyclomatic_complexity_density.items()]), reverse=True)
+            for num, i in enumerate(dens_items):
+                metrics_comp_dict.append({
+                    "severity": __get_metrics_score__(METRIC_CYCLOMATIC_COMPLEXITY_DENSITY_THRESHOLD, i[0]),
+                    "name": i[1],
+                    "score": _("{0:.3f} in cyclomatic complexity density").format(i[0]),
+                })
 
         with open("gitinspector/templates/metrics_output.html", 'r') as infile:
             src = string.Template( infile.read() )
             self.out.write(src.substitute(
-                metrics_no_info_disp=__compute_disp__(metrics_info_str),
                 metrics_no_info_text=metrics_info_str,
-                metrics_eloc_disp=__compute_disp__(metrics_eloc_str),
                 metrics_eloc_head=ELOC_INFO_TEXT(),
-                metrics_eloc=metrics_eloc_str,
-                metrics_cyclo_disp=__compute_disp__(metrics_cyclo_str),
+                metrics_eloc=metrics_eloc_dict,
                 metrics_cyclo_head=CYCLOMATIC_COMPLEXITY_TEXT(),
-                metrics_cyclo=metrics_cyclo_str,
-                metrics_comp_disp=__compute_disp__(metrics_comp_str),
-                metrics_comp_head = CYCLOMATIC_COMPLEXITY_DENSITY_TEXT(),
-                metrics_comp=metrics_comp_str,
+                metrics_cyclo=metrics_cyclo_dict,
+                metrics_comp_head= CYCLOMATIC_COMPLEXITY_DENSITY_TEXT(),
+                metrics_comp=metrics_comp_dict,
             ))
 
     def output_json(self):

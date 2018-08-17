@@ -331,6 +331,19 @@
                           }}
                       }});
                   }}
+                  function generate_table(div, id, data) {{
+                      var tbody = div.append("table").attr("id", id)
+                          .classed("git2", "true").style("width", "100%").append("tbody");
+
+                      var lines = tbody.selectAll()
+                          .data(data).enter()
+                          .append("tr")
+                          .attr("id", function (d,i) {{ return "line_" + i; }});
+                      Object.keys(data[0]).forEach(function(t) {{
+                          lines.append("td").html(function(d) {{ return d[t];}});
+                          recolor_table_rows(id);
+                      }});
+                  }}
                   function make_box_hideable(label_id, box_id, display) {{
                       d3.select("div#" + label_id).on("click", function () {{
                           if (this.className == "git2 visible") {{
