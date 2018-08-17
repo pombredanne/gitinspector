@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
+import string
 from ..changes import FileDiff
 from ..metrics import (__metric_eloc__, METRIC_CYCLOMATIC_COMPLEXITY_THRESHOLD, METRIC_CYCLOMATIC_COMPLEXITY_DENSITY_THRESHOLD)
 from .outputable import Outputable
@@ -34,6 +35,12 @@ def __get_metrics_score__(ceiling, value):
         if value > ceiling * i[0]:
             return i[1]
         return 0
+
+def __compute_disp__(str):
+    if (str == ""):
+        return "none"
+    else:
+        return ""
 
 class MetricsOutput(Outputable):
     output_order = 400
@@ -65,38 +72,51 @@ class MetricsOutput(Outputable):
                 self.out.writeln(_("{0} ({1:.3f} in cyclomatic complexity density)").format(i[1], i[0]))
 
     def output_html(self):
-        metrics_xml = "<div><div class=\"box\" id=\"metrics\">"
-
         if not self.metrics.eloc and not self.metrics.cyclomatic_complexity and not self.metrics.cyclomatic_complexity_density:
-            metrics_xml += "<p>" + METRICS_MISSING_INFO_TEXT() + ".</p>"
+            metrics_info_str = METRICS_MISSING_INFO_TEXT()
+        else:
+            metrics_info_str = ""
 
+        metrics_eloc_str = ""
         if self.metrics.eloc:
-            metrics_xml += "<div><h4>" + ELOC_INFO_TEXT() + ".</h4>"
             for num, i in enumerate(sorted(set([(j, i) for (i, j) in self.metrics.eloc.items()]), reverse=True)):
-                metrics_xml += "<div class=\"" + str(__get_metrics_score__(__metric_eloc__[FileDiff.get_extension(i[1])], i[0])) + \
-                           (" odd\">" if num % 2 == 1 else "\">") + \
-                           _("{0} ({1} estimated lines of code)").format(i[1], str(i[0])) + "</div>"
-            metrics_xml += "</div>"
+                metrics_eloc_str += "<div class=\"" + \
+                    str(__get_metrics_score__(__metric_eloc__[FileDiff.get_extension(i[1])], i[0])) + \
+                    (" odd\">" if num % 2 == 1 else "\">") + \
+                    _("{0} ({1} estimated lines of code)").format(i[1], str(i[0])) + "</div>"
 
+        metrics_cyclo_str = ""
         if self.metrics.cyclomatic_complexity:
-            metrics_xml += "<div><h4>" +  CYCLOMATIC_COMPLEXITY_TEXT() + "</h4>"
             for num, i in enumerate(sorted(set([(j, i) for (i, j) in self.metrics.cyclomatic_complexity.items()]), reverse=True)):
-                metrics_xml += "<div class=\"" + str(__get_metrics_score__(METRIC_CYCLOMATIC_COMPLEXITY_THRESHOLD, i[0])) + \
-                           (" odd\">" if num % 2 == 1 else "\">") + \
-                           _("{0} ({1} in cyclomatic complexity)").format(i[1], str(i[0])) + "</div>"
-            metrics_xml += "</div>"
+                metrics_cyclo_str += "<div class=\"" + \
+                    str(__get_metrics_score__(METRIC_CYCLOMATIC_COMPLEXITY_THRESHOLD, i[0])) + \
+                    (" odd\">" if num % 2 == 1 else "\">") + \
+                    _("{0} ({1} in cyclomatic complexity)").format(i[1], str(i[0])) + "</div>"
 
+        metrics_comp_str = ""
         if self.metrics.cyclomatic_complexity_density:
-            metrics_xml += "<div><h4>" +  CYCLOMATIC_COMPLEXITY_DENSITY_TEXT() + "</h4>"
             for num, i in \
                 enumerate(sorted(set([(j, i) for (i, j) in self.metrics.cyclomatic_complexity_density.items()]), reverse=True)):
-                metrics_xml += "<div class=\"" + str(__get_metrics_score__(METRIC_CYCLOMATIC_COMPLEXITY_DENSITY_THRESHOLD, i[0])) + \
-                           (" odd\">" if num % 2 == 1 else "\">") + \
-                           _("{0} ({1:.3f} in cyclomatic complexity density)").format(i[1], i[0]) + "</div>"
-            metrics_xml += "</div>"
+                metrics_comp_str += "<div class=\"" + \
+                    str(__get_metrics_score__(METRIC_CYCLOMATIC_COMPLEXITY_DENSITY_THRESHOLD, i[0])) + \
+                    (" odd\">" if num % 2 == 1 else "\">") + \
+                    _("{0} ({1:.3f} in cyclomatic complexity density)").format(i[1], i[0]) + "</div>"
 
-        metrics_xml += "</div></div>"
-        self.out.writeln(metrics_xml)
+        with open("gitinspector/templates/metrics_output.html", 'r') as infile:
+            src = string.Template( infile.read() )
+            self.out.write(src.substitute(
+                metrics_no_info_disp=__compute_disp__(metrics_info_str),
+                metrics_no_info_text=metrics_info_str,
+                metrics_eloc_disp=__compute_disp__(metrics_eloc_str),
+                metrics_eloc_head=ELOC_INFO_TEXT(),
+                metrics_eloc=metrics_eloc_str,
+                metrics_cyclo_disp=__compute_disp__(metrics_cyclo_str),
+                metrics_cyclo_head=CYCLOMATIC_COMPLEXITY_TEXT(),
+                metrics_cyclo=metrics_cyclo_str,
+                metrics_comp_disp=__compute_disp__(metrics_comp_str),
+                metrics_comp_head = CYCLOMATIC_COMPLEXITY_DENSITY_TEXT(),
+                metrics_comp=metrics_comp_str,
+            ))
 
     def output_json(self):
         if not self.metrics.eloc and not self.metrics.cyclomatic_complexity and not self.metrics.cyclomatic_complexity_density:

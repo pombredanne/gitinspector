@@ -1,0 +1,39 @@
+<div>
+
+  <div class="box">
+    <div style="width: 20px; position: absolute">
+      <div id="metrics_label" class="git2 visible">
+	Metrics
+      </div>
+    </div>
+
+    <div id="metrics_box">
+
+      <div style="display:$metrics_no_info_disp">
+	<div>$metrics_no_info_text</div>
+      </div>
+
+      <div style="display:$metrics_eloc_disp">
+	<h4>$metrics_eloc_head</h4>
+	<div>$metrics_eloc</div>
+      </div>
+
+      <div style="display:$metrics_cyclo_disp">
+	<h4>$metrics_cyclo_head</h4>
+	<div>$metrics_cyclo</div>
+      </div>
+
+      <div style="display:$metrics_comp_disp">
+	<h4>$metrics_comp_head</h4>
+	<div>$metrics_comp</div>
+      </div>
+
+    </div>
+  </div>
+
+    <script>
+      (function () {
+          make_box_hideable("metrics_label", "metrics_box", "");
+      })();
+    </script>
+</div>
