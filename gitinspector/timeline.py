@@ -19,6 +19,7 @@
 
 import datetime
 
+
 class TimelineData(object):
     def __init__(self, changes, useweeks):
         authordateinfo_list = sorted(changes.get_authordateinfo_list().items())
@@ -41,6 +42,7 @@ class TimelineData(object):
             else:
                 self.entries[key].insertions += i[1].insertions
                 self.entries[key].deletions += i[1].deletions
+                self.entries[key].commits += i[1].commits
 
         for period in self.get_periods():
             total_insertions = 0
