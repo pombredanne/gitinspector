@@ -61,6 +61,7 @@ class BlameOutput(Outputable):
                 "stability": round(Blame.get_stability(name, entry[1].rows, self.changes),1),
                 "age": round(float(entry[1].skew) / entry[1].rows,1),
                 "comments": round(100.0 * entry[1].comments / entry[1].rows,2),
+                "ownership": round(100.0 *  entry[1].rows / total_blames,2),
             })
 
         with open("gitinspector/templates/blames_output.html", 'r') as infile:
