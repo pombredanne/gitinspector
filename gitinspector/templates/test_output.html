@@ -7,8 +7,6 @@
       </div>
     </div>
 
-    <div id="timeline_tmp"></div>
-
     <div id="timeline_box"
          style="display: flex; flex-direction: column; align-items: center">
 
@@ -18,87 +16,102 @@
     </div>
 
     <script>
-     (function () {
-          var timeline = $timeline;
-          // d3.select("div#timeline_tmp").html(JSON.stringify(timeline));
+    (function () {
+        var timeline = $timeline;
+        var svg = d3.select("svg#timeline_svg"),
+            width = parseInt(svg.attr("width")),
+            height = parseInt(svg.attr("height")),
+            xsep = 200, ysep = 80, ybsep = 50,
+            dx = (width-xsep)/(timeline.max_period+2),
+            dy = (height-ysep)/(Object.keys(timeline.authors).length+1);
+        var x = d3.scaleOrdinal()
+            .domain(Object.keys(timeline.periods))
+            .range(Object.values(timeline.periods).map(d => xsep + dx + (width-xsep-2*dx)*d/timeline.max_period));
+        var y = d3.scaleBand()
+            .domain(Object.keys(timeline.authors))
+            .range([ysep+dy/2, height]);
 
-          var svg = d3.select("svg#timeline_svg"),
-              width = parseInt(svg.attr("width")),
-              height = parseInt(svg.attr("height")),
-              xsep = 200, ysep = 80, ybsep = 50,
-              dx = (width-xsep)/(timeline.max_period+2),
-              dy = (height-ysep)/(Object.keys(timeline.authors).length+1);
-          var x = d3.scaleOrdinal()
-              .domain(Object.keys(timeline.periods))
-              .range(Object.values(timeline.periods).map(d => xsep + dx + (width-xsep-2*dx)*d/timeline.max_period));
-          var y = d3.scaleBand()
-              .domain(Object.keys(timeline.authors))
-              .range([ysep+dy/2, height]);
+        var xAxis = d3.axisTop(x).tickValues(Object.keys(timeline.periods));
+        var gaxis = svg.append("g").attr("transform", "translate(0," + (ysep-8) + ")");
+        gaxis.call(xAxis).selectAll("text")
+            .attr("y", 0).attr("x", 9)
+            .attr("dy", ".35em")
+            .attr("transform", "rotate(-90)")
+            .style("text-anchor", "start");
+        gaxis.selectAll(".tick line").attr("stroke", "#ccc").attr("y1", height-ybsep-60);
 
-          var xAxis = d3.axisTop(x).tickValues(Object.keys(timeline.periods));
-          var gaxis = svg.append("g").attr("transform", "translate(0," + (ysep-8) + ")");
-          gaxis.call(xAxis).selectAll("text")
-              .attr("y", 0).attr("x", 9)
-              .attr("dy", ".35em")
-              .attr("transform", "rotate(-90)")
-              .style("text-anchor", "start");
-          gaxis.selectAll(".tick line").attr("stroke", "#ccc").attr("y1", height-ybsep-60);
+        var cAxis = d3.axisBottom(x).tickFormat(d => timeline.changes[d]);
+        var uaxis = svg.append("g").attr("transform", "translate(0," + (height-ybsep+10) + ")");
+        uaxis.call(cAxis).selectAll("text")
+            .attr("y", 0).attr("x", 9)
+            .attr("dy", ".35em")
+            .attr("transform", "rotate(90)")
+            .style("text-anchor", "start");
 
-          var cAxis = d3.axisBottom(x).tickFormat(d => timeline.changes[d]);
-          var uaxis = svg.append("g").attr("transform", "translate(0," + (height-ybsep+10) + ")");
-          uaxis.call(cAxis).selectAll("text")
-              .attr("y", 0).attr("x", 9)
-              .attr("dy", ".35em")
-              .attr("transform", "rotate(90)")
-              .style("text-anchor", "start");
+        var gentries = svg.append("g");
+        var tooltip = d3.select("div#timeline_box").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
 
-          var gauths = svg.append("g").attr("transform", "translate(0,10)");
-          var aheight = Math.min(dy, 50);
-          Object.keys(timeline.authors).forEach(function (a) {
-              gauths.append("text").attr("x", 30).attr("y", y(a)+7)
-                  .style("font-size", "x-small")
-                  .text(a)
-                  .on("mouseover", function(d, i){
-                      svg.selectAll("rect[fill='" + timeline.authors[a] + "']")
-                          .attr("fill", d3.color(timeline.authors[a]).brighter())
-                  }).on("mouseout", function(d, i){
-                      svg.selectAll("rect[fill='" + d3.color(timeline.authors[a]).brighter() + "']")
-                          .attr("fill", timeline.authors[a])
-                  });
-              gauths.append("rect").attr("y", y(a)-10).attr("height", 20)
-                  .attr("x", 0).attr("width", 20)
-                  .attr("fill", timeline.authors[a]);
-          });
+	function generate_entries(sort_fun) {
+            Object.keys(timeline.entries).forEach(function(p) {
+		var commits = timeline.entries[p];
+		var a = x(p);
+		var b = height-ybsep;
+		commits.sort(sort_fun).forEach(function(c) {
+                    var work = c["work"] * (height-ybsep-ysep) / timeline.max_work;
+                    b -= work;
+                    gentries.append("rect").attr("x", a-dx/2).attr("y", b)
+			.attr("height", work).attr("width", dx)
+			.attr("fill", timeline.authors[c["author"]])
+			.on("mouseover", function(d, i){
+                            svg.selectAll("rect[fill='" + timeline.authors[c["author"]] + "']")
+				.attr("fill", d3.color(timeline.authors[c["author"]]).brighter());
+			    tooltip.html("<b>Author :</b> " + c["author"] +
+					 "<br/><b>Commits :</b> " + c["commit"][2] +
+					 "<br/><b>Work :</b> " + c["work"])
+				.style("opacity", .8)
+				.style("top", () => b +"px")
+				.style("left", () => (a-50) + "px");
+			}).on("mouseout", function(d, i){
+                            svg.selectAll("rect[fill='" +
+					  d3.color(timeline.authors[c["author"]]).brighter() +
+					  "']")
+				.attr("fill", timeline.authors[c["author"]])
+			    tooltip.style("opacity", 0);
+			});
+		});
+            });
+	}
 
-          var gentries = svg.append("g");
-          Object.keys(timeline.entries).forEach(function(p) {
-              var commits = timeline.entries[p];
-              var a = x(p);
-              var b = height-ybsep;
-              commits.forEach(function(c) {
-                  var work = c["work"] * (height-ybsep-ysep) / timeline.max_work;
-                  b -= work;
-                  gentries.append("rect").attr("x", a-dx/2).attr("y", b)
-                      .attr("height", work).attr("width", dx)
-                      .attr("fill", timeline.authors[c["author"]])
-                      .on("mouseover", function(d, i){
-                          svg.selectAll("rect[fill='" + timeline.authors[c["author"]] + "']")
-                              .attr("fill", d3.color(timeline.authors[c["author"]]).brighter())
-                      }).on("mouseout", function(d, i){
-                          svg.selectAll("rect[fill='" + d3.color(timeline.authors[c["author"]]).brighter() + "']")
-                              .attr("fill", timeline.authors[c["author"]])
-                      });
-              });
-          });
+        var gauths = svg.append("g").attr("transform", "translate(0,10)");
 
-          var div = d3.select("div#timeline_box").append("div")
-              .attr("class", "tooltip")
-              .style("opacity", 0);
+        var aheight = Math.min(dy, 50);
+        Object.keys(timeline.authors).forEach(function (a) {
+            gauths.append("text").attr("x", 30).attr("y", y(a)+7)
+                .style("font-size", "x-small")
+                .text(a)
+                .on("mouseover", function(d, i){
+                    svg.selectAll("rect[fill='" + timeline.authors[a] + "']")
+                        .attr("fill", d3.color(timeline.authors[a]).brighter())
+                }).on("mouseout", function(d, i){
+                    svg.selectAll("rect[fill='" +
+				  d3.color(timeline.authors[a]).brighter() + "']")
+                        .attr("fill", timeline.authors[a])
+                }).on("click", function () {
+		    generate_entries((u,v) => (u["author"] == a) ? -1 : 1);
+		});
+            gauths.append("rect").attr("y", y(a)-10).attr("height", 20)
+                .attr("x", 0).attr("width", 20)
+                .attr("fill", timeline.authors[a]);
+        });
 
-          // Make the div hideable
-          make_box_hideable("timeline_label", "timeline_box", "flex");
-     })();
-    </script>
+	generate_entries((a,b) => 1);
+
+        // Make the div hideable
+        make_box_hideable("timeline_label", "timeline_box", "flex");
+    })();
+</script>
 
   </div>
 </div>
