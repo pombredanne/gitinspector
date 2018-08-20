@@ -29,16 +29,21 @@ class TestOutput(Outputable):
             first_period = periods[0][1]
             periods = [ [d[0], (d[1].year-first_period.year)*12 + (d[1].month-first_period.month)] \
                         for d in periods ]
-        authors = [author[0] for author in data.get_authors()]
-        entries = { a: {} for a in authors }
+        max_period = periods[-1][1]
+        max_work   = max([el[1][2] for el in list(data.total_changes_by_period.items())])
+        authors = { author[0]: self.changes.colors_by_author[author[0]] for author in data.get_authors() }
+        entries = { p[0]: [] for p in periods }
         for k, v in data.entries.items():
             author = k[0]
             period = k[1]
-            entries[author][period] = [v.insertions, v.deletions, v.commits]
+            entries[period].append({ "author": author,
+                                     "work": v.insertions + v.deletions,
+                                     "commit": [v.insertions, v.deletions, v.commits]})
 
         timeline_dict = {
             "periods": periods,
-            "max_period": periods[-1][1],
+            "max_period": max_period,
+            "max_work": max_work,
             "authors": authors,
             "changes": data.total_changes_by_period,
             "entries": entries,
