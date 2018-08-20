@@ -157,52 +157,6 @@
                                                 this.hoveredElement.removeClass("piehover");
                                         }}
                                 }});
-
-                                // Make sure the two pie charts use the same colors.
-
-                                var author_colors = {{}};
-                                $.each(changes_plot.getData(), function(i, v) {{
-                                        author_colors[v["label"]] = v["color"];
-                                }});
-
-                                $.each(blame_plot.getData(), function(i, v) {{
-                                        if (author_colors[v["label"]] != undefined) {{
-                                                v["color"] = author_colors[v["label"]];
-                                        }}
-                                }});
-
-                                blame_plot.setupGrid();
-                                blame_plot.draw();
-
-                                // Color in metrics levels.
-
-                                $("div#metrics div div").each(function() {{
-                                        var rgb = $(this).css("background-color").match(/\d+/g);
-                                        rgb[0] = parseInt(rgb[0]);
-                                        rgb[1] = parseInt(rgb[1]);
-                                        rgb[2] = parseInt(rgb[2]);
-
-                                        if ($(this).hasClass("minimal")) {{
-                                                rgb[0] -= 10;
-                                                rgb[1] += 10;
-                                                rgb[2] -= 10;
-                                        }} else if ($(this).hasClass("minor")) {{
-                                                rgb[1] += 10;
-                                        }} else if ($(this).hasClass("medium")) {{
-                                                rgb[0] += 10;
-                                                rgb[1] += 10;
-                                        }} else if ($(this).hasClass("bad")) {{
-                                                rgb[0] += 10;
-                                                rgb[1] -= 10;
-                                                rgb[2] -= 10;
-                                        }} else if ($(this).hasClass("severe")) {{
-                                                rgb[0] += 20;
-                                                rgb[1] -= 20;
-                                                rgb[2] -= 20;
-                                        }}
-
-                                        $(this).css("background-color", "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")");
-                                }});
                         }});
                 </script>
                 <script type="application/javascript">
@@ -340,9 +294,13 @@
                           .append("tr")
                           .attr("id", function (d,i) {{ return "line_" + i; }});
                       Object.keys(data[0]).forEach(function(t) {{
-                          lines.append("td").html(function(d) {{ return d[t];}});
-                          recolor_table_rows(id);
+                          var td = lines.append("td")
+			      .html(function(d) {{ return d[t];}})
+			      .each(function(d) {{ if (t == "severity")
+				  d3.select(this).classed(d[t],true);
+						 }});
                       }});
+		      recolor_table_rows(id);
                   }}
                   function make_box_hideable(label_id, box_id, display) {{
                       d3.select("div#" + label_id).on("click", function () {{
@@ -503,6 +461,22 @@
                                 border: 1px solid black;
                                 border-radius: 3px;
                                 pointer-events: none;
+                        }}
+                        td.severe {{
+				color: #a00;
+				background-color: #faa;
+                        }}
+                        td.medium {{
+				color: #b50;
+				background-color: #fb9;
+                        }}
+                        td.minor {{
+				color: #660;
+				background-color: #dc7;
+                        }}
+                        td.minimal {{
+				color: #660;
+				background-color: #eea;
                         }}
                         span.marked {{
                                 font-weight: bold;
