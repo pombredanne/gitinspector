@@ -229,7 +229,7 @@ def __parse_arguments__(args=None):
     parser.add_argument('-w', '--weeks', action='store_true', help=
                         _("show all statistical information in weeks instead of in months"))
     parser.add_argument('-x', '--exclude', metavar='PATTERN', action='append', help=
-                        _("an exclusion pattern of the form KEY=PAT, describing the file paths, "
+                        _("an exclusion pattern of the form KEY:PAT, describing the file paths, "
                           "revisions, revisions with certain commit messages, author names or "
                           "author emails that should be excluded from the statistics; KEY must "
                           "be in [ 'file', 'author', 'email', 'revision', 'message' ]"))
