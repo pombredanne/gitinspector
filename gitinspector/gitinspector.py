@@ -206,6 +206,8 @@ def __parse_arguments__(args=None):
                           "system language if a translation is available"))
     parser.add_argument('-m', '--metrics', action='store_true', help=
                         _("include checks for certain metrics during the analysis of commits"))
+    parser.add_argument('-o', '--output', metavar='FILE', help=
+                        _("output the statistics in the given file"))
     parser.add_argument('-r', '--responsibilities', action='store_true', help=
                         _("show which files the different authors seem most responsible for"))
     parser.add_argument('-s', '--since', metavar='DATE',
@@ -262,7 +264,12 @@ def main():
             version.output()
             sys.exit(0)
 
-        run = Runner(options, StdoutWriter())
+        if options.output is None:
+            writer = StdoutWriter()
+        else:
+            writer = FileWriter(open(options.output,"w+"))
+
+        run = Runner(options, writer)
         run.process()
 
     except (filtering.InvalidRegExpError, format.InvalidFormatError) as exception:
