@@ -7,13 +7,15 @@
       </div>
     </div>
 
-    <div id="timeline_tmp"
-         style="display: flex; align-items: center">
-
-    </div>
+    <div id="timeline_tmp"></div>
 
     <div id="timeline_box"
          style="display: flex; align-items: center">
+
+      <div>
+        <svg id="timeline_svg" width="980" height="600">
+        </svg>
+      </div>
 
     </div>
 
@@ -22,21 +24,84 @@
           var timeline = $timeline;
           d3.select("div#timeline_tmp").html(JSON.stringify(timeline));
 
-          var table = d3.select("div#timeline_box").append("table").attr("id", "timeline_table").classed("git2", "true"),
-              thead = table.append("thead").append("tr"),
-              tbody = table.append("tbody");
+	  var svg = d3.select("svg#timeline_svg"),
+              width = parseInt(svg.attr("width")),
+              height = svg.attr("height"),
+	      xsep = 130, ysep = 80,
+	      dx = (width-xsep)/(timeline.max_period+1),
+	      dy = (height-ysep)/(timeline.authors.length+1);
+	  var x = d3.scaleLinear().domain([0, timeline.max_period]).range([xsep+dx/2+10, width-dx/2]);
+	  var y = d3.scaleLinear().domain([0, timeline.authors.length-1]).range([ysep+dy/2, height-dy/2]);
 
-          thead.append("th").text("Author");
-          timeline.periods.forEach(function(p) { thead.append("th").text(p); });
-          timeline.authors.forEach(function(a) {
-              var line = tbody.append("tr");
-              line.append("td").text(a);
-              timeline.periods.forEach(function(p) {
-                  line.append("td").text(timeline.entries[a][p]);
-              });
-          });
+	  var time = svg.append("g");
+	  time.append("rect").attr("width", width-xsep-5).attr("height", 2)
+	      .attr("x", xsep+5).attr("y", ysep-5);
+	  var ticks = time.selectAll()
+			    .data(timeline.periods)
+			    .enter()
+			    .append("rect")
+			    .attr("x", d => x(d[1])-1)
+			    .attr("width", "2")
+			    .attr("y", ysep-10)
+			    .attr("height", "10");
+	  ticks.each(function(d) {
+	      time.append("text").attr("x", 0).attr("y", 0)
+		  .text(d[0]).attr("transform",
+				   () => "rotate(90) translate(" + (ysep/2) +
+				   ",-" + (x(d[1])-3) + ")")
+		  .attr("text-anchor", "middle");
+	  });
 
-          recolor_table_rows("timeline_table");
+	  var authors = svg.append("g");
+	  authors.append("rect").attr("width", 2).attr("height", height-10)
+	      .attr("x", xsep).attr("y", 10);
+	  var aticks = authors.selectAll()
+	      .data(timeline.authors)
+	      .enter()
+	      .append("text")
+	      .attr("x", xsep-5).attr("y", (d,i) => y(i))
+	      .attr("text-anchor", "end")
+	      .text((d) => d);
+
+	  var div = d3.select("div#timeline_box").append("div")
+	      .attr("class", "tooltip")
+	      .style("opacity", 0);
+
+	  var entries = svg.append("g");
+	  var width  = Math.min(Math.max(0.9*dx, 5), 50);
+	  for (var p = 0; p < timeline.periods.length; p++) {
+	      var period = timeline.periods[p];
+	      var total  = timeline.changes[period[0]];
+	      for(var a = 0; a < timeline.authors.length; a++) {
+		  var entry  = timeline.entries[timeline.authors[a]][period[0]];
+		  if (entry != undefined) {
+		      var height = dy*entry[0] / total;
+		      entries.append("rect")
+			  .attr("x", x(period[1])-width/2).attr("y", y(a)-height)
+			  .attr("width", width).attr("height", height)
+			  .attr("fill", "green")
+			  .on("mouseover", function(d) {
+			       div.transition()
+				  .duration(200)
+				  .style("opacity", .9);
+			      div.html(entry)
+				  .style("left", (d3.mouse()[0]) + "px")
+				  .style("top", (d3.mouse()[1]) + "px");
+			  })
+			  .on("mouseout", function(d) {
+			      div.transition()
+				  .duration(500)
+				  .style("opacity", 0);
+			  });
+;
+		      height = dy*entry[1] / total;
+		      entries.append("rect")
+			  .attr("x", x(period[1])-width/2).attr("y", y(a))
+			  .attr("width", width).attr("height", height)
+			  .attr("fill", "red");
+		  }
+	      }
+	  }
 
           // Make the div hideable
           make_box_hideable("timeline_label", "timeline_box", "flex");
