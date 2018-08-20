@@ -31,13 +31,13 @@
               dx = (width-xsep)/(timeline.max_period+2),
               dy = (height-ysep)/(Object.keys(timeline.authors).length+1);
           var x = d3.scaleOrdinal()
-              .domain(timeline.periods.map(d => d[0]))
-              .range(timeline.periods.map(d => xsep + dx + (width-xsep-2*dx)*d[1]/timeline.max_period));
+              .domain(Object.keys(timeline.periods))
+              .range(Object.values(timeline.periods).map(d => xsep + dx + (width-xsep-2*dx)*d/timeline.max_period));
           var y = d3.scaleBand()
               .domain(Object.keys(timeline.authors))
               .range([ysep+dy/2, height]);
 
-          var xAxis = d3.axisTop(x).tickValues(timeline.periods.map(d => d[0]));
+          var xAxis = d3.axisTop(x).tickValues(Object.keys(timeline.periods));
           var gaxis = svg.append("g").attr("transform", "translate(0," + (ysep-8) + ")");
           gaxis.call(xAxis).selectAll("text")
               .attr("y", 0).attr("x", 9)
@@ -46,7 +46,7 @@
               .style("text-anchor", "start");
           gaxis.selectAll(".tick line").attr("stroke", "#ccc").attr("y1", height-ybsep-60);
 
-          var cAxis = d3.axisBottom(x).tickValues(Object.values(timeline.changes));
+          var cAxis = d3.axisBottom(x).tickFormat(d => timeline.changes[d]);
           var uaxis = svg.append("g").attr("transform", "translate(0," + (height-ybsep+10) + ")");
           uaxis.call(cAxis).selectAll("text")
               .attr("y", 0).attr("x", 9)
@@ -54,16 +54,15 @@
               .attr("transform", "rotate(90)")
               .style("text-anchor", "start");
 
-          var gauths = svg.append("g").attr("transform", "translate(" + xsep/2 + "," + 10 + ")");
+          var gauths = svg.append("g").attr("transform", "translate(0,10)");
           var aheight = Math.min(dy, 50);
           Object.keys(timeline.authors).forEach(function (a) {
-              gauths.append("rect").attr("y", y(a)-aheight/2+5).attr("height", aheight-10)
-                  .attr("x", -xsep/2).attr("width", xsep).attr("rx", 10).attr("ry", 10)
-                  .attr("fill", timeline.authors[a]).attr("opacity", 0.5);
-              gauths.append("text").attr("y", y(a)+2)
-                  .style("text-anchor", "middle")
+              gauths.append("text").attr("x", 30).attr("y", y(a)+7)
                   .style("font-size", "x-small")
                   .text(a);
+              gauths.append("rect").attr("y", y(a)-10).attr("height", 20)
+                  .attr("x", 0).attr("width", 20)
+                  .attr("fill", timeline.authors[a]);
           });
 
           var gentries = svg.append("g");

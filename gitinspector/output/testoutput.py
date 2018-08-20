@@ -31,9 +31,10 @@ class TestOutput(Outputable):
             periods = [ [d[0], (d[1].year-first_period.year)*12 + (d[1].month-first_period.month)] \
                         for d in periods ]
         max_period = periods[-1][1]
+        periods = { k[0]: k[1] for k in periods }
         max_work   = max([el[1][2] for el in list(data.total_changes_by_period.items())])
         authors = { author[0]: self.changes.colors_by_author[author[0]] for author in data.get_authors() }
-        entries = { p[0]: [] for p in periods }
+        entries = { p: [] for p in periods.keys() }
         for k, v in data.entries.items():
             author = k[0]
             period = k[1]
