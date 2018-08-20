@@ -56,7 +56,7 @@ class TimelineOutput(Outputable):
             names = timeline_data.get_authors()
             max_periods_per_row = 8
 
-            timeline_xml = "<div><div id=\"timeline\" class=\"box\">"
+            timeline_xml = "<div id='timeline_div'><div id=\"timeline\" class=\"box\">"
             timeline_xml += "<p>" + TIMELINE_INFO_TEXT() + ".</p>"
             self.out.writeln(timeline_xml)
 
