@@ -3,24 +3,22 @@
 
     <div style="width: 20px; position: absolute">
       <div id="timeline_label" class="git2 visible">
-        Timeline
+        Activity Timeline
       </div>
     </div>
 
     <div id="timeline_tmp"></div>
 
     <div id="timeline_box"
-         style="display: flex; align-items: center">
+         style="display: flex; flex-direction: column; align-items: center">
 
-      <div>
-        <svg id="timeline_svg" width="980" height="600">
-        </svg>
-      </div>
+    <svg id="timeline_svg" width="1040" height="600">
+    </svg>
 
     </div>
 
     <script>
-      (function () {
+     (function () {
           var timeline = $timeline;
           // d3.select("div#timeline_tmp").html(JSON.stringify(timeline));
 
@@ -59,7 +57,14 @@
           Object.keys(timeline.authors).forEach(function (a) {
               gauths.append("text").attr("x", 30).attr("y", y(a)+7)
                   .style("font-size", "x-small")
-                  .text(a);
+                  .text(a)
+                  .on("mouseover", function(d, i){
+                      svg.selectAll("rect[fill='" + timeline.authors[a] + "']")
+                          .attr("fill", d3.color(timeline.authors[a]).brighter())
+                  }).on("mouseout", function(d, i){
+                      svg.selectAll("rect[fill='" + d3.color(timeline.authors[a]).brighter() + "']")
+                          .attr("fill", timeline.authors[a])
+                  });
               gauths.append("rect").attr("y", y(a)-10).attr("height", 20)
                   .attr("x", 0).attr("width", 20)
                   .attr("fill", timeline.authors[a]);
@@ -75,7 +80,14 @@
                   b -= work;
                   gentries.append("rect").attr("x", a-dx/2).attr("y", b)
                       .attr("height", work).attr("width", dx)
-                      .attr("fill", timeline.authors[c["author"]]);
+                      .attr("fill", timeline.authors[c["author"]])
+                      .on("mouseover", function(d, i){
+                          svg.selectAll("rect[fill='" + timeline.authors[c["author"]] + "']")
+                              .attr("fill", d3.color(timeline.authors[c["author"]]).brighter())
+                      }).on("mouseout", function(d, i){
+                          svg.selectAll("rect[fill='" + d3.color(timeline.authors[c["author"]]).brighter() + "']")
+                              .attr("fill", timeline.authors[c["author"]])
+                      });
               });
           });
 
@@ -85,7 +97,7 @@
 
           // Make the div hideable
           make_box_hideable("timeline_label", "timeline_box", "flex");
-      })();
+     })();
     </script>
 
   </div>
