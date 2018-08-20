@@ -18,6 +18,7 @@
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
 import bisect
+import copy
 import datetime
 import multiprocessing
 import os
@@ -329,14 +330,14 @@ class Changes(object):
             for i in self.commits:
                 self.update_dict_commit(self.authors, i.author, i)
 
-        return self.authors
+        return copy.deepcopy(self.authors)
 
     def get_authordateinfo_list(self):
         if not self.authors_dateinfo:
             for i in self.commits:
                 self.update_dict_commit(self.authors_dateinfo, (i.date, i.author), i)
 
-        return self.authors_dateinfo
+        return copy.deepcopy(self.authors_dateinfo)
 
     def get_latest_author_by_email(self, email):
         if not hasattr(email, "decode"):
