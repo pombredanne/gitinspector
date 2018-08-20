@@ -18,6 +18,7 @@ class TestOutput(Outputable):
 
     def output_html(self):
         data = timeline.TimelineData(self.changes, self.weeks)
+
         if self.weeks:
             periods = [ [d, datetime.datetime.strptime(d + "-1", "%YW%W-%w")] for d in data.get_periods()]
             first_period_y = periods[0][1].year
@@ -39,13 +40,14 @@ class TestOutput(Outputable):
             entries[period].append({ "author": author,
                                      "work": v.insertions + v.deletions,
                                      "commit": [v.insertions, v.deletions, v.commits]})
+        total_changes = {k: v[2] for k, v in data.total_changes_by_period.items()}
 
         timeline_dict = {
             "periods": periods,
             "max_period": max_period,
             "max_work": max_work,
             "authors": authors,
-            "changes": data.total_changes_by_period,
+            "changes": total_changes,
             "entries": entries,
         }
 
