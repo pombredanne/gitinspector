@@ -14,44 +14,57 @@
     <div id="repository_box"
          style="display: flex; flex-direction: column; align-items: center">
 
-      <svg id="repository_svg" width="1040" height="600">
-      </svg>
-
     </div>
     <script>
       var authors = $authors;
-      var tree = $tree;
       var ownerships = $ownerships;
+      var files = Object.keys(ownerships).sort()
 
       // d3.select("div#repository_tmp").html(JSON.stringify(authors) + "<br/>" +
-      // 					   JSON.stringify(ownerships));
+      //                                      JSON.stringify(ownerships) + "<br/>" +
+      //                                      JSON.stringify(files));
 
-      var svg = d3.select("svg#repository_svg"),
-          xsep = 200, dy = 25,
-          width = parseInt(svg.attr("width")),
-          height = tree.length*dy;
-      svg.attr("height", height);
+      function build_tree(parent_elem, parent_file, visibility) {
+          var heads = files.filter((f) => ownerships[f].parent == parent_file);
+          var lis = parent_elem.append("ul").selectAll().data(heads)
+                               .enter().append("li")
+                               .classed("repline", "true")
+                               .style("display", visibility)
+                               .attr("data", (d) => d);
+          lis.append("div");
+          lis.each(function(d) { build_tree(d3.select(this), d, "none"); });
+      }
 
-      var y = d3.scaleBand()
-          .domain(tree)
-          .range([20, height]);
-
-      var gfiles = svg.append("g").attr("transform", "translate(0,0)");;
-      tree.forEach(function (f) {
-	  gfiles.append("text").attr("y", y(f)).attr("x", 10*(f.split('/').length-1))
-	      .text(f.split('/').pop());
+      build_tree(d3.select("div#repository_box"), "", "");
+      d3.selectAll("li.repline").each(function() {
+          var elem = d3.select(this);
+          var file = elem.attr("data");
+          var div  = elem.select("div");
+          if (ownerships[file]["is_dir"] == "true") {
+              div.append("button")
+                  .text("+").on("click", function () {
+                      var bool = (d3.select(this).classed("visible")),
+                          vis  = bool ? "none" : "";
+                      d3.select(this).classed("visible", !vis);
+                      d3.selectAll("li.repline").filter(function () {
+                          return ownerships[d3.select(this).attr("data")]["parent"] == file;
+                      }).style("display", vis);
+              });
+          }
+          div.append("span").html(file);
       });
-      var gowns = svg.append("g").attr("transform", "translate(" + xsep + ",0)");
-      Object.keys(ownerships).forEach(function (f) {
-	  var x = 0;
-	  ownerships[f].forEach(function (o) {
-	      gowns.append("rect")
-		  .attr("x", x).attr("y", y(f)-dy/2)
-		  .attr("height", dy-10).attr("width", o.rows)
-		  .attr("fill",authors[o.author]);
-	      x += o.rows;
-	  });
-      });
+
+      // var gowns = svg.append("g").attr("transform", "translate(" + xsep + ",0)");
+      // Object.keys(ownerships).forEach(function (f) {
+      //          var x = 0;
+      //          ownerships[f].forEach(function (o) {
+      //              gowns.append("rect")
+      //                  .attr("x", x).attr("y", y(f)-dy/2)
+      //                  .attr("height", dy-10).attr("width", o.rows)
+      //                  .attr("fill",authors[o.author]);
+      //              x += o.rows;
+      //          });
+      // });
 
       // Make the div hideable
       make_box_hideable("repository_label", "repository_box", "flex");

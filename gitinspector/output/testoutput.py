@@ -6,6 +6,29 @@ import datetime
 from ..blame import Blame
 
 
+class FileOwnerships(object):
+
+    def __init__(self, changes):
+        self.changes = changes
+        self.owns = {}
+        self.authors = {}
+
+    def add(self, file, author, work, is_dir):
+        if not(author in self.authors):
+            self.authors[author] = self.changes.colors_by_author[author]
+        sfile = file.split('/')
+        if not(file in self.owns):
+            self.owns[file] = { "work": {}, "parent": "", "is_dir" : is_dir }
+        if not(author in self.owns[file]["work"]):
+            self.owns[file]["work"][author] = work
+        else:
+            self.owns[file]["work"][author] += work
+        sfile.pop()
+        if (len(sfile) > 0):
+            parent = "/".join(sfile)
+            self.owns[file]["parent"] = parent
+            self.add(parent, author, work, "true")
+
 class TestOutput(Outputable):
     output_order = 120
 
@@ -18,34 +41,15 @@ class TestOutput(Outputable):
         self.out = runner.out
 
     def output_html(self):
-        authors = {}
-        ownerships = {}
+        ownerships = FileOwnerships(self.changes)
         for key,val in self.blames.blames.items():
-            authors[key[0]] = self.changes.colors_by_author[key[0]]
-            if not(key[1] in ownerships):
-                ownerships[key[1]] = []
-            ownerships[key[1]].append({
-                "author": key[0],
-                "rows": val.rows,
-            })
-        files = set(ownerships.keys())
-        tree = set()
-        for file in ownerships.keys():
-            tree.add(file)
-            sfile = file.split('/')
-            if (len(sfile) > 1):
-                dir = sfile.pop(0)
-                for d in sfile:
-                    tree.add(dir)
-                    dir += "/" + d
-        tree = sorted(list(tree))
+            ownerships.add(key[1],key[0],val.rows,"false")
 
         with open("gitinspector/templates/test_output.html", 'r') as infile:
             src = string.Template( infile.read() )
             self.out.write(src.substitute(
-                authors=authors,
-                tree=tree,
-                ownerships=ownerships,
+                authors=ownerships.authors,
+                ownerships=ownerships.owns,
             ))
         pass
 
