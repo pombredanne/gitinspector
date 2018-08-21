@@ -19,10 +19,14 @@
     (function () {
         var timeline = $timeline;
         var svg = d3.select("svg#timeline_svg"),
-            width = parseInt(svg.attr("width")),
-            height = parseInt(svg.attr("height")),
             xsep = 200, ysep = 80, ybsep = 50,
-            dx = (width-xsep)/(timeline.max_period+2),
+            width = parseInt(svg.attr("width")),
+            height = parseInt(svg.attr("height"));
+	if (width > 50*(timeline.max_period+2)+xsep) {
+	    width = 50*(timeline.max_period+2)+xsep;
+	    svg.attr("width", width);
+	}
+        var dx = (width-xsep)/(timeline.max_period+2),
             dy = (height-ysep)/(Object.keys(timeline.authors).length+1);
         var x = d3.scaleOrdinal()
             .domain(Object.keys(timeline.periods))
@@ -49,10 +53,12 @@
             .style("text-anchor", "start");
 
         var gentries = svg.append("g");
-        var tooltip = d3.select("div#timeline_box").append("div")
+        var tooltip = d3.select("body").append("div")
             .attr("class", "tooltip")
             .style("opacity", 0);
 
+        var ox = svg.node().getBoundingClientRect().left;
+        var oy = svg.node().getBoundingClientRect().top;
 	function generate_entries(sort_fun) {
             Object.keys(timeline.entries).forEach(function(p) {
 		var commits = timeline.entries[p];
@@ -65,14 +71,15 @@
 			.attr("height", work).attr("width", dx)
 			.attr("fill", timeline.authors[c["author"]])
 			.on("mouseover", function(d, i){
+			    var coords = d3.mouse(this);
                             svg.selectAll("rect[fill='" + timeline.authors[c["author"]] + "']")
 				.attr("fill", d3.color(timeline.authors[c["author"]]).brighter());
 			    tooltip.html("<b>Author :</b> " + c["author"] +
 					 "<br/><b>Commits :</b> " + c["commit"][2] +
 					 "<br/><b>Work :</b> " + c["work"])
 				.style("opacity", .8)
-				.style("top", () => b +"px")
-				.style("left", () => (a-50) + "px");
+				.style("top", oy + b)
+				.style("left", ox + a);
 			}).on("mouseout", function(d, i){
                             svg.selectAll("rect[fill='" +
 					  d3.color(timeline.authors[c["author"]]).brighter() +
