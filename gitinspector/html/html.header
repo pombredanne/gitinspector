@@ -295,12 +295,12 @@
                           .attr("id", function (d,i) {{ return "line_" + i; }});
                       Object.keys(data[0]).forEach(function(t) {{
                           var td = lines.append("td")
-			      .html(function(d) {{ return d[t];}})
-			      .each(function(d) {{ if (t == "severity")
-				  d3.select(this).classed(d[t],true);
-						 }});
+                              .html(function(d) {{ return d[t];}})
+                              .each(function(d) {{ if (t == "severity")
+                                  d3.select(this).classed(d[t],true);
+                                                 }});
                       }});
-		      recolor_table_rows(id);
+                      recolor_table_rows(id);
                   }}
                   function make_box_hideable(label_id, box_id, display) {{
                       d3.select("div#" + label_id).on("click", function () {{
@@ -453,9 +453,7 @@
                         div.tooltip {{
                                 position: absolute;
                                 text-align: center;
-                                width: 160px;
-                                height: 42px;
-                                padding: 2px;
+                                padding: 5px;
                                 font: 12px sans-serif;
                                 background: white;
                                 border: 1px solid black;
@@ -463,20 +461,20 @@
                                 pointer-events: none;
                         }}
                         td.severe {{
-				color: #a00;
-				background-color: #faa;
+                                color: #a00;
+                                background-color: #faa;
                         }}
                         td.medium {{
-				color: #b50;
-				background-color: #fb9;
+                                color: #b50;
+                                background-color: #fb9;
                         }}
                         td.minor {{
-				color: #660;
-				background-color: #dc7;
+                                color: #660;
+                                background-color: #dc7;
                         }}
                         td.minimal {{
-				color: #660;
-				background-color: #eea;
+                                color: #660;
+                                background-color: #eea;
                         }}
                         span.marked {{
                                 font-weight: bold;
@@ -556,8 +554,8 @@
         </head>
         <body>
           <div id="introduction_div">
-	    <div class="box logo">
+            <div class="box logo">
               <a href="https://github.com/ejwa/gitinspector"><img src="data:image/png;base64,{logo}" /></a>
               <p>{repo_text}<br>{logo_text}</p>
               </div>
-	    </div>
+            </div>
