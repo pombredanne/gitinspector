@@ -6,14 +6,14 @@ import datetime
 from ..blame import Blame
 
 
-class TestOutput(Outputable):
+class ActivityOutput(Outputable):
     output_order = 120
 
     def __init__(self, runner):
         Outputable.__init__(self)
         self.changes = runner.changes
         self.weeks = runner.config.weeks
-        self.display = True
+        self.display = runner.config.timeline
         self.out = runner.out
 
     def output_html(self):
@@ -52,7 +52,7 @@ class TestOutput(Outputable):
             "entries": entries,
         }
 
-        with open("gitinspector/templates/test_output.html", 'r') as infile:
+        with open("gitinspector/templates/activity_output.html", 'r') as infile:
             src = string.Template( infile.read() )
             self.out.write(src.substitute(
                 timeline=str(timeline_dict)
