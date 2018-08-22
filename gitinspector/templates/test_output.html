@@ -33,7 +33,10 @@
           lis.each(function(d) { build_tree(d3.select(this), d, "none"); });
       }
 
-      build_tree(d3.select("div#repository_box"), "", "");
+      var div = d3.select("div#repository_box").append("div")
+	  .attr("id", "map_uldiv").style("width", "400px")
+	  .style("position", "relative").style("left", "400px");
+      build_tree(div, "", "");
       d3.selectAll("li.repline").each(function() {
           var elem = d3.select(this);
           var file = elem.attr("data");
@@ -52,18 +55,20 @@
               });
           }
           div.append("span").html(ownerships[file]["name"]);
-          const g = div.append("svg").attr("height", 10)
+          const s = Object.values(ownerships[file]["work"])
+		.reduce((a,b) => a+b) / 10;
+          const g = div.append("svg")
+		.attr("height", 10).attr("width", s)
                 .style("position", "absolute")
-                .style("left", "300px").append("g");
+                .style("right", "400px").append("g");
           var x = 0;
-          const s = Object.values(ownerships[file]["work"]).reduce((a,b) => a+b);
           Object.keys(ownerships[file]["work"]).forEach(function (a) {
               const w = ownerships[file]["work"][a];
               g.append("rect")
                   .attr("x", x).attr("y", 0)
-                  .attr("height", 10).attr("width", 100*w/s)
+                  .attr("height", 10).attr("width", w / 10)
                   .attr("fill",authors[a]);
-              x += 100*w/s;
+              x += w / 10;
           });
       });
 
