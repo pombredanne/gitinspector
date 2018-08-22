@@ -29,6 +29,10 @@ class FileOwnerships(object):
             self.owns[file]["parent"] = parent
             self.add(parent, author, work, "true")
 
+    def compute_max_work(self):
+        return max([ w for o in self.owns.values()
+                     for w in o["work"].values() ])
+
 class TestOutput(Outputable):
     output_order = 120
 
@@ -44,12 +48,14 @@ class TestOutput(Outputable):
         ownerships = FileOwnerships(self.changes)
         for key,val in self.blames.blames.items():
             ownerships.add(key[1],key[0],val.rows,"false")
+        max_work = ownerships.compute_max_work()
 
         with open("gitinspector/templates/test_output.html", 'r') as infile:
             src = string.Template( infile.read() )
             self.out.write(src.substitute(
                 authors=ownerships.authors,
                 ownerships=ownerships.owns,
+                max_work=max_work,
             ))
         pass
 
