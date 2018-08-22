@@ -18,7 +18,7 @@ class FileOwnerships(object):
             self.authors[author] = self.changes.colors_by_author[author]
         sfile = file.split('/')
         if not(file in self.owns):
-            self.owns[file] = { "work": {}, "parent": "", "is_dir" : is_dir }
+            self.owns[file] = { "work": {}, "parent": "", "is_dir" : is_dir, "name" : sfile[-1] }
         if not(author in self.owns[file]["work"]):
             self.owns[file]["work"][author] = work
         else:
