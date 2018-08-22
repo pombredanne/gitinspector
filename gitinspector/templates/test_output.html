@@ -12,7 +12,8 @@
     </div>
 
     <div id="repository_box"
-         style="display: flex; flex-direction: column; align-items: center">
+         style="display: flex; flex-direction: column;
+		align-items: center; position: relative">
 
     </div>
     <script>
@@ -20,13 +21,10 @@
       var ownerships = $ownerships;
       var files = Object.keys(ownerships).sort()
 
-      // d3.select("div#repository_tmp").html(JSON.stringify(authors) + "<br/>" +
-      //                                      JSON.stringify(ownerships) + "<br/>" +
-      //                                      JSON.stringify(files));
-
       function build_tree(parent_elem, parent_file, visibility) {
           var heads = files.filter((f) => ownerships[f].parent == parent_file);
-          var lis = parent_elem.append("ul").selectAll().data(heads)
+          var lis = parent_elem.append("ul").classed("map_box", "true")
+	                       .selectAll().data(heads)
                                .enter().append("li")
                                .classed("repline", "true")
                                .style("display", visibility)
@@ -42,16 +40,29 @@
           var div  = elem.select("div");
           if (ownerships[file]["is_dir"] == "true") {
               div.append("button")
-                  .text("+").on("click", function () {
+                  .text("+")
+		  .on("click", function () {
                       var bool = (d3.select(this).classed("visible")),
-                          vis  = bool ? "none" : "";
-                      d3.select(this).classed("visible", !vis);
+                          vis  = bool ? "none" : "",
+			  txt  = bool ? "+" : "-";
+                      d3.select(this).classed("visible", !vis).text(txt);
                       d3.selectAll("li.repline").filter(function () {
                           return ownerships[d3.select(this).attr("data")]["parent"] == file;
                       }).style("display", vis);
               });
           }
           div.append("span").html(file);
+	  const g = div.append("svg").attr("height", 10).style("position", "absolute").style("left", "300px").append("g");
+	  var x = 0;
+	  var s = Object.values(ownerships[file]["work"]).reduce((a,b) => a+b);
+	  Object.keys(ownerships[file]["work"]).forEach(function (a) {
+	      const w = ownerships[file]["work"][a];
+	      g.append("rect")
+		  .attr("x", x).attr("y", 0)
+	          .attr("height", 10).attr("width", 100*w/s)
+                  .attr("fill",authors[a]);
+              x += 100*w/s;
+          });
       });
 
       // var gowns = svg.append("g").attr("transform", "translate(" + xsep + ",0)");
