@@ -1,9 +1,5 @@
 from .outputable import Outputable
-from .. import responsibilities as resp
 import string
-import datetime
-
-from ..blame import Blame
 
 
 class FileOwnerships(object):
@@ -33,7 +29,8 @@ class FileOwnerships(object):
         return max([ w for o in self.owns.values()
                      for w in o["work"].values() ])
 
-class TestOutput(Outputable):
+
+class OwnershipOutput(Outputable):
     output_order = 120
 
     def __init__(self, runner):
@@ -50,7 +47,7 @@ class TestOutput(Outputable):
             ownerships.add(key[1],key[0],val.rows,"false")
         max_work = ownerships.compute_max_work()
 
-        with open("gitinspector/templates/test_output.html", 'r') as infile:
+        with open("gitinspector/templates/ownership_output.html", 'r') as infile:
             src = string.Template( infile.read() )
             self.out.write(src.substitute(
                 authors=ownerships.authors,
