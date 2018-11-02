@@ -18,9 +18,11 @@
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import os
 import string
 import sys
 import textwrap
+
 from .. import format, gravatar, terminal
 from ..blame import Blame
 from .outputable import Outputable
@@ -64,7 +66,9 @@ class BlameOutput(Outputable):
                 "ownership": round(100.0 *  entry[1].rows / total_blames,2),
             })
 
-        with open("gitinspector/templates/blames_output.html", 'r') as infile:
+        temp_file = os.path.join(os.path.dirname(__file__),
+                                 "../templates/blames_output.html")
+        with open(temp_file, 'r') as infile:
             src = string.Template( infile.read() )
             self.out.write(src.substitute(
                 remains_data=str(data_array),

@@ -17,7 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import string
+
 from ..changes import FileDiff
 from ..metrics import (__metric_eloc__, METRIC_CYCLOMATIC_COMPLEXITY_THRESHOLD, METRIC_CYCLOMATIC_COMPLEXITY_DENSITY_THRESHOLD)
 from .outputable import Outputable
@@ -104,7 +106,9 @@ class MetricsOutput(Outputable):
                     "score": _("{0:.3f} in cyclomatic complexity density").format(i[0]),
                 })
 
-        with open("gitinspector/templates/metrics_output.html", 'r') as infile:
+        temp_file = os.path.join(os.path.dirname(__file__),
+                                 "../templates/metrics_output.html")
+        with open(temp_file, 'r') as infile:
             src = string.Template( infile.read() )
             self.out.write(src.substitute(
                 metrics_no_info_text=metrics_info_str,

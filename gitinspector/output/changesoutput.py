@@ -18,6 +18,7 @@
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import os
 import string
 import textwrap
 from .. import format, gravatar, terminal
@@ -64,7 +65,9 @@ class ChangesOutput(Outputable):
                 "changes" : round(percentage,2),
                 })
 
-        with open("gitinspector/templates/changes_output.html", 'r') as infile:
+        temp_file = os.path.join(os.path.dirname(__file__),
+                                 "../templates/changes_output.html")
+        with open(temp_file, 'r') as infile:
             src = string.Template( infile.read() )
             self.out.write(src.substitute(
                 changes_data=str(data_array),

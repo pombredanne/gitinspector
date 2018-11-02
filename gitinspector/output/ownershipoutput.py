@@ -1,4 +1,6 @@
 from .outputable import Outputable
+
+import os
 import string
 
 
@@ -47,7 +49,9 @@ class OwnershipOutput(Outputable):
             ownerships.add(key[1],key[0],val.rows,"false")
         max_work = ownerships.compute_max_work()
 
-        with open("gitinspector/templates/ownership_output.html", 'r') as infile:
+        temp_file = os.path.join(os.path.dirname(__file__),
+                                 "../templates/ownership_output.html")
+        with open(temp_file, 'r') as infile:
             src = string.Template( infile.read() )
             self.out.write(src.substitute(
                 authors=ownerships.authors,

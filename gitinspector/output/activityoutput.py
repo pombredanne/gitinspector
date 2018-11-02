@@ -1,5 +1,7 @@
 from .outputable import Outputable
 from .. import gravatar, timeline
+
+import os
 import string
 import datetime
 
@@ -52,7 +54,9 @@ class ActivityOutput(Outputable):
             "entries": entries,
         }
 
-        with open("gitinspector/templates/activity_output.html", 'r') as infile:
+        temp_file = os.path.join(os.path.dirname(__file__),
+                                 "../templates/activity_output.html")
+        with open(temp_file, 'r') as infile:
             src = string.Template( infile.read() )
             self.out.write(src.substitute(
                 timeline=str(timeline_dict)

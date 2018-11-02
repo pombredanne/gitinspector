@@ -17,8 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import string
 import textwrap
+
 from .. import extensions, terminal
 from .outputable import Outputable
 
@@ -46,7 +48,9 @@ class ExtensionsOutput(Outputable):
         for e in sorted(extensions.__located_extensions__):
             extensions_dict[e] = "marked" if ExtensionsOutput.is_marked(e) else ""
 
-        with open("gitinspector/templates/extensions_output.html", 'r') as infile:
+        temp_file = os.path.join(os.path.dirname(__file__),
+                                 "../templates/extensions_output.html")
+        with open(temp_file, 'r') as infile:
             src = string.Template( infile.read() )
             self.out.write(src.substitute(
                 extensions_info_text=EXTENSIONS_INFO_TEXT(),
