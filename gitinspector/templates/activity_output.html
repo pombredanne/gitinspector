@@ -16,7 +16,7 @@
     </div>
 
     <script>
-      // (function () {
+      (function () {
       var timeline = $timeline;
       var svg = d3.select("svg#timeline_svg"),
           xsep = 200, ysep = 80, ybsep = 50,
@@ -31,7 +31,7 @@
       var x = d3.scaleOrdinal()
                 .domain(Object.keys(timeline.periods))
                 .range(Object.values(timeline.periods)
-                       .map(d => xsep + dx + (width-xsep-2*dx)*d/timeline.max_period));
+                       .map(d => xsep + dx + (width-xsep-2*dx)*d/(Math.max(timeline.max_period, 1))));
       var y = d3.scaleBand()
                 .domain(Object.keys(timeline.authors))
                 .range([ysep+dy/2, height]);
@@ -116,7 +116,7 @@
 
       // Make the div hideable
       make_box_hideable("timeline_label", "timeline_box", "flex");
-      //})();
+      })();
     </script>
 
   </div>
