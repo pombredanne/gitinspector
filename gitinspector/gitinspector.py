@@ -71,6 +71,8 @@ class Runner(object):
         GitConfig(self, self.repos[-1].location).read()
         # Initialize extensions and formats
         extensions.define(config.file_types)
+        for f in config.file_types.split(','):
+            filtering.__add_one__("file:" + f)
         format.select(config.format)
         # Initialize bounds on commits dates
         if config.since:

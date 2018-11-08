@@ -76,12 +76,7 @@ class FileDiff(object):
 
     @staticmethod
     def is_valid_extension(string):
-        extension = FileDiff.get_extension(string)
-
-        for i in extensions.get():
-            if (extension == "" and i == "*") or extension == i or i == '**':
-                return True
-        return False
+        return filtering.set_filtered(FileDiff.get_filename(string))
 
 
 class Commit(object):
@@ -202,8 +197,7 @@ class ChangesThread(threading.Thread):
                    filtering.set_filtered(commit.sha, "message")):
                     is_filtered = True
 
-            if FileDiff.is_filediff_line(j) and not \
-               filtering.set_filtered(FileDiff.get_filename(j)) and not is_filtered:
+            if FileDiff.is_filediff_line(j) and not is_filtered:
                 extensions.add_located(FileDiff.get_extension(j))
 
                 if FileDiff.is_valid_extension(j):

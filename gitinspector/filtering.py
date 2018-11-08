@@ -52,8 +52,9 @@ def clear():
     for i in __filters__:
         __filters__[i] = [set(), set()]
 
-def get_filtered(filter_type="file"):
-    return __filters__[filter_type][1]
+# -- Unused function
+# def get_filtered(filter_type="file"):
+#     return __filters__[filter_type][1]
 
 def has_filtered():
     for i in __filters__:

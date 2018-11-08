@@ -37,3 +37,16 @@ def add_located(string):
 
 def get_located():
     return __located_extensions__
+
+# The semantics of this file is the following: it contains two sets of
+# strings.
+#
+# - the first set of strings is named __extensions__, can be
+#   configured via the command line, and specifies a set of extensions
+#   that will be considered through the analysis
+#
+# - the second set is named __located_extensions__, and lists the
+#   extensions that have been found during the analysis. Recall that
+#   with the "-x" flag, some commits can be excluded from analysis, so
+#   not all files in the repository will be found, even if all
+#   extensions are allowed

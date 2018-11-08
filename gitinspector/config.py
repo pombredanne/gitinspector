@@ -68,6 +68,7 @@ class GitConfig(object):
         if var[0]:
             self.run.config.file_types = var[1]
             extensions.define(var[1])
+            filtering.add("file:" + var[1])
 
         var = self.__read_git_config_string__("exclude")
         if var[0]:

@@ -23,7 +23,7 @@ import re
 import subprocess
 import threading
 from .changes import FileDiff
-from . import comment, extensions, filtering, format, interval, terminal
+from . import comment, filtering, format, interval, terminal
 
 NUM_THREADS = multiprocessing.cpu_count()
 
@@ -154,8 +154,7 @@ class Blame(object):
                 row = row.encode("latin-1", "replace")
                 row = row.decode("utf-8", "replace").strip("\"").strip("'").strip()
 
-                if FileDiff.get_extension(row) in extensions.get_located() and \
-                   FileDiff.is_valid_extension(row) and not filtering.set_filtered(FileDiff.get_filename(row)):
+                if FileDiff.is_valid_extension(row):
                     blame_command = filter(None, ["git", "blame", "--line-porcelain", "-w"] + \
                                            (["-C", "-C", "-M"] if config.hard else []) +
                                            [interval.get_since(), interval.get_ref(), "--", row])
