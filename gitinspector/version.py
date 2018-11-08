@@ -20,7 +20,7 @@
 from . import localization
 localization.init()
 
-__version__ = "0.5.0.dev0"
+__version__ = "0.5.1.thor"
 
 __doc__ = _("""Copyright © 2012-2015 Ejwa Software. All rights reserved.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
