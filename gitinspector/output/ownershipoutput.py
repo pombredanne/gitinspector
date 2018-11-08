@@ -28,8 +28,11 @@ class FileOwnerships(object):
             self.add(parent, author, work, "true")
 
     def compute_max_work(self):
-        return max([ w for o in self.owns.values()
-                     for w in o["work"].values() ])
+        if not self.owns.values():
+            return 0
+        else:
+            return max([ w for o in self.owns.values()
+                         for w in o["work"].values() ])
 
 
 class OwnershipOutput(Outputable):
