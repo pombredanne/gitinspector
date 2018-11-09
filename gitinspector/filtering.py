@@ -56,6 +56,7 @@ def clear():
 # def get_filtered(filter_type="file"):
 #     return __filters__[filter_type][1]
 
+# Returns True iff there is at least one active filter
 def has_filtered():
     for i in __filters__:
         if __filters__[i][1]:
