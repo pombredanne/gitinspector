@@ -29,15 +29,15 @@ from .changes import Changes
 from .config import GitConfig
 from .metrics import MetricsLogic
 from .repository import Repository
-from . import (basedir, extensions, filtering, format, interval,
+from . import (basedir, filtering, format, interval,
                localization, terminal, version)
 from .output import outputable
 
-from .extensions import DEFAULT_EXTENSIONS
 from .format import __available_formats__
 
 localization.init()
 
+DEFAULT_EXTENSIONS = ["java", "c", "cc", "cpp", "h", "hh", "hpp", "py", "glsl", "rb", "js", "sql"]
 
 class StdoutWriter(io.StringIO):
     def __init__(self):
@@ -70,7 +70,6 @@ class Runner(object):
         # We need the repos above to be set before we read the git config.
         GitConfig(self, self.repos[-1].location).read()
         # Initialize extensions and formats
-        extensions.define(config.file_types)
         for f in config.file_types.split(','):
             filtering.__add_one__("file:" + f)
         format.select(config.format)

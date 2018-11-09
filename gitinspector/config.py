@@ -20,7 +20,7 @@
 import ast
 import os
 import subprocess
-from . import extensions, filtering, format, interval
+from . import filtering, format, interval
 
 
 class GitConfig(object):
@@ -67,7 +67,6 @@ class GitConfig(object):
         var = self.__read_git_config_string__("file-types")
         if var[0]:
             self.run.config.file_types = var[1]
-            extensions.define(var[1])
             filtering.add("file:" + var[1])
 
         var = self.__read_git_config_string__("exclude")

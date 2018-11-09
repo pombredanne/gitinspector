@@ -24,7 +24,7 @@ import multiprocessing
 import os
 import subprocess
 import threading
-from . import extensions, filtering, format, interval, terminal
+from . import filtering, format, interval, terminal
 
 CHANGES_PER_THREAD = 200
 NUM_THREADS = multiprocessing.cpu_count()
@@ -198,8 +198,6 @@ class ChangesThread(threading.Thread):
                     is_filtered = True
 
             if FileDiff.is_filediff_line(j) and not is_filtered:
-                extensions.add_located(FileDiff.get_extension(j))
-
                 if FileDiff.is_valid_extension(j):
                     found_valid_extension = True
                     filediff = FileDiff(j)
