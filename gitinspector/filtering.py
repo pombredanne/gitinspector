@@ -33,8 +33,9 @@ class InvalidRegExpError(ValueError):
         super(InvalidRegExpError, self).__init__(msg)
         self.msg = msg
 
-def get():
-    return __filters__
+# -- Unused function
+# def get():
+#     return __filters__
 
 def __add_one_filter__(string):
     """
@@ -61,9 +62,8 @@ def clear():
     for i in __filters__:
         __filters__[i] = [set(), set()]
 
-# -- Unused function
-# def get_filtered(filter_type="file"):
-#     return __filters__[filter_type][1]
+def get_filtered(filter_type="file"):
+    return __filters__[filter_type][1]
 
 # Returns True iff there is at least one active filter
 def has_filtered():
