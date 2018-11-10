@@ -25,14 +25,14 @@ class Filters(Enum):
     """
     An enumeration class representing the different filter types
     """
-    FILE     = 1
-    AUTHOR   = 2
-    EMAIL    = 3
-    REVISION = 4
-    MESSAGE  = 5
+    FILE_IN  = "file_in"
+    AUTHOR   = "author"
+    EMAIL    = "email"
+    REVISION = "revision"
+    MESSAGE  = "message"
 
 __filters__ = {
-    Filters.FILE:     [set(), set()],
+    Filters.FILE_IN:  [set(), set()],
     Filters.AUTHOR:   [set(), set()],
     Filters.EMAIL:    [set(), set()],
     Filters.REVISION: [set(), set()],
@@ -48,32 +48,41 @@ class InvalidRegExpError(ValueError):
 # def get():
 #     return __filters__
 
-def __add_one_filter__(string):
+def __add_one_filter__(string,filter_type=Filters.FILE_IN):
     """
-    Function that takes a string of the form 'KEY:PAT' and adds the
-    records the corresponding filter inside __filters__. The syntax
-    corresponds to the --exclude option on the command-line. If KEY is
-    missing somehow, the filter is automatically "file".
+    Function that takes a string and records the corresponding filter
+    inside __filters__.
     """
     for filter in Filters:
-        if string.startswith(str(filter.name.lower())):
-            __filters__[filter][0].add(string[len(str(filter.name)) + 1:])
+        if string.startswith(filter.value):
+            __filters__[filter][0].add(string[len(filter.value) + 1:])
             return
-    __filters__[Filters.FILE][0].add(string)
+    __filters__[Filters.FILE_IN][0].add(string)
 
-def add(string):
+def add_filters(string):
     """
-    Add a set of filters, separated by commas.
+    Add a set of filters, separated by commas. The syntax corresponds
+    to the --exclude option on the command-line. If KEY is missing
+    somehow, the filter is automatically "file".
     """
     rules = string.split(",")
+    filter_names = [filter.value for filter in Filters]
     for rule in rules:
-        __add_one_filter__(rule)
+        split_rule = rule.split(":")
+        if (len(split_rule) == 1):
+            __add_one_filter__(rule)
+        else:
+            filter_name = split_rule[0]
+            if not(filter_name in filter_names):
+                raise ("Invalid filter : %s"%filter_name)
+            else:
+                __add_one_filter__(rule, Filters(filter_name))
 
 def clear():
     for filter in Filters:
         __filters__[filter] = [set(), set()]
 
-def get_filtered(filter_type=Filters.FILE):
+def get_filtered(filter_type=Filters.FILE_IN):
     return __filters__[filter_type][1]
 
 # Returns True iff there is at least one active filter
@@ -95,7 +104,7 @@ def __find_commit_message__(sha):
     commit_message = commit_message.encode("latin-1", "replace")
     return commit_message.decode("utf-8", "replace")
 
-def is_filtered(string, filter_type=Filters.FILE):
+def is_filtered(string, filter_type=Filters.FILE_IN):
     """
     The function that tests whether 'string' passes the filters
     defined in __filters__. The test on the string parameter depends

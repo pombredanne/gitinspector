@@ -61,7 +61,7 @@ class FilteringOutput(Outputable):
                 src = string.Template( infile.read() )
                 self.out.write(src.substitute(
                     files_filtering_text=FILTERING_FILE_INFO_TEXT(),
-                    files_filtered=", ".join(get_filtered(Filters.FILE)),
+                    files_filtered=", ".join(get_filtered(Filters.FILE_IN)),
                     authors_filtering_text=FILTERING_AUTHOR_INFO_TEXT(),
                     authors_filtered=", ".join(get_filtered(Filters.AUTHOR)),
                     emails_filtering_text=FILTERING_EMAIL_INFO_TEXT(),
@@ -90,7 +90,7 @@ class FilteringOutput(Outputable):
         if has_filtered():
             output = ",\n\t\t\"filtering\": {"
             output += FilteringOutput.__output_json_section__(FILTERING_FILE_INFO_TEXT(),
-                                                              get_filtered(Filters.FILE), "files")
+                                                              get_filtered(Filters.FILE_IN), "files")
             output += FilteringOutput.__output_json_section__(FILTERING_AUTHOR_INFO_TEXT(),
                                                               get_filtered(Filters.AUTHOR), "authors")
             output += FilteringOutput.__output_json_section__(FILTERING_EMAIL_INFO_TEXT(),
@@ -110,7 +110,7 @@ class FilteringOutput(Outputable):
                 self.out.writeln("...%s" % i[-width+3:] if len(i) > width else i)
 
     def output_text(self):
-        self.__output_text_section__(FILTERING_FILE_INFO_TEXT(), get_filtered(Filters.FILE))
+        self.__output_text_section__(FILTERING_FILE_INFO_TEXT(), get_filtered(Filters.FILE_IN))
         self.__output_text_section__(FILTERING_AUTHOR_INFO_TEXT(), get_filtered(Filters.AUTHOR))
         self.__output_text_section__(FILTERING_EMAIL_INFO_TEXT(), get_filtered(Filters.EMAIL))
         self.__output_text_section__(FILTERING_COMMIT_INFO_TEXT(), get_filtered(Filters.REVISION))
@@ -131,7 +131,7 @@ class FilteringOutput(Outputable):
         if has_filtered():
             self.out.writeln("\t<filtering>")
             self.__output_xml_section__(FILTERING_FILE_INFO_TEXT(),
-                                        get_filtered(Filters.FILE), "files")
+                                        get_filtered(Filters.FILE_IN), "files")
             self.__output_xml_section__(FILTERING_AUTHOR_INFO_TEXT(),
                                         get_filtered(Filters.AUTHOR), "authors")
             self.__output_xml_section__(FILTERING_EMAIL_INFO_TEXT(),

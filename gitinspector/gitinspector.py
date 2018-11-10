@@ -76,8 +76,6 @@ class Runner(object):
         # We need the repos above to be set before we read the git config.
         GitConfig(self, self.repos[-1].location).read()
         # Initialize extensions and formats
-        for f in config.file_types.split(','):
-            filtering.__add_one_filter__("file:^" + f + "$")
         format.select(config.format)
         # Initialize bounds on commits dates
         if config.since:
@@ -239,7 +237,7 @@ def __parse_arguments__(args=None):
                         _("an exclusion pattern of the form KEY:PAT, describing the file paths, "
                           "revisions, revisions with certain commit messages, author names or "
                           "author emails that should be excluded from the statistics; KEY must "
-                          "be in [ 'file', 'author', 'email', 'revision', 'message' ]"))
+                          "be in [ 'file_in', 'author', 'email', 'revision', 'message' ]"))
 
     options = parser.parse_args() if args is None else parser.parse_args(args)
     options.progress = True  # Display progress messages
@@ -254,7 +252,9 @@ def __parse_arguments__(args=None):
 
     if options.exclude:
         for pat in options.exclude:
-            filtering.add(pat)
+            filtering.add_filters(pat)
+    for f in options.file_types.split(','):
+        filtering.__add_one_filter__("^" + f + "$")
 
     return options
 
