@@ -67,11 +67,11 @@ class GitConfig(object):
         var = self.__read_git_config_string__("file-types")
         if var[0]:
             self.run.config.file_types = var[1]
-            filtering.add("file:" + var[1])
+            filtering.__add_one_filter__("^" + var[1] + "$")
 
         var = self.__read_git_config_string__("exclude")
         if var[0]:
-            filtering.add(var[1])
+            filtering.add_filters(var[1])
 
         var = self.__read_git_config_string__("format")
         if var[0] and not format.select(var[1]):

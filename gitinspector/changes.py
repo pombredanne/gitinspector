@@ -24,7 +24,7 @@ import multiprocessing
 import os
 import subprocess
 import threading
-from .filtering import Filters, is_filtered
+from .filtering import Filters, is_filtered, is_acceptable_file_name
 from . import format, interval, terminal
 
 CHANGES_PER_THREAD = 200
@@ -74,10 +74,6 @@ class FileDiff(object):
     @staticmethod
     def get_filename(string):
         return string.split("|")[0].strip().strip("{}").strip("\"").strip("'")
-
-    @staticmethod
-    def is_valid_extension(string):
-        return is_filtered(FileDiff.get_filename(string))
 
 
 class Commit(object):
@@ -199,7 +195,7 @@ class ChangesThread(threading.Thread):
                     has_been_filtered = True
 
             if FileDiff.is_filediff_line(j) and not has_been_filtered:
-                if FileDiff.is_valid_extension(j):
+                if is_acceptable_file_name(FileDiff.get_filename(j)):
                     found_valid_extension = True
                     filediff = FileDiff(j)
                     commit.add_filediff(filediff)

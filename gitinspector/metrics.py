@@ -73,7 +73,7 @@ class MetricsLogic(object):
                 i = i.encode("latin-1", "replace")
                 i = i.decode("utf-8", "replace").strip("\"").strip("'").strip()
 
-                if FileDiff.is_valid_extension(i) and not filtering.is_filtered(FileDiff.get_filename(i)):
+                if filtering.is_acceptable_file_name(FileDiff.get_filename(i)):
                     file_cmd = subprocess.Popen(["git", "show",
                                                  interval.get_ref() + ":{0}".format(i.strip())],
                                                 bufsize=1, stdout=subprocess.PIPE)

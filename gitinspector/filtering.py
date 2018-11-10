@@ -26,6 +26,7 @@ class Filters(Enum):
     An enumeration class representing the different filter types
     """
     FILE_IN  = "file_in"
+    FILE_OUT = "file_out"
     AUTHOR   = "author"
     EMAIL    = "email"
     REVISION = "revision"
@@ -33,6 +34,7 @@ class Filters(Enum):
 
 __filters__ = {
     Filters.FILE_IN:  [set(), set()],
+    Filters.FILE_OUT: [set(), set()],
     Filters.AUTHOR:   [set(), set()],
     Filters.EMAIL:    [set(), set()],
     Filters.REVISION: [set(), set()],
@@ -63,7 +65,7 @@ def add_filters(string):
     """
     Add a set of filters, separated by commas. The syntax corresponds
     to the --exclude option on the command-line. If KEY is missing
-    somehow, the filter is automatically "file".
+    somehow, the filter is automatically Filters.FILE_IN".
     """
     rules = string.split(",")
     filter_names = [filter.value for filter in Filters]
@@ -104,25 +106,29 @@ def __find_commit_message__(sha):
     commit_message = commit_message.encode("latin-1", "replace")
     return commit_message.decode("utf-8", "replace")
 
-def is_filtered(string, filter_type=Filters.FILE_IN):
+def is_filtered(string, filter_type):
     """
     The function that tests whether 'string' passes the filters
     defined in __filters__. The test on the string parameter depends
-    on the filter_type.
+    on the filter_type. This function should not be used with the
+    filters on types (cf. is_filtered_file).
     """
+
+    if filter_type == Filters("file_in"):
+        raise "Should not use that filter this way"
 
     string = string.strip()
     if not string:
         return False
 
-    for i in __filters__[filter_type][0]:
+    for regexp in __filters__[filter_type][0]:
         if filter_type == Filters.MESSAGE:
             search_for = __find_commit_message__(string)
         else:
             search_for = string
 
         try:
-            if re.search(i, search_for) is not None:
+            if re.search(regexp, search_for) is not None:
                 if filter_type == Filters.MESSAGE:
                     __add_one_filter__("revision:" + string) # ??
                 else:
@@ -132,3 +138,31 @@ def is_filtered(string, filter_type=Filters.FILE_IN):
             raise InvalidRegExpError(_("Invalid regular expression specified"))
 
     return False
+
+def is_acceptable_file_name(string):
+    """
+    The function that tests whether 'string' passes the filters
+    according to the configuration for file names. First, the filename
+    must pass at least one positive check (in FILE_IN), and second, it
+    must not belong to any negative check (in FILE_OUT)
+
+    """
+    search_for = string.strip()
+    accepted = False
+    for regexp in __filters__[Filters.FILE_IN][0]:
+        try:
+            if re.search(regexp, search_for) is not None:
+                accepted = True
+                break
+        except:
+            raise InvalidRegExpError(_("Invalid regular expression specified"))
+    if not(accepted):
+        return False
+    for regexp in __filters__[Filters.FILE_OUT][0]:
+        try:
+            if re.search(regexp, search_for) is not None:
+                __filters__[Filters.FILE_OUT][1].add(string)
+                return False
+        except:
+            raise InvalidRegExpError(_("Invalid regular expression specified"))
+    return True
