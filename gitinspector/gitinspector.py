@@ -37,7 +37,13 @@ from .format import __available_formats__
 
 localization.init()
 
-DEFAULT_EXTENSIONS = ["java", "c", "cc", "cpp", "h", "hh", "hpp", "py", "glsl", "rb", "js", "sql"]
+# The list of extensions that are analyzed when no filter is
+# specified for the files.
+DEFAULT_EXTENSIONS = [".*\.java",
+                      ".*\.c",    ".*\.cc",   ".*\.cpp",
+                      ".*\.h",    ".*\.hh",   ".*\.hpp",
+                      ".*\.py",   ".*\.glsl", ".*\.rb",
+                      ".*\.js",   ".*\.sql"]
 
 class StdoutWriter(io.StringIO):
     def __init__(self):
@@ -71,7 +77,7 @@ class Runner(object):
         GitConfig(self, self.repos[-1].location).read()
         # Initialize extensions and formats
         for f in config.file_types.split(','):
-            filtering.__add_one__("file:" + f)
+            filtering.__add_one_filter__("file:^" + f + "$")
         format.select(config.format)
         # Initialize bounds on commits dates
         if config.since:

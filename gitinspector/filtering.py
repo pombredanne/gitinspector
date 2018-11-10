@@ -36,7 +36,13 @@ class InvalidRegExpError(ValueError):
 def get():
     return __filters__
 
-def __add_one__(string):
+def __add_one_filter__(string):
+    """
+    Function that takes a string of the form 'KEY:PAT' and adds the
+    records the corresponding filter inside __filters__. The syntax
+    corresponds to the --exclude option on the command-line. If KEY is
+    missing somehow, the filter is automatically "file".
+    """
     for i in __filters__:
         if (i + ":").lower() == string[0:len(i) + 1].lower():
             __filters__[i][0].add(string[len(i) + 1:])
@@ -44,9 +50,12 @@ def __add_one__(string):
     __filters__["file"][0].add(string)
 
 def add(string):
+    """
+    Add a set of filters, separated by commas.
+    """
     rules = string.split(",")
     for rule in rules:
-        __add_one__(rule)
+        __add_one_filter__(rule)
 
 def clear():
     for i in __filters__:
@@ -76,21 +85,28 @@ def __find_commit_message__(sha):
     return commit_message.decode("utf-8", "replace")
 
 def set_filtered(string, filter_type="file"):
+    """
+    The function that filters the commits according to the filters
+    defined in __filters__. The string parameter depends on the filter_type.
+    """
     string = string.strip()
+    if not string:
+        return False
 
-    if string:
-        for i in __filters__[filter_type][0]:
+    for i in __filters__[filter_type][0]:
+        if filter_type == "message":
+            search_for = __find_commit_message__(string)
+        else:
             search_for = string
 
-            if filter_type == "message":
-                search_for = __find_commit_message__(string)
-            try:
-                if re.search(i, search_for) is not None:
-                    if filter_type == "message":
-                        __add_one__("revision:" + string)
-                    else:
-                        __filters__[filter_type][1].add(string)
-                    return True
-            except:
-                raise InvalidRegExpError(_("invalid regular expression specified"))
+        try:
+            if re.search(i, search_for) is not None:
+                if filter_type == "message":
+                    __add_one_filter__("revision:" + string) # ??
+                else:
+                    __filters__[filter_type][1].add(string)
+                return True
+        except:
+            raise InvalidRegExpError(_("Invalid regular expression specified"))
+
     return False

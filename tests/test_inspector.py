@@ -142,7 +142,7 @@ class BasicRepositoryTest(unittest.TestCase):
     def test_process(self):
        # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'c,txt',
+                                         '--file-types', '.*\.c,.*\.txt',
                                          '--exclude', 'author:John Doe',
                                          '--silent',
                                          'build/tests/basic-repository'])
@@ -179,7 +179,7 @@ class BasicRepositoryTest(unittest.TestCase):
     def test_output_text(self):
        # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'c,txt',
+                                         '--file-types', '.*\.c,.*\.txt',
                                          '--exclude', 'author:John Doe',
                                          '--format', 'text',
                                          'build/tests/basic-repository'])
@@ -201,7 +201,7 @@ class BasicRepositoryTest(unittest.TestCase):
     def test_output_html(self):
         # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'c,txt',
+                                         '--file-types', '.*\.c,.*\.txt',
                                          '--exclude', 'author:John Doe',
                                          '--format', 'html',
                                          'build/tests/basic-repository'])
@@ -221,7 +221,7 @@ class BasicRepositoryTest(unittest.TestCase):
     def test_output_xml(self):
         # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'c,txt',
+                                         '--file-types', '.*\.c,.*\.txt',
                                          '--exclude', 'author:John Doe',
                                          '--format', 'xml',
                                          'build/tests/basic-repository'])
@@ -242,7 +242,7 @@ class BasicRepositoryTest(unittest.TestCase):
     def test_output_json(self):
         # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'c,txt',
+                                         '--file-types', '.*\.c,.*\.txt',
                                          '--exclude', 'author:John Doe',
                                          '--format', 'json',
                                          'build/tests/basic-repository'])
@@ -283,7 +283,7 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
     def test_process(self):
         # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'c,txt',
+                                         '--file-types', '.*\.c,.*\.txt',
                                          '--exclude', 'author:Abraham Lincoln,message:README',
                                          '--since', '2001-01-01',
                                          '--until', '2020-01-01',
@@ -319,7 +319,7 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
     def test_output_text(self):
         # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'c,txt',
+                                         '--file-types', '.*\.c,.*\.txt',
                                          '--exclude', 'author:Abraham Lincoln',
                                          '--since', '2001-01-01',
                                          '--until', '2020-01-01',
@@ -343,7 +343,7 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
     def test_output_html(self):
         # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'c,txt',
+                                         '--file-types', '.*\.c,.*\.txt',
                                          '--exclude', 'author:Abraham Lincoln',
                                          '--since', '2001-01-01',
                                          '--until', '2020-01-01',
@@ -365,7 +365,7 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
     def test_output_xml(self):
         # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'c,txt',
+                                         '--file-types', '.*\.c,.*\.txt',
                                          '--exclude', 'author:Abraham Lincoln',
                                          '--since', '2001-01-01',
                                          '--until', '2020-01-01',
@@ -388,7 +388,7 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
     def test_output_json(self):
         # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'c,txt',
+                                         '--file-types', '.*\.c,.*\.txt',
                                          '--exclude', 'author:Abraham Lincoln',
                                          '--since', '2001-01-01',
                                          '--until', '2020-01-01',
@@ -428,7 +428,7 @@ class TrieRepositoryTest(unittest.TestCase):
     def test_process(self):
         # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'c,h',
+                                         '--file-types', '.*\.c,.*\.h',
                                          '--silent',
                                          'build/tests/trie-repository'])
         opts.progress = False
@@ -440,7 +440,7 @@ class TrieRepositoryTest(unittest.TestCase):
     def test_output_text(self):
         # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'c,h',
+                                         '--file-types', '.*\.c,.*\.h',
                                          '--format', 'text',
                                          'build/tests/trie-repository'])
         opts.progress = False
@@ -461,7 +461,7 @@ class TrieRepositoryTest(unittest.TestCase):
     def test_output_html(self):
         # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'c,h',
+                                         '--file-types', '.*\.c,.*\.h',
                                          '--format', 'html',
                                          'build/tests/trie-repository'])
         opts.progress = False
@@ -480,7 +480,7 @@ class TrieRepositoryTest(unittest.TestCase):
     def test_output_xml(self):
         # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'c,h',
+                                         '--file-types', '.*\.c,.*\.h',
                                          '--format', 'xml',
                                          'build/tests/trie-repository'])
         opts.progress = False
@@ -500,7 +500,7 @@ class TrieRepositoryTest(unittest.TestCase):
     def test_output_json(self):
         # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'c,h',
+                                         '--file-types', '.*\.c,.*\.h',
                                          '--format', 'json',
                                          'build/tests/trie-repository'])
         opts.progress = False
@@ -543,7 +543,7 @@ class PelicanRepositoryTest(unittest.TestCase):
     def test_process(self):
         # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'py',
+                                         '--file-types', '.*\.py',
                                          '--silent',
                                          'build/tests/pelican-repository'])
         opts.progress = False
@@ -555,7 +555,7 @@ class PelicanRepositoryTest(unittest.TestCase):
     def test_output_text(self):
         # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'py',
+                                         '--file-types', '.*\.py',
                                          '--format', 'text',
                                          'build/tests/pelican-repository'])
         opts.progress = False
@@ -576,7 +576,7 @@ class PelicanRepositoryTest(unittest.TestCase):
     def test_output_html(self):
         # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'py',
+                                         '--file-types', '.*\.py',
                                          '--format', 'html',
                                          'build/tests/pelican-repository'])
         opts.progress = False
@@ -595,7 +595,7 @@ class PelicanRepositoryTest(unittest.TestCase):
     def test_output_htmlembedded(self):
         # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'py',
+                                         '--file-types', '.*\.py',
                                          '--format', 'htmlembedded',
                                          'build/tests/pelican-repository'])
         opts.progress = False
@@ -614,7 +614,7 @@ class PelicanRepositoryTest(unittest.TestCase):
     def test_output_xml(self):
         # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'py',
+                                         '--file-types', '.*\.py',
                                          '--format', 'xml',
                                          'build/tests/pelican-repository'])
         opts.progress = False
@@ -634,7 +634,7 @@ class PelicanRepositoryTest(unittest.TestCase):
     def test_output_json(self):
         # Set options
         opts = __parse_arguments__(args=['--grading',
-                                         '--file-types', 'py',
+                                         '--file-types', '.*\.py',
                                          '--format', 'json',
                                          'build/tests/pelican-repository'])
         opts.progress = False
