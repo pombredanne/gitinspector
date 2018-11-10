@@ -24,7 +24,8 @@ import multiprocessing
 import os
 import subprocess
 import threading
-from . import filtering, format, interval, terminal
+from .filtering import Filters, is_filtered
+from . import format, interval, terminal
 
 CHANGES_PER_THREAD = 200
 NUM_THREADS = multiprocessing.cpu_count()
@@ -76,7 +77,7 @@ class FileDiff(object):
 
     @staticmethod
     def is_valid_extension(string):
-        return filtering.set_filtered(FileDiff.get_filename(string))
+        return is_filtered(FileDiff.get_filename(string))
 
 
 class Commit(object):
@@ -169,7 +170,7 @@ class ChangesThread(threading.Thread):
 
         commit = None
         found_valid_extension = False
-        is_filtered = False
+        has_been_filtered = False
         commits = []
 
         __changes_lock__.acquire() # Global lock used to protect calls from here...
@@ -187,17 +188,17 @@ class ChangesThread(threading.Thread):
                     bisect.insort(commits, commit)
 
                 found_valid_extension = False
-                is_filtered = False
+                has_been_filtered = False
                 commit = Commit(j, self.config)
 
                 if Commit.is_commit_line(j) and \
-                   (filtering.set_filtered(commit.author, "author") or \
-                   filtering.set_filtered(commit.email, "email") or \
-                   filtering.set_filtered(commit.sha, "revision") or \
-                   filtering.set_filtered(commit.sha, "message")):
-                    is_filtered = True
+                   (is_filtered(commit.author, Filters.AUTHOR) or \
+                    is_filtered(commit.email,  Filters.EMAIL) or \
+                    is_filtered(commit.sha,    Filters.REVISION) or \
+                    is_filtered(commit.sha,    Filters.MESSAGE)):
+                    has_been_filtered = True
 
-            if FileDiff.is_filediff_line(j) and not is_filtered:
+            if FileDiff.is_filediff_line(j) and not has_been_filtered:
                 if FileDiff.is_valid_extension(j):
                     found_valid_extension = True
                     filediff = FileDiff(j)

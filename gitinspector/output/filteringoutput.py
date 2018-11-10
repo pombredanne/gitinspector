@@ -21,7 +21,7 @@ import os
 import string
 import textwrap
 
-from ..filtering import get_filtered, has_filtered
+from ..filtering import get_filtered, has_filtered, Filters
 from .. import terminal
 from .outputable import Outputable
 
@@ -61,13 +61,13 @@ class FilteringOutput(Outputable):
                 src = string.Template( infile.read() )
                 self.out.write(src.substitute(
                     files_filtering_text=FILTERING_FILE_INFO_TEXT(),
-                    files_filtered=", ".join(get_filtered("file")),
+                    files_filtered=", ".join(get_filtered(Filters.FILE)),
                     authors_filtering_text=FILTERING_AUTHOR_INFO_TEXT(),
-                    authors_filtered=", ".join(get_filtered("author")),
+                    authors_filtered=", ".join(get_filtered(Filters.AUTHOR)),
                     emails_filtering_text=FILTERING_EMAIL_INFO_TEXT(),
-                    emails_filtered=", ".join(get_filtered("email")),
+                    emails_filtered=", ".join(get_filtered(Filters.EMAIL)),
                     commits_filtering_text=FILTERING_COMMIT_INFO_TEXT(),
-                    commits_filtered=", ".join(get_filtered("revision")),
+                    commits_filtered=", ".join(get_filtered(Filters.REVISION)),
                 ))
 
     @staticmethod
@@ -90,13 +90,13 @@ class FilteringOutput(Outputable):
         if has_filtered():
             output = ",\n\t\t\"filtering\": {"
             output += FilteringOutput.__output_json_section__(FILTERING_FILE_INFO_TEXT(),
-                                                              get_filtered("file"), "files")
+                                                              get_filtered(Filters.FILE), "files")
             output += FilteringOutput.__output_json_section__(FILTERING_AUTHOR_INFO_TEXT(),
-                                                              get_filtered("author"), "authors")
+                                                              get_filtered(Filters.AUTHOR), "authors")
             output += FilteringOutput.__output_json_section__(FILTERING_EMAIL_INFO_TEXT(),
-                                                              get_filtered("email"), "emails")
+                                                              get_filtered(Filters.EMAIL), "emails")
             output += FilteringOutput.__output_json_section__(FILTERING_COMMIT_INFO_TEXT(),
-                                                              get_filtered("revision"), "revision")
+                                                              get_filtered(Filters.REVISION), "revision")
             output = output[:-1]
             output += "\n\t\t}"
             self.out.write(output)
@@ -110,10 +110,10 @@ class FilteringOutput(Outputable):
                 self.out.writeln("...%s" % i[-width+3:] if len(i) > width else i)
 
     def output_text(self):
-        self.__output_text_section__(FILTERING_FILE_INFO_TEXT(), get_filtered("file"))
-        self.__output_text_section__(FILTERING_AUTHOR_INFO_TEXT(), get_filtered("author"))
-        self.__output_text_section__(FILTERING_EMAIL_INFO_TEXT(), get_filtered("email"))
-        self.__output_text_section__(FILTERING_COMMIT_INFO_TEXT(), get_filtered("revision"))
+        self.__output_text_section__(FILTERING_FILE_INFO_TEXT(), get_filtered(Filters.FILE))
+        self.__output_text_section__(FILTERING_AUTHOR_INFO_TEXT(), get_filtered(Filters.AUTHOR))
+        self.__output_text_section__(FILTERING_EMAIL_INFO_TEXT(), get_filtered(Filters.EMAIL))
+        self.__output_text_section__(FILTERING_COMMIT_INFO_TEXT(), get_filtered(Filters.REVISION))
 
     def __output_xml_section__(self, info_string, filtered, container_tagname):
         if filtered:
@@ -130,8 +130,12 @@ class FilteringOutput(Outputable):
     def output_xml(self):
         if has_filtered():
             self.out.writeln("\t<filtering>")
-            self.__output_xml_section__(FILTERING_FILE_INFO_TEXT(), get_filtered("file"), "files")
-            self.__output_xml_section__(FILTERING_AUTHOR_INFO_TEXT(), get_filtered("author"), "authors")
-            self.__output_xml_section__(FILTERING_EMAIL_INFO_TEXT(), get_filtered("email"), "emails")
-            self.__output_xml_section__(FILTERING_COMMIT_INFO_TEXT(), get_filtered("revision"), "revision")
+            self.__output_xml_section__(FILTERING_FILE_INFO_TEXT(),
+                                        get_filtered(Filters.FILE), "files")
+            self.__output_xml_section__(FILTERING_AUTHOR_INFO_TEXT(),
+                                        get_filtered(Filters.AUTHOR), "authors")
+            self.__output_xml_section__(FILTERING_EMAIL_INFO_TEXT(),
+                                        get_filtered(Filters.EMAIL), "emails")
+            self.__output_xml_section__(FILTERING_COMMIT_INFO_TEXT(),
+                                        get_filtered(Filters.REVISION), "revision")
             self.out.writeln("\t</filtering>")

@@ -19,13 +19,24 @@
 
 import re
 import subprocess
+from enum import Enum
+
+class Filters(Enum):
+    """
+    An enumeration class representing the different filter types
+    """
+    FILE     = 1
+    AUTHOR   = 2
+    EMAIL    = 3
+    REVISION = 4
+    MESSAGE  = 5
 
 __filters__ = {
-    "file": [set(), set()],
-    "author": [set(), set()],
-    "email": [set(), set()],
-    "revision": [set(), set()],
-    "message" : [set(), None]
+    Filters.FILE:     [set(), set()],
+    Filters.AUTHOR:   [set(), set()],
+    Filters.EMAIL:    [set(), set()],
+    Filters.REVISION: [set(), set()],
+    Filters.MESSAGE : [set(), None]
 }
 
 class InvalidRegExpError(ValueError):
@@ -44,11 +55,11 @@ def __add_one_filter__(string):
     corresponds to the --exclude option on the command-line. If KEY is
     missing somehow, the filter is automatically "file".
     """
-    for i in __filters__:
-        if (i + ":").lower() == string[0:len(i) + 1].lower():
-            __filters__[i][0].add(string[len(i) + 1:])
+    for filter in Filters:
+        if string.startswith(str(filter.name.lower())):
+            __filters__[filter][0].add(string[len(str(filter.name)) + 1:])
             return
-    __filters__["file"][0].add(string)
+    __filters__[Filters.FILE][0].add(string)
 
 def add(string):
     """
@@ -59,16 +70,16 @@ def add(string):
         __add_one_filter__(rule)
 
 def clear():
-    for i in __filters__:
-        __filters__[i] = [set(), set()]
+    for filter in Filters:
+        __filters__[filter] = [set(), set()]
 
-def get_filtered(filter_type="file"):
+def get_filtered(filter_type=Filters.FILE):
     return __filters__[filter_type][1]
 
 # Returns True iff there is at least one active filter
 def has_filtered():
-    for i in __filters__:
-        if __filters__[i][1]:
+    for filter in Filters:
+        if __filters__[filter][1]:
             return True
     return False
 
@@ -84,24 +95,26 @@ def __find_commit_message__(sha):
     commit_message = commit_message.encode("latin-1", "replace")
     return commit_message.decode("utf-8", "replace")
 
-def set_filtered(string, filter_type="file"):
+def is_filtered(string, filter_type=Filters.FILE):
     """
-    The function that filters the commits according to the filters
-    defined in __filters__. The string parameter depends on the filter_type.
+    The function that tests whether 'string' passes the filters
+    defined in __filters__. The test on the string parameter depends
+    on the filter_type.
     """
+
     string = string.strip()
     if not string:
         return False
 
     for i in __filters__[filter_type][0]:
-        if filter_type == "message":
+        if filter_type == Filters.MESSAGE:
             search_for = __find_commit_message__(string)
         else:
             search_for = string
 
         try:
             if re.search(i, search_for) is not None:
-                if filter_type == "message":
+                if filter_type == Filters.MESSAGE:
                     __add_one_filter__("revision:" + string) # ??
                 else:
                     __filters__[filter_type][1].add(string)

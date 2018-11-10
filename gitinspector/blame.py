@@ -23,7 +23,8 @@ import re
 import subprocess
 import threading
 from .changes import FileDiff
-from . import comment, filtering, format, interval, terminal
+from .filtering import Filters, is_filtered
+from . import comment, format, interval, terminal
 
 NUM_THREADS = multiprocessing.cpu_count()
 
@@ -75,9 +76,9 @@ class BlameThread(threading.Thread):
         except KeyError:
             return
 
-        if not filtering.set_filtered(author, "author") and \
-           not filtering.set_filtered(self.blamechunk_email, "email") and \
-           not filtering.set_filtered(self.blamechunk_revision, "revision"):
+        if not is_filtered(author, Filters.AUTHOR) and \
+           not is_filtered(self.blamechunk_email, Filters.EMAIL) and \
+           not is_filtered(self.blamechunk_revision, Filters.REVISION):
 
             __blame_lock__.acquire() # Global lock used to protect calls from here...
 
