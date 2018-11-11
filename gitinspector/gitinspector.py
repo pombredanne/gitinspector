@@ -34,6 +34,7 @@ from . import (basedir, filtering, format, interval,
 from .output import outputable
 
 from .format import __available_formats__
+from .filtering import Filters
 
 localization.init()
 
@@ -241,7 +242,7 @@ def __parse_arguments__(args=None):
                         _("an exclusion pattern of the form KEY:PAT, describing the file paths, "
                           "revisions, revisions with certain commit messages, author names or "
                           "author emails that should be excluded from the statistics; KEY must "
-                          "be in [ 'file_in', 'author', 'email', 'revision', 'message' ]"))
+                          "be in: ") + str([ f.name.lower() for f in Filters ]))
 
     options = parser.parse_args() if args is None else parser.parse_args(args)
     options.progress = True  # Display progress messages
