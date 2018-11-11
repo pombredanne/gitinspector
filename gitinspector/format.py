@@ -84,7 +84,6 @@ def output_header(runner):
         flot_js = __get_zip_file_content__("jquery.flot.js")
         pie_js = __get_zip_file_content__("jquery.flot.pie.js")
         resize_js = __get_zip_file_content__("jquery.flot.resize.js")
-        d3_js = __get_zip_file_content__("d3.js", "/html/d3.js.zip")
 
         logo_file = open(base + "/html/gitinspector_piclet.png", "rb")
         logo = logo_file.read()
@@ -92,10 +91,15 @@ def output_header(runner):
         logo = base64.b64encode(logo)
 
         if __selected_format__ == "htmlembedded":
-            jquery_js = ">" + __get_zip_file_content__("jquery.js")
+            jquery_js = "<script type='application/javascript'>" + \
+                __output_html_template__(base + "/html/jquery.min.js") + "</script>"
+            d3_js = "<script type='application/javascript'>" + \
+                __output_html_template__(base + "/html/d3.min.js") + "</script>"
         else:
-            jquery_js = " src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js\">"
-
+            jquery_js = ("<script type='application/javascript'"
+                         "src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js\">")
+            d3_js = ("toto" + "<script type='application/javascript'"
+                         "src=\"https://ajax.googleapis.com/ajax/libs/d3js/5.7.0/d3.min.js\">")
         repos_name = (repos_string if runner.config.branch == "master"
                      else "%s (branch %s)"%(repos_string, runner.config.branch))
         repos_text = (INFO_ONE_REPOSITORY() if len(repos) <= 1 else
