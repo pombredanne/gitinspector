@@ -78,12 +78,6 @@ def output_header(runner):
     if __selected_format__ == "html" or __selected_format__ == "htmlembedded":
         base = basedir.get_basedir()
         html_header = __output_html_template__(base + "/templates/header.html")
-        tablesorter_js = __get_zip_file_content__("jquery.tablesorter.min.js",
-                                                  "/html/jquery.tablesorter.min.js.zip").encode("latin-1", "replace")
-        tablesorter_js = tablesorter_js.decode("utf-8", "ignore")
-        flot_js = __get_zip_file_content__("jquery.flot.js")
-        pie_js = __get_zip_file_content__("jquery.flot.pie.js")
-        resize_js = __get_zip_file_content__("jquery.flot.resize.js")
 
         logo_file = open(base + "/html/gitinspector_piclet.png", "rb")
         logo = logo_file.read()
@@ -96,10 +90,12 @@ def output_header(runner):
             d3_js = "<script type='application/javascript'>" + \
                 __output_html_template__(base + "/html/d3.min.js") + "</script>"
         else:
-            jquery_js = ("<script type='application/javascript'"
-                         "src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js\">")
-            d3_js = ("<script type='application/javascript'"
-                     "src=\"https://ajax.googleapis.com/ajax/libs/d3js/5.7.0/d3.min.js\">")
+            jquery_js = ("<script type='application/javascript' "
+                         "src='https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js'>"
+                         "</script>")
+            d3_js = ("<script type='application/javascript' "
+                     "src='https://ajax.googleapis.com/ajax/libs/d3js/5.7.0/d3.min.js'>"
+                     "</script>")
 
         css_style = __output_html_template__(base + "/html/style.css")
 
@@ -110,10 +106,6 @@ def output_header(runner):
 
         runner.out.writeln(html_header.format(title=_("Repository statistics for '{0}'").format(repos_string),
                                               jquery=jquery_js,
-                                              jquery_tablesorter=tablesorter_js,
-                                              jquery_flot=flot_js,
-                                              jquery_flot_pie=pie_js,
-                                              jquery_flot_resize=resize_js,
                                               d3=d3_js,
                                               css_style=css_style,
                                               logo=logo.decode("utf-8", "replace"),
