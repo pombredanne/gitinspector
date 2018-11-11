@@ -91,6 +91,10 @@ def output_header(runner):
         else:
             jquery_js = " src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js\">"
 
+        repos_name = (repos_string if runner.config.branch == "master"
+                     else "%s (branch %s)"%(repos_string, runner.config.branch))
+        repos_text = (INFO_ONE_REPOSITORY() if len(repos) <= 1 else
+                      INFO_MANY_REPOSITORIES()).format(repos_name, localization.get_date())
         runner.out.writeln(html_header.format(title=_("Repository statistics for '{0}'").format(repos_string),
                                               jquery=jquery_js,
                                               jquery_tablesorter=tablesorter_js,
@@ -103,8 +107,7 @@ def output_header(runner):
                                                           " for git repositories.").format(
                                                               "<a href=\"https://github.com/ejwa/gitinspector\">gitinspector</a>",
                                                               version.__version__),
-                                              repo_text=(INFO_ONE_REPOSITORY() if len(repos) <= 1 else
-                                                         INFO_MANY_REPOSITORIES()).format(repos_string, localization.get_date()),
+                                              repo_text=repos_text,
                                               show_minor_authors=_("Show minor authors"),
                                               hide_minor_authors=_("Hide minor authors"),
                                               show_minor_rows=_("Show rows with minor work"),
@@ -141,10 +144,12 @@ def output_header(runner):
 
         runner.out.writeln("\t<report-date>" + time.strftime("%Y/%m/%d") + "</report-date>")
     else:
-        runner.out.writeln(textwrap.fill((INFO_ONE_REPOSITORY() if len(repos) <= 1 else
-                                          INFO_MANY_REPOSITORIES()).format(repos_string,
-                                                                           localization.get_date()),
-                                         width=terminal.get_size()[0]))
+        repos_name = (repos_string if runner.config.branch == "master"
+                     else "%s (branch %s)"%(repos_string, runner.config.branch))
+        repos_text = (INFO_ONE_REPOSITORY() if len(repos) <= 1 else
+                      INFO_MANY_REPOSITORIES()).format(repos_name, localization.get_date())
+
+        runner.out.writeln(textwrap.fill(repos_text, width=terminal.get_size()[0]))
 
 def output_footer(runner):
     if __selected_format__ == "html" or __selected_format__ == "htmlembedded":

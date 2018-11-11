@@ -72,7 +72,7 @@ class Runner(object):
         self.out = writer     # Buffer for containing the output
 
         # Initialize a list of Repository objects
-        self.repos = __get_validated_git_repos__(config.repositories)
+        self.repos = __get_validated_git_repos__(config)
         # We need the repos above to be set before we read the git config.
         GitConfig(self, self.repos[-1].location).read()
         # Initialize extensions and formats
@@ -150,10 +150,11 @@ def __check_python_version__():
                    "to run (version {0} was found).").format(python_version))
 
 
-def __get_validated_git_repos__(repos_relative):
+def __get_validated_git_repos__(config):
     """
-    Convert a list of paths into a list of Repository objects.
+    Returns a list of Repository objects that have been newly cloned
     """
+    repos_relative = config.repositories
     if not repos_relative:
         repos_relative = ["."]
 
@@ -161,7 +162,7 @@ def __get_validated_git_repos__(repos_relative):
 
     # Try to clone the repos or return the same directory and bail out.
     for repo in repos_relative:
-        cloned_repo = Repository.create(repo)
+        cloned_repo = Repository.create(repo, config)
 
         if cloned_repo.name is None:
             cloned_repo.location = basedir.get_basedir_git(cloned_repo.location)
@@ -187,6 +188,9 @@ def __parse_arguments__(args=None):
     parser.add_argument('-a', '--aliases', metavar='ALIASES', help=
                         _("a dictionary string indicating aliases for the authors"),
                         type=lambda s: ast.literal_eval(s), default={})
+    parser.add_argument('-b', '--branch', metavar='BRANCH', help=
+                        _("the name of the branch for git to checkout, the default "
+                          "being 'master'"), default="master")
     parser.add_argument('-f', '--file-types', metavar='TYPES', help=
                         _("a comma separated list of file extensions to include when "
                           "computing statistics. The default extensions used are: ") + str(DEFAULT_EXTENSIONS) + " " +

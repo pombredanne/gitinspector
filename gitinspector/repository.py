@@ -30,13 +30,15 @@ class Repository(object):
     cloned_paths = []  # List of paths of temporary repositories
 
     @classmethod
-    def create(cls, url):
+    def create(cls, url, config):
         parsed_url = urlparse(url)
 
         if parsed_url.scheme == "file" or parsed_url.scheme == "git" or parsed_url.scheme == "http" or \
            parsed_url.scheme == "https" or parsed_url.scheme == "ssh":
             path = tempfile.mkdtemp(suffix=".gitinspector")
-            git_clone = subprocess.Popen(["git", "clone", url, path],
+            git_clone = subprocess.Popen(["git", "clone",
+                                          "-b " + config.branch,
+                                          url, path],
                                          bufsize=1, stdout=sys.stderr)
             git_clone.wait()
 
@@ -44,21 +46,23 @@ class Repository(object):
                 sys.exit(git_clone.returncode)
 
             cls.cloned_paths.append(path)
-            return Repository(os.path.basename(parsed_url.path), path)
+            return Repository(os.path.basename(parsed_url.path), path, config)
         else:
-            return Repository(None, os.path.abspath(url))
+            return Repository(None, os.path.abspath(url), config)
 
     @classmethod
     def delete_all(cls):
         for path in cls.cloned_paths:
             shutil.rmtree(path, ignore_errors=True)
 
-    def __init__(self, name, location):
+    def __init__(self, name, location, config):
         self.name = name
         self.location = location
+        self.config = config
 
     def authors(self):
-        authors_cmd = subprocess.Popen(["git", "-C", self.location, "shortlog", "-esn"],
+        authors_cmd = subprocess.Popen(["git", "-C", self.location, "shortlog",
+                                        "-esn", self.config.branch],
                                        bufsize=1, stdout=subprocess.PIPE)
         rows = authors_cmd.stdout.readlines()
         authors_cmd.wait()

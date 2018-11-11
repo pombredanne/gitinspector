@@ -154,12 +154,14 @@ class ChangesThread(threading.Thread):
         thread.start()
 
     def run(self):
-        git_log_r = subprocess.Popen(filter(None,
-                                            ["git", "log", "--reverse", "--pretty=%ct|%cd|%H|%aN|%aE",
-                                             "--stat=100000,8192", "--no-merges", "-w", interval.get_since(),
-                                             interval.get_until(),
-                                             "--date=short"] + (["-C", "-C", "-M"] if self.config.hard else []) +
-                                            [self.first_hash + self.second_hash]), bufsize=1, stdout=subprocess.PIPE)
+        git_command = filter(None,
+                             ["git", "log", "--reverse", "--pretty=%ct|%cd|%H|%aN|%aE",
+                              "--stat=100000,8192", "--no-merges", "-w",
+                              interval.get_since(), interval.get_until(),
+                              "--date=short"] +
+                             (["-C", "-C", "-M"] if self.config.hard else []) +
+                             [self.first_hash + self.second_hash])
+        git_log_r = subprocess.Popen(git_command, bufsize=1, stdout=subprocess.PIPE)
         lines = git_log_r.stdout.readlines()
         git_log_r.wait()
         git_log_r.stdout.close()
@@ -231,9 +233,11 @@ class Changes(object):
         self.config = config
 
         interval.set_ref("HEAD")
-        git_rev_list_p = subprocess.Popen(filter(None, ["git", "rev-list", "--reverse", "--no-merges",
-                                                        interval.get_since(), interval.get_until(), "HEAD"]),
-                                          bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        git_command = filter(None, ["git", "rev-list", "--reverse", "--no-merges",
+                                    interval.get_since(), interval.get_until(),
+                                    self.config.branch])
+        git_rev_list_p = subprocess.Popen(git_command, bufsize=1,
+                                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         lines = git_rev_list_p.communicate()[0].splitlines()
         git_rev_list_p.wait()
         git_rev_list_p.stdout.close()
@@ -273,7 +277,7 @@ class Changes(object):
         self.commits = [item for sublist in self.commits for item in sublist]
 
         if self.commits:
-            if interval.has_interval():
+            if interval.has_interval() or self.config.branch != "master":
                 interval.set_ref(self.commits[-1].sha)
 
             self.first_commit_date = datetime.date(int(self.commits[0].date[0:4]),

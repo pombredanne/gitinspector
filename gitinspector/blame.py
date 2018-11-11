@@ -156,9 +156,12 @@ class Blame(object):
                 row = row.decode("utf-8", "replace").strip("\"").strip("'").strip()
 
                 if is_acceptable_file_name(row):
-                    blame_command = filter(None, ["git", "blame", "--line-porcelain", "-w"] + \
+                    blame_command = filter(None,
+                                           ["git", "blame",
+                                            "--line-porcelain", "-w"] +
                                            (["-C", "-C", "-M"] if config.hard else []) +
-                                           [interval.get_since(), interval.get_ref(), "--", row])
+                                           [interval.get_since(), interval.get_ref(),
+                                            "--", row])
                     thread = BlameThread(config.weeks, changes, blame_command, FileDiff.get_extension(row),
                                          self.blames, row.strip())
                     thread.daemon = True

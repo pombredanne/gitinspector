@@ -55,7 +55,6 @@ def get_basedir_git(path=None):
         absolute_command = subprocess.Popen(["git", "rev-parse", "--show-toplevel"],
                                             bufsize=1, stdout=subprocess.PIPE)
 
-
     absolute_path = absolute_command.stdout.readlines()
     absolute_command.wait()
     absolute_command.stdout.close()
