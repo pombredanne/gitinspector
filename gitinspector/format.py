@@ -66,20 +66,25 @@ INFO_ONE_REPOSITORY = lambda: _("Statistical information for the repository '{0}
 INFO_MANY_REPOSITORIES = lambda: _("Statistical information for the repositories '{0}' was gathered on {1}.")
 
 def output_header(runner):
+    """
+    The function responsible for outputting a header to the
+    output. For the HTML-like outputs, this also means handling the
+    different Javascript files that are included or not inside the
+    output.
+    """
     repos = runner.repos
     repos_string = ", ".join([repo.name for repo in repos])
 
     if __selected_format__ == "html" or __selected_format__ == "htmlembedded":
         base = basedir.get_basedir()
-        html_header = __output_html_template__(base + "/html/html.header")
+        html_header = __output_html_template__(base + "/templates/header.html")
         tablesorter_js = __get_zip_file_content__("jquery.tablesorter.min.js",
                                                   "/html/jquery.tablesorter.min.js.zip").encode("latin-1", "replace")
         tablesorter_js = tablesorter_js.decode("utf-8", "ignore")
         flot_js = __get_zip_file_content__("jquery.flot.js")
         pie_js = __get_zip_file_content__("jquery.flot.pie.js")
         resize_js = __get_zip_file_content__("jquery.flot.resize.js")
-        d3_js = __get_zip_file_content__("d3.js",
-                                         "/html/d3.js.zip")
+        d3_js = __get_zip_file_content__("d3.js", "/html/d3.js.zip")
 
         logo_file = open(base + "/html/gitinspector_piclet.png", "rb")
         logo = logo_file.read()
@@ -152,9 +157,12 @@ def output_header(runner):
         runner.out.writeln(textwrap.fill(repos_text, width=terminal.get_size()[0]))
 
 def output_footer(runner):
+    """
+    The function responsible for outputting a footer to the output.
+    """
     if __selected_format__ == "html" or __selected_format__ == "htmlembedded":
         base = basedir.get_basedir()
-        html_footer = __output_html_template__(base + "/html/html.footer")
+        html_footer = __output_html_template__(base + "/templates/footer.html")
         runner.out.writeln(html_footer)
     elif __selected_format__ == "json":
         runner.out.writeln("\n\t}\n}")
