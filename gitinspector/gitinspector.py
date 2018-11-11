@@ -243,6 +243,8 @@ def __parse_arguments__(args=None):
                           "revisions, revisions with certain commit messages, author names or "
                           "author emails that should be excluded from the statistics; KEY must "
                           "be in: ") + str([ f.name.lower() for f in Filters ]))
+    parser.add_argument('-z', '--legacy', action='store_true', help=
+                        _("display the legacy outputs for additional information (may be buggy)"))
 
     options = parser.parse_args() if args is None else parser.parse_args(args)
     options.progress = True  # Display progress messages

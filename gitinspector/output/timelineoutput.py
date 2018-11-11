@@ -32,7 +32,7 @@ class TimelineOutput(Outputable):
         Outputable.__init__(self)
         self.changes = runner.changes
         self.useweeks = runner.config.weeks
-        self.display = bool(runner.changes.commits) and bool(runner.config.timeline)
+        self.display = bool(runner.changes.commits) and bool(runner.config.timeline) and bool(runner.config.legacy)
         self.out = runner.out
 
     def output_text(self):

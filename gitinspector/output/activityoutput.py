@@ -15,7 +15,7 @@ class ActivityOutput(Outputable):
         Outputable.__init__(self)
         self.changes = runner.changes
         self.weeks = runner.config.weeks
-        self.display = runner.config.timeline
+        self.display = bool(runner.changes.commits) and runner.config.timeline
         self.out = runner.out
 
     def output_html(self):
