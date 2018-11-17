@@ -1,37 +1,22 @@
 <div id="metrics_div">
 
   <div class="box">
-    <div style="width: 20px; position: absolute">
-      <div id="metrics_label" class="git2 visible">
-        Metrics
-      </div>
+    <div class="box_title" style="display:inline-block">
+      Metrics
     </div>
 
     <div id="metrics_box">
-
-      <div id="metrics_no_info">
-      </div>
-
-      <div id="metrics_eloc" >
-      </div>
-
-      <div id="metrics_cyclo">
-      </div>
-
-      <div id="metrics_comp">
-      </div>
-
+      <div id="metrics_eloc"></div>
+      <div id="metrics_cyclo"></div>
+      <div id="metrics_comp"></div>
     </div>
   </div>
 
     <script>
       (function () {
-          var metrics_no_info = "$metrics_no_info_text";
           var metrics_eloc    = $metrics_eloc;
           var metrics_cyclo   = $metrics_cyclo;
           var metrics_comp    = $metrics_comp;
-
-          d3.select("div#metrics_no_info").text(metrics_no_info);
 
           if (metrics_eloc.length > 0) {
               var div = d3.select("div#metrics_eloc");
@@ -51,7 +36,11 @@
               generate_table(div, "metrics_comp_table", metrics_comp);
           }
 
-          make_box_hideable("metrics_label", "metrics_box", "");
+	  if (metrics_eloc.length + metrics_cyclo.length + metrics_comp.length == 0) {
+	      d3.selectAll("#metrics_div").style("display", "none");
+	  } else {
+	      register_box("Metrics", "metrics_div");
+	  }
       })();
     </script>
 </div>

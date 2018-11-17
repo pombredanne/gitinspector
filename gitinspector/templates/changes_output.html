@@ -1,10 +1,8 @@
 <div id="changes_div">
   <div class="box">
 
-    <div style="width: 20px; position: absolute">
-      <div id="changes_label" class="git2 visible">
-        Changes summary
-      </div>
+    <div class="box_title" style="display:inline-block">
+      Changes summary
     </div>
 
     <div id="changes_box"
@@ -68,8 +66,8 @@
           // Link pie chart sections with lines
           link_table_and_pie(lines, arcs);
 
-          // Make the div hideable
-          make_box_hideable("changes_label", "changes_box", "flex");
+	  // Register the div in the summary
+	  register_box("Changes summary", "changes_div");
       })();
     </script>
 

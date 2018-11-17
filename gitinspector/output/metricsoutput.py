@@ -111,7 +111,7 @@ class MetricsOutput(Outputable):
         with open(temp_file, 'r') as infile:
             src = string.Template( infile.read() )
             self.out.write(src.substitute(
-                metrics_no_info_text=metrics_info_str,
+                # metrics_no_info_text=metrics_info_str,
                 metrics_eloc_head=ELOC_INFO_TEXT(),
                 metrics_eloc=metrics_eloc_dict,
                 metrics_cyclo_head=CYCLOMATIC_COMPLEXITY_TEXT(),

@@ -1,10 +1,8 @@
 <div id="filtering_div">
   <div class="box">
 
-    <div style="width: 20px; position: absolute">
-      <div id="filtering_label" class="git2 visible">
-        Filters summary
-      </div>
+    <div class="box_title" style="display: inline-block">
+        Filtered files
     </div>
 
     <div id="filtering_box">
@@ -35,8 +33,9 @@
 	      $$("#emails_filters").css("display", "block");
 	  if ("$commits_filtered".length > 0)
 	      $$("#commits_filters").css("display", "block");
-          // Make the div hideable
-          make_box_hideable("filtering_label", "filtering_box", "flex");
+
+	  // Register the div in the summary
+	  register_box("Filtered files", "filtering_div");
       })();
     </script>
 

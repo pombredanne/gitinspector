@@ -17,7 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
+import os
+import string
 import textwrap
+
 from .. import format, gravatar, terminal, timeline
 from .outputable import Outputable
 
@@ -50,21 +53,26 @@ class TimelineOutput(Outputable):
                 self.__output_row__text__(timeline_data, periods[i:i+max_periods_per_row], names)
 
     def output_html(self):
+        timeline_xml = ""
         if self.changes.get_commits():
             timeline_data = timeline.TimelineData(self.changes, self.useweeks)
             periods = timeline_data.get_periods()
             names = timeline_data.get_authors()
             max_periods_per_row = 8
 
-            timeline_xml = "<div id='timeline_div'><div id=\"timeline\" class=\"box\">"
-            timeline_xml += "<p>" + TIMELINE_INFO_TEXT() + ".</p>"
-            self.out.writeln(timeline_xml)
-
             for i in range(0, len(periods), max_periods_per_row):
-                self.__output_row__html__(timeline_data, periods[i:i+max_periods_per_row], names)
+                timeline_xml += self.__output_row__html__(timeline_data,
+                                                          periods[i:i+max_periods_per_row],
+                                                          names)
 
-            timeline_xml = "</div></div>"
-            self.out.writeln(timeline_xml)
+        temp_file = os.path.join(os.path.dirname(__file__),
+                                 "../templates/timeline_output.html")
+        with open(temp_file, 'r') as infile:
+            src = string.Template( infile.read() )
+            self.out.write(src.substitute(
+                tim_info_text=TIMELINE_INFO_TEXT(),
+                tim_inner_text=timeline_xml,
+            ))
 
     def output_json(self):
         if self.changes.get_commits():
@@ -209,4 +217,4 @@ class TimelineOutput(Outputable):
             timeline_xml += "<td>" + str(total_changes[2]) + "</td>"
 
         timeline_xml += "</tr></tfoot></tbody></table>"
-        self.out.writeln(timeline_xml)
+        return timeline_xml

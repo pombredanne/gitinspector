@@ -1,10 +1,8 @@
 <div id="blames_div">
   <div class="box">
 
-    <div style="width: 20px; position: absolute">
-      <div id="remains_label" class="git2 visible">
+    <div class="box_title" style="display: inline-block">
         Ownership summary
-      </div>
     </div>
 
     <div id="remains_box"
@@ -72,8 +70,8 @@
           // Link pie chart sections with lines
           link_table_and_pie(lines, arcs);
 
-          // Make the div hideable
-          make_box_hideable("remains_label", "remains_box", "flex");
+	  // Register the div in the summary
+	  register_box("Ownership summary", "blames_div");
       })();
     </script>
 

@@ -1,10 +1,8 @@
 <div id="activity_div">
   <div class="box">
 
-    <div style="width: 20px; position: absolute">
-      <div id="timeline_label" class="git2 visible">
-        Activity Timeline
-      </div>
+    <div style="position: absolute" class="box_title">
+      Activity Timeline
     </div>
 
     <div id="timeline_box"
@@ -114,8 +112,8 @@
 
       generate_entries((a,b) => 1);
 
-      // Make the div hideable
-      make_box_hideable("timeline_label", "timeline_box", "flex");
+      // Register the div in the summary
+      register_box("Activity timeline", "activity_div");
       })();
     </script>
 

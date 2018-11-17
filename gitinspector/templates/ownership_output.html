@@ -2,10 +2,8 @@
 
   <div class="box">
 
-    <div style="width: 20px; position: absolute">
-      <div id="repository_label" class="git2 visible">
-        Repository Map
-      </div>
+    <div class="box_title" style="position: absolute">
+      Repository Map
     </div>
 
     <div id="repository_tmp">
@@ -17,64 +15,66 @@
 
     </div>
     <script>
-      var authors = $authors;
-      var ownerships = $ownerships;
-      var max_work = $max_work;
-      var files = Object.keys(ownerships).sort()
+      (function () {
+	  var authors = $authors;
+	  var ownerships = $ownerships;
+	  var max_work = $max_work;
+	  var files = Object.keys(ownerships).sort()
 
-      function build_tree(parent_elem, parent_file, visibility) {
-          var heads = files.filter((f) => ownerships[f].parent == parent_file);
-          var lis = parent_elem.append("ul").classed("map_box", "true")
-                               .selectAll().data(heads)
-                               .enter().append("li")
-                               .classed("repline", "true")
-                               .style("display", visibility)
-                               .attr("data", (d) => d);
-          lis.append("div");
-          lis.each(function(d) { build_tree(d3.select(this), d, "none"); });
-      }
+	  function build_tree(parent_elem, parent_file, visibility) {
+              var heads = files.filter((f) => ownerships[f].parent == parent_file);
+              var lis = parent_elem.append("ul").classed("map_box", "true")
+                  .selectAll().data(heads)
+                  .enter().append("li")
+                  .classed("repline", "true")
+                  .style("display", visibility)
+                  .attr("data", (d) => d);
+              lis.append("div");
+              lis.each(function(d) { build_tree(d3.select(this), d, "none"); });
+	  }
 
-      var div = d3.select("div#repository_box").append("div")
-          .attr("id", "map_uldiv").style("width", "300px")
-          .style("position", "relative").style("left", "300px");
-      build_tree(div, "", "");
-      d3.selectAll("li.repline").each(function() {
-          var elem = d3.select(this);
-          var file = elem.attr("data");
-          var div  = elem.select("div");
-          if (ownerships[file]["is_dir"] == "true") {
-              div.append("button")
-                  .text("+")
-                  .on("click", function () {
-                      var bool = (d3.select(this).classed("visible")),
-                          vis  = bool ? "none" : "",
-                          txt  = bool ? "+" : "-";
-                      d3.select(this).classed("visible", !vis).text(txt);
-                      d3.selectAll("li.repline").filter(function () {
-                          return ownerships[d3.select(this).attr("data")]["parent"] == file;
-                      }).style("display", vis);
+	  var div = d3.select("div#repository_box").append("div")
+              .attr("id", "map_uldiv").style("width", "300px")
+              .style("position", "relative").style("left", "300px");
+	  build_tree(div, "", "");
+	  d3.selectAll("li.repline").each(function() {
+              var elem = d3.select(this);
+              var file = elem.attr("data");
+              var div  = elem.select("div");
+              if (ownerships[file]["is_dir"] == "true") {
+		  div.append("button")
+                      .text("+")
+                      .on("click", function () {
+			  var bool = (d3.select(this).classed("visible")),
+                              vis  = bool ? "none" : "",
+                              txt  = bool ? "+" : "-";
+			  d3.select(this).classed("visible", !vis).text(txt);
+			  d3.selectAll("li.repline").filter(function () {
+                              return ownerships[d3.select(this).attr("data")]["parent"] == file;
+			  }).style("display", vis);
+		      });
+              }
+              div.append("span").html(ownerships[file]["name"]);
+              const s = Object.values(ownerships[file]["work"])
+                    .reduce((a,b) => a+b) * 200 / max_work;
+              const g = div.append("svg")
+                    .attr("height", 15).attr("width", s)
+                    .style("position", "absolute")
+                    .style("right", "300px").append("g");
+              var x = 0;
+              Object.keys(ownerships[file]["work"]).forEach(function (a) {
+		  const w = ownerships[file]["work"][a];
+		  g.append("rect")
+                      .attr("x", x).attr("y", 5)
+                      .attr("height", 10).attr("width", w * 200 / max_work)
+                      .attr("fill",authors[a]);
+		  x += w * 200 / max_work;
               });
-          }
-          div.append("span").html(ownerships[file]["name"]);
-          const s = Object.values(ownerships[file]["work"])
-                .reduce((a,b) => a+b) * 200 / max_work;
-          const g = div.append("svg")
-                .attr("height", 15).attr("width", s)
-                .style("position", "absolute")
-                .style("right", "300px").append("g");
-          var x = 0;
-          Object.keys(ownerships[file]["work"]).forEach(function (a) {
-              const w = ownerships[file]["work"][a];
-              g.append("rect")
-                  .attr("x", x).attr("y", 5)
-                  .attr("height", 10).attr("width", w * 200 / max_work)
-                  .attr("fill",authors[a]);
-              x += w * 200 / max_work;
-          });
-      });
+	  });
 
-      // Make the div hideable
-      make_box_hideable("repository_label", "repository_box", "flex");
+	  // Register the div in the summary
+	  register_box("Repository map", "repository_div");
+      })();
     </script>
   </div>
 </div>

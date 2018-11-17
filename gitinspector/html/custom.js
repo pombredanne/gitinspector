@@ -1,4 +1,14 @@
 $(document).ready(function() {
+    // Adjust the size of the main div
+    function resize_main_div() {
+	const nw = $("#introduction_div").width() - $("#summary_div").width() - 60;
+	console.log($(document).width());
+	console.log(nw);
+	d3.selectAll("#main_div").style("width", nw);
+    }
+    resize_main_div();
+    $( window ).resize(resize_main_div);
+
     var row = 0;
     var MINOR_AUTHOR_PERCENTAGE = 1.00;
     var isReversed = false;
@@ -14,10 +24,6 @@ $(document).ready(function() {
             row = 0;
         }
     }
-
-    // Fix header and set it to the right width.
-    var remainingHeaderWidth = ($("div.logo").width() - 4) - ($("div.logo img").innerWidth() + 48)
-    $("div.logo p").css("width", remainingHeaderWidth);
 
     var filterResponsibilities = function() {
         $("table#blame tbody tr td:last-child").filter(function() {
@@ -41,16 +47,7 @@ $(document).ready(function() {
         return parseFloat(this.innerHTML) < MINOR_AUTHOR_PERCENTAGE;
     }).parent().hide();
 
-    $("table.git tbody tr:visible").each(colorRows);
-
-    $("table#changes, table#blame").tablesorter({
-        sortList: [[0,0]],
-        headers: {
-            0: { sorter: "text" }
-        }
-    }).bind("sortEnd", function() {
-        $(this).find("tbody tr:visible").each(colorRows);
-    });
+     $("table.git tbody tr:visible").each(colorRows);
 
     $("table#changes thead tr th, table#blame thead tr th").click(function() {
         $(this).parent().find("th strong").remove();
@@ -294,16 +291,11 @@ function generate_table(div, id, data) {
     recolor_table_rows(id);
 }
 
-function make_box_hideable(label_id, box_id, display) {
-    d3.select("div#" + label_id).on("click", function () {
-        if (this.className == "git2 visible") {
-            d3.select("div#" + box_id).style("display", "none");
-            d3.select(this).style("transform", "rotate(0deg) translate(-50px,-15px)");
-            this.className = "git2";
-        } else {
-            d3.select("div#" + box_id).style("display", display);
-            d3.select(this).style("transform", "rotate(90deg) translate(-10px,10px)");
-            this.className = "git2 visible";
-        }
-    });
+function register_box(label, div) {
+    d3.selectAll("ul#summary_ul").append("li").append("a").attr("href", "#").html(label)
+	.on("click", function () {
+	    const top = $("#" + div).offset().top - 110;
+	    console.log(top);
+	    $('html,body').animate({scrollTop: top}, 100);
+	});
 }

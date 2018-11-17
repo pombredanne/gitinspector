@@ -17,7 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
+import os
+import string
 import textwrap
+
 from .. import format, gravatar, terminal
 from .. import responsibilities as resp
 from .outputable import Outputable
@@ -59,12 +62,11 @@ class ResponsibilitiesOutput(Outputable):
                         break
 
     def output_html(self):
-        resp_xml = "<div><div class=\"box\" id=\"responsibilities\">"
-        resp_xml += "<p>" + RESPONSIBILITIES_INFO_TEXT() + ".</p>"
-
+        resp_xml = ""
         for i in sorted(set(i[0] for i in self.blame.blames)):
-            responsibilities = sorted(((i[1], i[0]) for i in resp.Responsibilities.get(self.blame, i)), reverse=True)
-
+            responsibilities = sorted(((i[1], i[0])
+                                       for i in resp.Responsibilities.get(self.blame, i)),
+                                      reverse=True)
             if responsibilities:
                 resp_xml += "<div>"
 
@@ -82,8 +84,15 @@ class ResponsibilitiesOutput(Outputable):
                         break
 
                 resp_xml += "</div>"
-        resp_xml += "</div></div>"
-        self.out.writeln(resp_xml)
+
+        temp_file = os.path.join(os.path.dirname(__file__),
+                                 "../templates/responsibilities_output.html")
+        with open(temp_file, 'r') as infile:
+            src = string.Template( infile.read() )
+            self.out.write(src.substitute(
+                resp_info_text=RESPONSIBILITIES_INFO_TEXT(),
+                resp_inner_text=resp_xml,
+            ))
 
     def output_json(self):
         message_json = "\t\t\t\"message\": \"" + RESPONSIBILITIES_INFO_TEXT() + "\",\n"

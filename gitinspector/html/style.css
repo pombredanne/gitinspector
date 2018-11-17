@@ -248,3 +248,11 @@ div.button, div#responsibilities div.button {
     background-color: #ddcece;
     min-height: 0;
 }
+div#summary_div ul a {
+    text-decoration: none;
+}
+div.box_title {
+    background-color: #cccccc;
+    font-weight: bold;
+    padding: 5px;
+}
