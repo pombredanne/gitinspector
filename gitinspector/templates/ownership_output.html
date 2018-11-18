@@ -33,10 +33,10 @@
               lis.each(function(d) { build_tree(d3.select(this), d, "none"); });
 	  }
 
-	  var div = d3.select("div#repository_box").append("div")
+	  var out_div = d3.select("div#repository_box").append("div")
               .attr("id", "map_uldiv").style("width", "300px")
               .style("position", "relative").style("left", "300px");
-	  build_tree(div, "", "");
+	  build_tree(out_div, "", "");
 	  d3.selectAll("li.repline").each(function() {
               var elem = d3.select(this);
               var file = elem.attr("data");
@@ -67,7 +67,19 @@
 		  g.append("rect")
                       .attr("x", x).attr("y", 5)
                       .attr("height", 10).attr("width", w * 200 / max_work)
-                      .attr("fill",authors[a]);
+                      .attr("fill",authors[a])
+		      .on("mouseover", function(d, i){
+                              var coords = d3.mouse(this);
+                              out_div.selectAll("rect[fill='" + authors[a] + "']")
+                                  .attr("fill", d3.color(authors[a]).brighter());
+                          }).on("mouseout", function(d, i){
+                              out_div.selectAll("rect[fill='" +
+                                            d3.color(authors[a]).brighter() +
+                                            "']")
+                                  .attr("fill", authors[a])
+                          });
+
+
 		  x += w * 200 / max_work;
               });
 	  });

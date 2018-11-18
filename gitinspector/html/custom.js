@@ -1,7 +1,5 @@
 function resize_main_div() {
     const nw = $("#introduction_div").width() - $("#summary_div").width() - 60;
-    console.log($(document).width());
-    console.log(nw);
     d3.selectAll("#main_div").style("width", nw);
 }
 
