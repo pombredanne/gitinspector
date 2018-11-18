@@ -63,23 +63,23 @@ class ResponsibilitiesOutput(Outputable):
 
     def output_html(self):
         resp_xml = ""
-        for i in sorted(set(i[0] for i in self.blame.blames)):
-            responsibilities = sorted(((i[1], i[0])
-                                       for i in resp.Responsibilities.get(self.blame, i)),
+        authors = sorted(set(i[0] for i in self.blame.blames))
+        for author in authors:
+            responsibilities = sorted(((resp[1], resp[0])
+                                       for resp in resp.Responsibilities.get(self.blame, author)),
                                       reverse=True)
             if responsibilities:
                 resp_xml += "<div>"
+                rect = ("<svg width='16' height='16'><rect x='5' y='5' "
+                        "width='16' height='16' fill='{0}'></rect></svg>").\
+                        format(self.changes.colors_by_author[author])
 
-                if format.get_selected() == "html":
-                    author_email = self.changes.get_latest_email_by_author(i)
-                    resp_xml += "<h3><img src=\"{0}\"/>{1} {2}</h3>".format(gravatar.get_url(author_email, size=32),
-                                                                            i, MOSTLY_RESPONSIBLE_FOR_TEXT())
-                else:
-                    resp_xml += "<h3>{0} {1}</h3>".format(i, MOSTLY_RESPONSIBLE_FOR_TEXT())
+                resp_xml += "<h4>{0} &nbsp; {1} {2}</h4>".\
+                    format(rect, author, MOSTLY_RESPONSIBLE_FOR_TEXT())
 
                 for j, entry in enumerate(responsibilities):
-                    resp_xml += "<div" + (" class=\"odd\">" if j % 2 == 1 else ">") + entry[1] + \
-                            " (" + str(entry[0]) + " eloc)</div>"
+                    resp_xml += "<div" + (" class=\"odd\">" if j % 2 == 1 else ">") + \
+                        entry[1] + " (" + str(entry[0]) + " eloc)</div>"
                     if j >= 9:
                         break
 

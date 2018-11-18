@@ -220,9 +220,9 @@ td img {
     width: 20px;
     height: 20px;
 }
-h3 img {
-    width: 32px;
-    height: 32px;
+h4 img {
+    width: 20px;
+    height: 20px;
 }
 h3, h4 {
     border-radius: 8px 8px 8px 8px;
