@@ -1,148 +1,9 @@
-$(document).ready(function() {
-    // Adjust the size of the main div
-    function resize_main_div() {
-	const nw = $("#introduction_div").width() - $("#summary_div").width() - 60;
-	console.log($(document).width());
-	console.log(nw);
-	d3.selectAll("#main_div").style("width", nw);
-    }
-    resize_main_div();
-    $( window ).resize(resize_main_div);
-
-    var row = 0;
-    var MINOR_AUTHOR_PERCENTAGE = 1.00;
-    var isReversed = false;
-
-    var colorRows = function() {
-        $(this).removeClass("odd");
-
-        if (row++ % 2 == 1) {
-            $(this).addClass("odd");
-        }
-
-        if(this == $(this).parent().find("tr:visible").get(-1)) {
-            row = 0;
-        }
-    }
-
-    var filterResponsibilities = function() {
-        $("table#blame tbody tr td:last-child").filter(function() {
-            return parseFloat(this.innerHTML) < MINOR_AUTHOR_PERCENTAGE;
-        }).parent().find("td:first-child").each(function() {
-            $("div#responsibilities div h3:contains(\"" + $(this).text() + "\")").parent().hide();
-        });
-    }
-
-    var filterTimeLine = function() {
-        $("div#timeline table.git tbody tr").filter(function() {
-            return $(this).find("td:has(div)").length == 0;
-        }).hide();
-    }
-
-    $("table#changes tbody tr td:last-child").filter(function() {
-        return parseFloat(this.innerHTML) < MINOR_AUTHOR_PERCENTAGE;
-    }).parent().hide();
-
-    $("table#blame tbody tr td:last-child").filter(function() {
-        return parseFloat(this.innerHTML) < MINOR_AUTHOR_PERCENTAGE;
-    }).parent().hide();
-
-     $("table.git tbody tr:visible").each(colorRows);
-
-    $("table#changes thead tr th, table#blame thead tr th").click(function() {
-        $(this).parent().find("th strong").remove();
-        var parentIndex = $(this).index();
-
-        if (this.isReversed) {
-            $(this).append("<strong> &and;</strong>");
-        } else {
-            $(this).append("<strong> &or;</strong>");
-        }
-        this.isReversed = !this.isReversed;
-    });
-
-    $("table#changes thead tr th:first-child, table#blame thead tr th:first-child").each(function() {
-        this.isReversed = true;
-        $(this).append("<strong> &or;</strong>");
-    });
-
-    $("table.git tfoot tr td:first-child").filter(function() {
-        this.hiddenCount = $(this).parent().parent().parent().find("tbody tr:hidden").length;
-        return this.hiddenCount > 0;
-    }).each(function() {
-        $(this).addClass("hoverable");
-        this.innerHTML = "{show_minor_authors} (" + this.hiddenCount + ") &or;";
-    }).click(function() {
-        this.clicked = !this.clicked;
-
-        if (this.clicked) {
-            this.innerHTML = "{hide_minor_authors} (" + this.hiddenCount + ") &and;";
-            $(this).parent().parent().parent().find("tbody tr").show().each(colorRows);
-        } else {
-            this.innerHTML = "{show_minor_authors} (" + this.hiddenCount + ") &or;";
-            $(this).parent().parent().parent().find("tbody tr td:last-child").filter(function() {
-                return parseFloat(this.innerHTML) < MINOR_AUTHOR_PERCENTAGE;
-            }).parent().hide();
-            $("table.git tbody tr:visible").each(colorRows);
-        }
-    });
-
-    filterResponsibilities();
-    var hiddenResponsibilitiesCount = $("div#responsibilities div h3:hidden").length;
-    if (hiddenResponsibilitiesCount > 0) {
-        $("div#responsibilities div h3:visible").each(colorRows);
-        $("div#responsibilities").prepend("<div class=\"button\">{show_minor_authors} (" + hiddenResponsibilitiesCount + ") &or;</div>");
-
-        $("div#responsibilities div.button").click(function() {
-            this.clicked = !this.clicked;
-            if (this.clicked) {
-                this.innerHTML = "{hide_minor_authors} (" + hiddenResponsibilitiesCount + ") &and;";
-                $("div#responsibilities div").show();
-            } else {
-                this.innerHTML = "{show_minor_authors} (" + hiddenResponsibilitiesCount + ") &or;";
-                filterResponsibilities();
-            }
-        });
-    }
-
-
-    filterTimeLine();
-    var hiddenTimelineCount = $("div#timeline table.git tbody tr:hidden").length;
-    if (hiddenTimelineCount > 0) {
-        $("div#timeline table.git tbody tr:visible").each(colorRows);
-        $("div#timeline").prepend("<div class=\"button\">{show_minor_rows} (" + hiddenTimelineCount + ") &or;</div>");
-
-        $("div#timeline div.button").click(function() {
-            this.clicked = !this.clicked;
-            if (this.clicked) {
-                this.innerHTML = "{hide_minor_rows} (" + hiddenTimelineCount + ") &and;";
-                $("div#timeline table.git tbody tr").show().each(colorRows);
-            } else {
-                this.innerHTML = "{show_minor_rows} (" + hiddenTimelineCount + ") &or;";
-                filterTimeLine();
-                $("div#timeline table.git tbody tr:visible").each(colorRows);
-            }
-        });
-    }
-
-    $("#blame_chart, #changes_chart").bind("plothover", function(event, pos, obj) {
-        if (obj) {
-            var selection = "table tbody tr td:contains(\"" + obj.series.label + "\")";
-            var element = $(this).parent().find(selection);
-
-            if (element) {
-                if (this.hoveredElement && this.hoveredElement.html() != element.parent().html()) {
-                    this.hoveredElement.removeClass("piehover");
-                }
-
-                element.parent().addClass("piehover");
-                this.hoveredElement = element.parent();
-            }
-        } else if (this.hoveredElement) {
-            this.hoveredElement.removeClass("piehover");
-        }
-    });
-});
+function resize_main_div() {
+    const nw = $("#introduction_div").width() - $("#summary_div").width() - 60;
+    console.log($(document).width());
+    console.log(nw);
+    d3.selectAll("#main_div").style("width", nw);
+}
 
 function generate_pie(group, radius, data, value_fun, color_fun) {
     // Generator for the pie
@@ -299,3 +160,9 @@ function register_box(label, div) {
 	    $('html,body').animate({scrollTop: top}, 100);
 	});
 }
+
+$(document).ready(function() {
+    // Adjust the size of the main div
+    resize_main_div();
+    $( window ).resize(resize_main_div);
+});

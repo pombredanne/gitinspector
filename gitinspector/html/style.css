@@ -193,23 +193,20 @@ p.error {
 }
 table#changes thead tr th:hover, table#blame thead tr th:hover,
 table#changes tfoot tr td.hoverable:hover, table#blame tfoot tr td.hoverable:hover,
-div.button:hover, div#responsibilities div.button:hover {
+div.button:hover, div#responsibilities_div div.button:hover {
     background-color: #eddede;
     border: 1px solid #bbb;
     cursor: hand;
 }
-div#responsibilities div, div#responsibilities div div, div#metrics div, div#metrics div div {
+div#responsibilities_div div, div#responsibilities_div div div {
     min-height: 0px;
     padding: 0.5em 0.2em;
     width: auto;
 }
-div#metrics div {
-    background-color: #eee;
-}
-div#responsibilities div.odd, div#metrics div.odd {
+div#responsibilities_div div.odd {
     background-color: #dbdbdb;
 }
-div#responsibilities p {
+div#responsibilities_div p {
     margin-bottom: 0px;
 }
 td img, h3 img {
