@@ -62,8 +62,9 @@ def __get_zip_file_content__(name, file_name="/html/flot.zip"):
     zip_file.close()
     return content.decode("utf-8", "replace")
 
-INFO_ONE_REPOSITORY = lambda: _("Statistical information for the repository '{0}' was gathered on {1}.")
-INFO_MANY_REPOSITORIES = lambda: _("Statistical information for the repositories '{0}' was gathered on {1}.")
+INFO_START_ONE_REPO   = lambda: _("Statistical information for the repository")
+INFO_START_MANY_REPOS = lambda: _("Statistical information for the repositories")
+INFO_MID_ANY_REPO     = lambda: _("was gathered on the")
 
 def output_header(runner):
     """
@@ -104,8 +105,11 @@ def output_header(runner):
 
         repos_name = (repos_string if runner.config.branch == "master"
                      else "%s (branch %s)"%(repos_string, runner.config.branch))
-        repos_text = (INFO_ONE_REPOSITORY() if len(repos) <= 1 else
-                      INFO_MANY_REPOSITORIES()).format(repos_name, localization.get_date())
+        repos_text = (INFO_START_ONE_REPO() if len(repos) <= 1 else
+                      INFO_START_MANY_REPOS()) + \
+                      " <span class='repo_title'>{0}</span> ".format(repos_name) + \
+                      INFO_MID_ANY_REPO() + \
+                      " <span>{0}</span>.".format(localization.get_date())
 
         runner.out.writeln(html_header.format(title=_("Repository statistics for '{0}'").format(repos_string),
                                               jquery_js=jquery_js,
@@ -156,8 +160,10 @@ def output_header(runner):
     else:
         repos_name = (repos_string if runner.config.branch == "master"
                      else "%s (branch %s)"%(repos_string, runner.config.branch))
-        repos_text = (INFO_ONE_REPOSITORY() if len(repos) <= 1 else
-                      INFO_MANY_REPOSITORIES()).format(repos_name, localization.get_date())
+        repos_text = (INFO_START_ONE_REPO() if len(repos) <= 1 else
+                      INFO_START_MANY_REPOS()) + " " + \
+                      repos_name + " " + INFO_MID_ANY_REPO() + " " + \
+                      str(localization.get_date())
 
         runner.out.writeln(textwrap.fill(repos_text, width=terminal.get_size()[0]))
 

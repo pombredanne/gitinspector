@@ -170,8 +170,9 @@ ul.map_box button {
     color: #fff;
     border: none;
     height: 20px;
-    width: 20px;
+    width: 18px;
     margin-right: 5px;
+    padding: 0px;
     border-radius: 5px;
 }
 span.marked {
@@ -251,4 +252,9 @@ div.box_title {
     background-color: #cccccc;
     font-weight: bold;
     padding: 5px;
+}
+span.repo_title {
+    font-weight: bold;
+    font-size: large;
+    color:#bb3300;
 }
