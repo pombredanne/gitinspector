@@ -217,3 +217,10 @@ class Blame(object):
             summed_blames[i[0][0]].comments += i[1].comments
 
         return summed_blames
+
+    def authors_by_responsibilities(self):
+        wrk = [ (k[0],v.rows) for (k,v) in self.blames.items()]
+        aut = set([k[0] for k in wrk])
+        res = sorted(aut,
+                     key=lambda a: -sum([w for (b,w) in wrk if b == a]))
+        return res

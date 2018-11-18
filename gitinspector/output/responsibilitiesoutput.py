@@ -44,12 +44,13 @@ class ResponsibilitiesOutput(Outputable):
         self.out.writeln("\n" + textwrap.fill(RESPONSIBILITIES_INFO_TEXT() + ":",
                                               width=terminal.get_size()[0]))
 
-        for i in sorted(set(i[0] for i in self.blame.blames)):
-            responsibilities = sorted(((i[1], i[0]) for i in resp.Responsibilities.get(self.blame, i)),
+        for author in self.blame.authors_by_responsibilities():
+            responsibilities = sorted(((resp[1], resp[0])
+                                       for resp in resp.Responsibilities.get(self.blame, author)),
                                       reverse=True)
 
             if responsibilities:
-                self.out.writeln("\n" + i + " " + MOSTLY_RESPONSIBLE_FOR_TEXT() + ":")
+                self.out.writeln("\n" + author + " " + MOSTLY_RESPONSIBLE_FOR_TEXT() + ":")
 
                 for j, entry in enumerate(responsibilities):
                     (width, _unused) = terminal.get_size()
@@ -63,8 +64,7 @@ class ResponsibilitiesOutput(Outputable):
 
     def output_html(self):
         resp_xml = ""
-        authors = sorted(set(i[0] for i in self.blame.blames))
-        for author in authors:
+        for author in self.blame.authors_by_responsibilities():
             responsibilities = sorted(((resp[1], resp[0])
                                        for resp in resp.Responsibilities.get(self.blame, author)),
                                       reverse=True)
@@ -98,14 +98,16 @@ class ResponsibilitiesOutput(Outputable):
         message_json = "\t\t\t\"message\": \"" + RESPONSIBILITIES_INFO_TEXT() + "\",\n"
         resp_json = ""
 
-        for i in sorted(set(i[0] for i in self.blame.blames)):
-            responsibilities = sorted(((i[1], i[0]) for i in resp.Responsibilities.get(self.blame, i)), reverse=True)
+        for author in self.blame.authors_by_responsibilities():
+            responsibilities = sorted(((resp[1], resp[0])
+                                       for resp in resp.Responsibilities.get(self.blame, author)),
+                                      reverse=True)
 
             if responsibilities:
-                author_email = self.changes.get_latest_email_by_author(i)
+                author_email = self.changes.get_latest_email_by_author(author)
 
                 resp_json += "{\n"
-                resp_json += "\t\t\t\t\"name\": \"" + i + "\",\n"
+                resp_json += "\t\t\t\t\"name\": \"" + author + "\",\n"
                 resp_json += "\t\t\t\t\"email\": \"" + author_email + "\",\n"
                 resp_json += "\t\t\t\t\"gravatar\": \"" + gravatar.get_url(author_email) + "\",\n"
                 resp_json += "\t\t\t\t\"files\": [\n\t\t\t\t"
@@ -130,13 +132,15 @@ class ResponsibilitiesOutput(Outputable):
         message_xml = "\t\t<message>" + RESPONSIBILITIES_INFO_TEXT() + "</message>\n"
         resp_xml = ""
 
-        for i in sorted(set(i[0] for i in self.blame.blames)):
-            responsibilities = sorted(((i[1], i[0]) for i in resp.Responsibilities.get(self.blame, i)), reverse=True)
+        for author in self.blame.authors_by_responsibilities():
+            responsibilities = sorted(((resp[1], resp[0])
+                                       for resp in resp.Responsibilities.get(self.blame, author)),
+                                      reverse=True)
             if responsibilities:
-                author_email = self.changes.get_latest_email_by_author(i)
+                author_email = self.changes.get_latest_email_by_author(author)
 
                 resp_xml += "\t\t\t<author>\n"
-                resp_xml += "\t\t\t\t<name>" + i + "</name>\n"
+                resp_xml += "\t\t\t\t<name>" + author + "</name>\n"
                 resp_xml += "\t\t\t\t<email>" + author_email + "</email>\n"
                 resp_xml += "\t\t\t\t<gravatar>" + gravatar.get_url(author_email) + "</gravatar>\n"
                 resp_xml += "\t\t\t\t<files>\n"

@@ -14,6 +14,7 @@ class ActivityOutput(Outputable):
     def __init__(self, runner):
         Outputable.__init__(self)
         self.changes = runner.changes
+        self.blames = runner.blames
         self.weeks = runner.config.weeks
         self.display = bool(runner.changes.commits) and runner.config.timeline
         self.out = runner.out
@@ -35,7 +36,6 @@ class ActivityOutput(Outputable):
         max_period = periods[-1][1]
         periods = { k[0]: k[1] for k in periods }
         max_work   = max([el[1][2] for el in list(data.total_changes_by_period.items())])
-        authors = { author[0]: self.changes.colors_by_author[author[0]] for author in data.get_authors() }
         entries = { p: [] for p in periods.keys() }
         for k, v in data.entries.items():
             author = k[0]
@@ -45,11 +45,13 @@ class ActivityOutput(Outputable):
                                      "commit": [v.insertions, v.deletions, v.commits]})
         total_changes = {k: v[2] for k, v in data.total_changes_by_period.items()}
 
+        sorted_authors = { a: self.changes.colors_by_author[a]
+                           for a in self.blames.authors_by_responsibilities() }
         timeline_dict = {
             "periods": periods,
             "max_period": max_period,
             "max_work": max_work,
-            "authors": authors,
+            "authors": sorted_authors,
             "changes": total_changes,
             "entries": entries,
         }

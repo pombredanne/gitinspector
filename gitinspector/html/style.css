@@ -198,10 +198,9 @@ div.button:hover, div#responsibilities_div div.button:hover {
     border: 1px solid #bbb;
     cursor: hand;
 }
-div#responsibilities_div div, div#responsibilities_div div div {
+div#responsibilities_div div div, div#responsibilities_div div div div {
     min-height: 0px;
     padding: 0.5em 0.2em;
-    width: auto;
 }
 div#responsibilities_div div.odd {
     background-color: #dbdbdb;
