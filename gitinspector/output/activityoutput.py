@@ -23,7 +23,8 @@ class ActivityOutput(Outputable):
         data = timeline.TimelineData(self.changes, self.weeks)
 
         if self.weeks:
-            periods = [ [d, datetime.datetime.strptime(d + "-1", "%YW%W-%w")] for d in data.get_periods()]
+            periods = [ [d, datetime.datetime.strptime(d + "-1", "%YW%W-%w")]
+                        for d in data.get_periods()]
             first_period_y = periods[0][1].year
             first_period_w = int(periods[0][0][-2:])
             periods = [ [d[0], (d[1].year-first_period_y)*53 + (int(d[0][-2:])-first_period_w)] \
@@ -46,7 +47,7 @@ class ActivityOutput(Outputable):
         total_changes = {k: v[2] for k, v in data.total_changes_by_period.items()}
 
         sorted_authors = { a: self.changes.colors_by_author[a]
-                           for a in self.blames.authors_by_responsibilities() }
+                           for a in self.changes.authors_by_responsibilities() }
         timeline_dict = {
             "periods": periods,
             "max_period": max_period,

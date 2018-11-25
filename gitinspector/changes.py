@@ -344,3 +344,11 @@ class Changes(object):
 
     def get_latest_email_by_author(self, name):
         return self.emails_by_author[name]
+
+    def authors_by_responsibilities(self):
+        wrk = [(c.author, sum([f.insertions + f.deletions for f in c.filediffs]))
+               for c in self.commits]
+        aut = set([k[0] for k in wrk])
+        res = sorted(aut,
+                     key=lambda a: -sum([w for (b,w) in wrk if b == a]))
+        return res
