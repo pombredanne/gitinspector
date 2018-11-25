@@ -34,6 +34,10 @@
                 .domain(Object.keys(timeline.authors))
                 .range([ysep+dy/2, height]);
 
+      var tooltip = d3.select("div#timeline_enclose").append("div")
+          .attr("class", "tooltip")
+          .style("opacity", 0);
+
       var xAxis = d3.axisTop(x).tickValues(Object.keys(timeline.periods));
       var gaxis = svg.append("g").attr("transform", "translate(0," + (ysep-8) + ")");
       gaxis.call(xAxis).selectAll("text")
@@ -42,6 +46,13 @@
            .attr("transform", "rotate(-90)")
            .style("text-anchor", "start");
       gaxis.selectAll(".tick line").attr("stroke", "#ccc").attr("y1", height-ybsep-60);
+      gaxis.selectAll(".tick")
+	   .on('mouseover', function(d, i) {
+	       tooltip.html(d)
+		   .style("opacity", .8)
+		   .style("top", 0)
+		   .style("left", xsep + dx*i); })
+	   .on('mouseout', function() { tooltip.style("opacity", 0); });
 
       var cAxis = d3.axisBottom(x).tickFormat(d => timeline.changes[d]);
       var uaxis = svg.append("g").attr("transform", "translate(0," + (height-ybsep+10) + ")");
@@ -52,9 +63,6 @@
            .style("text-anchor", "start");
 
       var gentries = svg.append("g");
-      var tooltip = d3.select("div#timeline_enclose").append("div")
-          .attr("class", "tooltip")
-          .style("opacity", 0);
 
       function generate_entries(sort_fun) {
           Object.keys(timeline.entries).forEach(function(p) {
