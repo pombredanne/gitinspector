@@ -23,11 +23,10 @@ class ActivityOutput(Outputable):
         data = timeline.TimelineData(self.changes, self.weeks)
 
         if self.weeks:
-            periods = [ [d, datetime.datetime.strptime(d + "-1", "%YW%W-%w")]
+            periods = [ [d, datetime.datetime.strptime(d + "-1", "%YW%U-%w")]
                         for d in data.get_periods()]
-            first_period_y = periods[0][1].year
-            first_period_w = int(periods[0][0][-2:])
-            periods = [ [d[0], (d[1].year-first_period_y)*53 + (int(d[0][-2:])-first_period_w)] \
+            first_period = periods[0][1]
+            periods = [ [d[0], int((d[1]-first_period).days / 7)] \
                         for d in periods ]
         else:
             periods = [ [d, datetime.datetime.strptime(d, "%Y-%m")] for d in data.get_periods()]
