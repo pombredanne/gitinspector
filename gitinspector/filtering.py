@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
+import fnmatch
 import re
 import subprocess
 from enum import Enum
@@ -25,8 +26,8 @@ class Filters(Enum):
     """
     An enumeration class representing the different filter types
     """
-    FILE_IN  = "file_in"
-    FILE_OUT = "file_out"
+    FILE_IN  = "file_in"   # positive match for filenames (include)
+    FILE_OUT = "file_out"  # negative match for filenames (exclude)
     AUTHOR   = "author"
     EMAIL    = "email"
     REVISION = "revision"
@@ -111,10 +112,10 @@ def is_filtered(string, filter_type):
     The function that tests whether 'string' passes the filters
     defined in __filters__. The test on the string parameter depends
     on the filter_type. This function should not be used with the
-    filters on types (cf. is_filtered_file).
+    filters on file names (cf. is_acceptable_file_name).
     """
 
-    if filter_type == Filters("file_in"):
+    if (filter_type == Filters("file_in")) or (filter_type == Filters("file_out")):
         raise "Should not use that filter this way"
 
     string = string.strip()
@@ -151,7 +152,7 @@ def is_acceptable_file_name(string):
     accepted = False
     for regexp in __filters__[Filters.FILE_IN][0]:
         try:
-            if re.search(regexp, search_for) is not None:
+            if fnmatch.fnmatch(search_for, regexp):
                 accepted = True
                 break
         except:
@@ -160,7 +161,7 @@ def is_acceptable_file_name(string):
         return False
     for regexp in __filters__[Filters.FILE_OUT][0]:
         try:
-            if re.search(regexp, search_for) is not None:
+            if fnmatch.fnmatch(search_for, regexp):
                 __filters__[Filters.FILE_OUT][1].add(string)
                 return False
         except:

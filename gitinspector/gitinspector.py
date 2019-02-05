@@ -40,11 +40,11 @@ localization.init()
 
 # The list of extensions that are analyzed when no filter is
 # specified for the files.
-DEFAULT_EXTENSIONS = [".*\.java",
-                      ".*\.c",    ".*\.cc",   ".*\.cpp",
-                      ".*\.h",    ".*\.hh",   ".*\.hpp",
-                      ".*\.py",   ".*\.glsl", ".*\.rb",
-                      ".*\.js",   ".*\.sql"]
+DEFAULT_EXTENSIONS = ["*.java",
+                      "*.c",    "*.cc",   "*.cpp",
+                      "*.h",    "*.hh",   "*.hpp",
+                      "*.py",   "*.glsl", "*.rb",
+                      "*.js",   "*.sql"]
 
 class StdoutWriter(io.StringIO):
     def __init__(self):
@@ -261,7 +261,7 @@ def __parse_arguments__(args=None):
         for pat in options.exclude:
             filtering.add_filters(pat)
     for f in options.file_types.split(','):
-        filtering.__add_one_filter__("^" + f + "$")
+        filtering.__add_one_filter__(f)
 
     return options
 
