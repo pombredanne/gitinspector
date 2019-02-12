@@ -191,7 +191,7 @@ def __parse_arguments__(args=None):
                         type=lambda s: ast.literal_eval(s), default={})
     parser.add_argument('-b', '--branch', metavar='BRANCH', help=
                         _("the name of the branch for git to checkout, the default "
-                          "being 'master'"), default="master")
+                          "being 'master'"), default="--all")
     parser.add_argument('-f', '--file-types', metavar='TYPES', help=
                         _("a comma separated list of file extensions to include when "
                           "computing statistics. The default extensions used are: ") + str(DEFAULT_EXTENSIONS) + " " +

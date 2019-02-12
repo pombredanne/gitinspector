@@ -277,7 +277,7 @@ class Changes(object):
         self.commits = [item for sublist in self.commits for item in sublist]
 
         if self.commits:
-            if interval.has_interval() or self.config.branch != "master":
+            if interval.has_interval(): # or self.config.branch != "master":
                 interval.set_ref(self.commits[-1].sha)
 
             self.first_commit_date = datetime.date(int(self.commits[0].date[0:4]),

@@ -310,7 +310,7 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
         self.assertEqual(len(r.blames.blames.keys()), 1)
         blame_keys = sorted(list(r.blames.blames.keys()))
         self.assertEqual(blame_keys[0], ('Andrew Johnson', 'file.c'))
-        self.assertEqual(r.blames.blames[blame_keys[0]].rows, 6) # main.c     is 6 lines long
+        self.assertEqual(r.blames.blames[blame_keys[0]].rows, 6) # main.c is 6 lines long
 
         # Check the metrics
         self.assertEqual(r.metrics.eloc, {}) # Both files are too short, no metrics to report

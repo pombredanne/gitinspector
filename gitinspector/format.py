@@ -103,7 +103,7 @@ def output_header(runner):
         style_css = "<style type='text/css'>" + \
             __output_html_template__(base + "/html/style.css") + "</style>"
 
-        repos_name = (repos_string if runner.config.branch == "master"
+        repos_name = (repos_string if runner.config.branch == "--all"
                      else "%s (branch %s)"%(repos_string, runner.config.branch))
         repos_text = (INFO_START_ONE_REPO() if len(repos) <= 1 else
                       INFO_START_MANY_REPOS()) + \
