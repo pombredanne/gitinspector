@@ -137,8 +137,11 @@ class Blame(object):
 
     def __init__(self, repo, changes, config):
         self.blames = {}
+        if config.branch == "--all":
+            return # For the moment, this has no meaning
+
         ls_tree_p = subprocess.Popen(["git", "ls-tree", "--name-only", "-r",
-                                      interval.get_ref()], bufsize=1,
+                                      config.branch], bufsize=1,
                                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         lines = ls_tree_p.communicate()[0].splitlines()
         ls_tree_p.wait()
@@ -160,9 +163,10 @@ class Blame(object):
                                            ["git", "blame",
                                             "--line-porcelain", "-w"] +
                                            (["-C", "-C", "-M"] if config.hard else []) +
-                                           [interval.get_since(), interval.get_ref(),
+                                           [interval.get_since(), config.branch,
                                             "--", row])
-                    thread = BlameThread(config.weeks, changes, blame_command, FileDiff.get_extension(row),
+                    thread = BlameThread(config.weeks, changes, blame_command,
+                                         FileDiff.get_extension(row),
                                          self.blames, row.strip())
                     thread.daemon = True
                     thread.start()

@@ -142,6 +142,7 @@ class BasicRepositoryTest(unittest.TestCase):
     def test_process(self):
        # Set options
         opts = __parse_arguments__(args=['--grading', '--legacy',
+                                         '--branch', 'master',
                                          '--file-types', '*.c,*.txt',
                                          '--exclude', 'author:John Doe',
                                          '--silent',
@@ -282,6 +283,7 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
     def test_process(self):
         # Set options
         opts = __parse_arguments__(args=['--grading', '--legacy',
+                                         '--branch', 'master',
                                          '--file-types', '*.c,*.txt',
                                          '--exclude', 'author:Abraham Lincoln,message:README',
                                          '--since', '2001-01-01',
