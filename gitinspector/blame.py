@@ -29,6 +29,9 @@ from . import comment, format, interval, terminal
 NUM_THREADS = multiprocessing.cpu_count()
 
 class BlameEntry(object):
+    """A simple record class that stores informations about a blame. All
+    BlameEntry objects are stored into hashes (author, file) -> BlameEntry.
+    """
     rows = 0
     skew = 0 # Used when calculating average code age.
     comments = 0
@@ -39,17 +42,21 @@ __blame_lock__ = threading.Lock()
 AVG_DAYS_PER_MONTH = 30.4167
 
 class BlameThread(threading.Thread):
+    """A class that launches a thread counting the blames for a given
+    file. The class is supposed to be somewhat thread-safe, and can be
+    applied a multiple number of times for the same file if needed.
+    """
     blamechunk_email = None
     blamechunk_is_last = False
     blamechunk_is_prior = False
     blamechunk_revision = None
     blamechunk_time = None
 
-    def __init__(self, useweeks, changes, blame_command, extension, blames, filename):
+    def __init__(self, config, changes, blame_command, extension, blames, filename):
         __thread_lock__.acquire() # Lock controlling the number of threads running
         threading.Thread.__init__(self)
 
-        self.useweeks = useweeks
+        self.useweeks = config.weeks
         self.changes = changes
         self.blame_command = blame_command
         self.extension = extension
@@ -89,8 +96,9 @@ class BlameThread(threading.Thread):
             self.blames[(author, self.filename)].rows += 1
 
             if (self.blamechunk_time - self.changes.first_commit_date).days > 0:
-                self.blames[(author, self.filename)].skew += ((self.changes.last_commit_date - self.blamechunk_time).days /
-                                                              (7.0 if self.useweeks else AVG_DAYS_PER_MONTH))
+                new_skew = ((self.changes.last_commit_date - self.blamechunk_time).days /
+                            (7.0 if self.useweeks else AVG_DAYS_PER_MONTH))
+                self.blames[(author, self.filename)].skew += new_skew
 
             __blame_lock__.release() # ...to here.
 
@@ -128,7 +136,9 @@ PROGRESS_TEXT = _("Checking how many rows belong to each author (2 of 2): {0:.0f
 
 
 class Blame(object):
-
+    """The global file that enumerates all the files in the current
+    repository and associates one BlameEntry to each of them.
+    """
     @classmethod
     def empty(cls):
         blame = Blame.__new__(Blame)
@@ -137,42 +147,54 @@ class Blame(object):
 
     def __init__(self, repo, changes, config):
         self.blames = {}
-        if config.branch == "--all":
-            return # For the moment, this has no meaning
+        self.config = config
 
-        ls_tree_p = subprocess.Popen(["git", "ls-tree", "--name-only", "-r",
-                                      config.branch], bufsize=1,
-                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        lines = ls_tree_p.communicate()[0].splitlines()
-        ls_tree_p.wait()
-        ls_tree_p.stdout.close()
+        if self.config.branch == "--all":
+            # Apply an heuristic to compute the blames on all the
+            # branches : The files taken into account are the more
+            # recent ones over all the branches.
+            branches = self.__repository_branches__()
+            lines = {}
+            times = {}
+            for b in branches:
+                for f in self.__list_files__(b):
+                    if f in lines:
+                        if not(f in times):
+                            times[f] = self.__get_last_commit__(lines[f], f)
+                        new_time = self.__get_last_commit__(b, f)
+                        if new_time > times[f]:
+                            times[f] = new_time
+                            lines[f] = b
+                    else:
+                        lines[f] = b
+        else:
+            lines = {l: self.config.branch for l in self.__list_files__(config.branch)}
 
-        if ls_tree_p.returncode == 0:
+        if lines:
             progress_text = _(PROGRESS_TEXT)
 
             if repo is not None:
                 progress_text = "[%s] " % repo.name + progress_text
 
-            for i, row in enumerate(lines):
-                row = row.strip().decode("unicode_escape", "ignore")
-                row = row.encode("latin-1", "replace")
-                row = row.decode("utf-8", "replace").strip("\"").strip("'").strip()
+            cpt = 0
+            for filename, branch in lines.items():
+                cpt += 1
 
-                if is_acceptable_file_name(row):
+                if is_acceptable_file_name(filename):
                     blame_command = filter(None,
                                            ["git", "blame",
                                             "--line-porcelain", "-w"] +
                                            (["-C", "-C", "-M"] if config.hard else []) +
-                                           [interval.get_since(), config.branch,
-                                            "--", row])
-                    thread = BlameThread(config.weeks, changes, blame_command,
-                                         FileDiff.get_extension(row),
-                                         self.blames, row.strip())
+                                           [interval.get_since(), branch,
+                                            "--", filename])
+                    thread = BlameThread(config, changes, blame_command,
+                                         FileDiff.get_extension(filename),
+                                         self.blames, filename)
                     thread.daemon = True
                     thread.start()
 
                     if config.progress and format.is_interactive_format():
-                        terminal.output_progress(progress_text, i, len(lines))
+                        terminal.output_progress(progress_text, cpt, len(lines))
 
             # Make sure all threads have completed.
             for i in range(0, NUM_THREADS):
@@ -188,6 +210,41 @@ class Blame(object):
             return self
         except AttributeError:
             return other
+
+    def __list_files__(self, branch):
+        ls_tree_p = subprocess.Popen(["git", "ls-tree", "--name-only", "-r",
+                                      branch], bufsize=1,
+                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        lines = ls_tree_p.communicate()[0].splitlines()
+        lines = [self.__sanitize_filename__(l) for l in lines]
+        ls_tree_p.wait()
+        ls_tree_p.stdout.close()
+        return lines
+
+    def __repository_branches__(self):
+        branch_p = subprocess.Popen(["git", "branch", "--format=%(refname)"], bufsize=1,
+                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        branches = branch_p.communicate()[0].splitlines()
+        branch_p.wait()
+        branch_p.stdout.close()
+        return branches
+
+    def __sanitize_filename__(self, file):
+        file = file.strip().decode("unicode_escape", "ignore")
+        file = file.encode("latin-1", "replace")
+        file = file.decode("utf-8", "replace").strip("\"").strip("'").strip()
+        return file
+
+    def __get_last_commit__(self, branch, file):
+        """Returns the date for the last commit on a file in a branch, in the
+        Unix format.
+        """
+        log_p = subprocess.Popen(["git", "log", "-1", "--format=%at", branch, file], bufsize=1,
+                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        date = int(log_p.communicate()[0].strip().decode("utf-8"))
+        log_p.wait()
+        log_p.stdout.close()
+        return date
 
     @staticmethod
     def is_revision(string):
