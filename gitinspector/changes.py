@@ -25,7 +25,7 @@ import os
 import subprocess
 import threading
 from .filtering import Filters, is_filtered, is_acceptable_file_name
-from . import format, interval, terminal
+from . import format, git_utils, interval, terminal
 
 CHANGES_PER_THREAD = 200
 NUM_THREADS = multiprocessing.cpu_count()
@@ -233,16 +233,15 @@ class Changes(object):
         self.config = config
 
         interval.set_ref("HEAD")
-        git_command = filter(None, ["git", "rev-list", "--reverse", "--no-merges",
-                                    interval.get_since(), interval.get_until(),
-                                    self.config.branch])
-        git_rev_list_p = subprocess.Popen(git_command, bufsize=1,
-                                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        lines = git_rev_list_p.communicate()[0].splitlines()
-        git_rev_list_p.wait()
-        git_rev_list_p.stdout.close()
+        if config.branch == "--all":
+            lines = []
+            for b in config.branches:
+                lines = lines + git_utils.commits(interval.get_since(), interval.get_until(), b)
+        else:
+            lines = git_utils.commits(interval.get_since(),
+                                      interval.get_until(), config.branch)
 
-        if git_rev_list_p.returncode == 0 and lines:
+        if lines:
             progress_text = _(PROGRESS_TEXT)
             if repo is not None:
                 progress_text = "[%s] " % repo.name + progress_text
