@@ -27,6 +27,7 @@ import sys
 from .blame import Blame
 from .changes import Changes
 from .config import GitConfig
+from .git_utils import local_branches
 from .metrics import MetricsLogic
 from .repository import Repository
 from . import (basedir, filtering, format, interval,
@@ -106,6 +107,11 @@ class Runner(object):
 
         for repo in self.repos:
             os.chdir(repo.location)
+
+            # Initialize the branches
+            if self.config.branch == "--all":
+                self.config.branches = local_branches()
+
             repo = repo if len(self.repos) > 1 else None
             repo_changes = Changes(repo, self.config)
             self.blames += Blame(repo, repo_changes, self.config)

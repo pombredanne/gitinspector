@@ -22,9 +22,10 @@ import multiprocessing
 import re
 import subprocess
 import threading
+
 from .changes import FileDiff
 from .filtering import Filters, is_filtered, is_acceptable_file_name
-from . import comment, format, interval, terminal
+from . import comment, format, git_utils, interval, terminal
 
 NUM_THREADS = multiprocessing.cpu_count()
 
@@ -74,7 +75,8 @@ class BlameThread(threading.Thread):
 
     def __handle_blamechunk_content__(self, content):
         author = None
-        (comments, self.is_inside_comment) = comment.handle_comment_block(self.is_inside_comment, self.extension, content)
+        (comments, self.is_inside_comment) = comment.handle_comment_block(self.is_inside_comment,
+                                                                          self.extension, content)
 
         if self.blamechunk_is_prior and interval.get_since():
             return
@@ -153,22 +155,22 @@ class Blame(object):
             # Apply an heuristic to compute the blames on all the
             # branches : The files taken into account are the more
             # recent ones over all the branches.
-            branches = self.__repository_branches__()
+            branches = self.config.branches
             lines = {}
             times = {}
             for b in branches:
-                for f in self.__list_files__(b):
+                for f in git_utils.files(b):
                     if f in lines:
                         if not(f in times):
-                            times[f] = self.__get_last_commit__(lines[f], f)
-                        new_time = self.__get_last_commit__(b, f)
+                            times[f] = git_utils.last_commit(lines[f], f)
+                        new_time = git_utils.last_commit(b, f)
                         if new_time > times[f]:
                             times[f] = new_time
                             lines[f] = b
                     else:
                         lines[f] = b
         else:
-            lines = {l: self.config.branch for l in self.__list_files__(config.branch)}
+            lines = {l: self.config.branch for l in git_utils.files(config.branch)}
 
         if lines:
             progress_text = _(PROGRESS_TEXT)
@@ -210,41 +212,6 @@ class Blame(object):
             return self
         except AttributeError:
             return other
-
-    def __list_files__(self, branch):
-        ls_tree_p = subprocess.Popen(["git", "ls-tree", "--name-only", "-r",
-                                      branch], bufsize=1,
-                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        lines = ls_tree_p.communicate()[0].splitlines()
-        lines = [self.__sanitize_filename__(l) for l in lines]
-        ls_tree_p.wait()
-        ls_tree_p.stdout.close()
-        return lines
-
-    def __repository_branches__(self):
-        branch_p = subprocess.Popen(["git", "branch", "--format=%(refname)"], bufsize=1,
-                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        branches = branch_p.communicate()[0].splitlines()
-        branch_p.wait()
-        branch_p.stdout.close()
-        return branches
-
-    def __sanitize_filename__(self, file):
-        file = file.strip().decode("unicode_escape", "ignore")
-        file = file.encode("latin-1", "replace")
-        file = file.decode("utf-8", "replace").strip("\"").strip("'").strip()
-        return file
-
-    def __get_last_commit__(self, branch, file):
-        """Returns the date for the last commit on a file in a branch, in the
-        Unix format.
-        """
-        log_p = subprocess.Popen(["git", "log", "-1", "--format=%at", branch, file], bufsize=1,
-                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        date = int(log_p.communicate()[0].strip().decode("utf-8"))
-        log_p.wait()
-        log_p.stdout.close()
-        return date
 
     @staticmethod
     def is_revision(string):
