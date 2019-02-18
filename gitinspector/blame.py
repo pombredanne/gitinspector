@@ -47,6 +47,7 @@ class BlameThread(threading.Thread):
     file. The class is supposed to be somewhat thread-safe, and can be
     applied a multiple number of times for the same file if needed.
     """
+    blamechunk_author = None
     blamechunk_email = None
     blamechunk_is_last = False
     blamechunk_is_prior = False
@@ -81,7 +82,8 @@ class BlameThread(threading.Thread):
         if self.blamechunk_is_prior and interval.get_since():
             return
         try:
-            author = self.changes.get_latest_author_by_email(self.blamechunk_email)
+            # author = self.changes.get_latest_author_by_email(self.blamechunk_email)
+            author = self.blamechunk_author
         except KeyError:
             return
 
@@ -122,6 +124,8 @@ class BlameThread(threading.Thread):
                 self.__clear_blamechunk_info__()
             elif keyval[0] == "boundary":
                 self.blamechunk_is_prior = True
+            elif keyval[0] == "author":
+                self.blamechunk_author = " ".join(keyval[1:])
             elif keyval[0] == "author-mail":
                 self.blamechunk_email = keyval[1].lstrip("<").rstrip(">")
             elif keyval[0] == "author-time":
