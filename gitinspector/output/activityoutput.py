@@ -23,18 +23,24 @@ class ActivityOutput(Outputable):
         data = timeline.TimelineData(self.changes, self.weeks)
 
         if self.weeks:
-            periods = [ [d, datetime.datetime.strptime(d + "-1", "%YW%U-%w")]
+            periods = [ [d, datetime.datetime.strptime(d + "-1", "%GW%V-%w")]
                         for d in data.get_periods()]
+            period_ranges = [ d[1].strftime("%d/%m") + " - " + \
+                              (d[1]+datetime.timedelta(days=6)).strftime("%d/%m") \
+                              for d in periods ]
             first_period = periods[0][1]
             periods = [ [d[0], int((d[1]-first_period).days / 7)] \
                         for d in periods ]
         else:
             periods = [ [d, datetime.datetime.strptime(d, "%Y-%m")] for d in data.get_periods()]
+            period_ranges = [ d[1].strftime("%B").capitalize() for d in periods ]
             first_period = periods[0][1]
-            periods = [ [d[0], (d[1].year-first_period.year)*12 + (d[1].month-first_period.month)] \
+            periods = [ [d[0], \
+                         (d[1].year-first_period.year)*12 + (d[1].month-first_period.month)] \
                         for d in periods ]
         max_period = periods[-1][1]
         periods = { k[0]: k[1] for k in periods }
+        period_ranges = { k: p for k,p in zip(periods, period_ranges) }
         max_work   = max([el[1][2] for el in list(data.total_changes_by_period.items())])
         entries = { p: [] for p in periods.keys() }
         for k, v in data.entries.items():
@@ -49,6 +55,7 @@ class ActivityOutput(Outputable):
                            for a in self.changes.authors_by_responsibilities() }
         timeline_dict = {
             "periods": periods,
+            "period_ranges" : period_ranges,
             "max_period": max_period,
             "max_work": max_work,
             "authors": sorted_authors,

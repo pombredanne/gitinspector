@@ -48,7 +48,7 @@
       gaxis.selectAll(".tick line").attr("stroke", "#ccc").attr("y1", height-ybsep-60);
       gaxis.selectAll(".tick")
 	   .on('mouseover', function(d, i) {
-	       tooltip.html(d)
+	       tooltip.html(d + "<br/>" + timeline.period_ranges[d])
 		   .style("opacity", .8)
 		   .style("top", 0)
 		   .style("left", xsep + dx*i); })
