@@ -234,9 +234,12 @@ class Changes(object):
 
         interval.set_ref("HEAD")
         if config.branch == "--all":
-            lines = []
+            lines = { l: 0 for l in git_utils.commits(interval.get_since(),
+                                                      interval.get_until(), "--all") }
             for b in config.branches:
-                lines = lines + git_utils.commits(interval.get_since(), interval.get_until(), b)
+                for l in git_utils.commits(interval.get_since(), interval.get_until(), b):
+                    lines[l] = 1
+            lines = [ l for l in lines if lines[l] == 1 ]
         else:
             lines = git_utils.commits(interval.get_since(),
                                       interval.get_until(), config.branch)
