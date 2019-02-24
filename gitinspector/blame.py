@@ -82,8 +82,8 @@ class BlameThread(threading.Thread):
         if self.blamechunk_is_prior and interval.get_since():
             return
         try:
-            # author = self.changes.get_latest_author_by_email(self.blamechunk_email)
             author = self.blamechunk_author
+            email = self.blamechunk_email
         except KeyError:
             return
 
@@ -93,16 +93,16 @@ class BlameThread(threading.Thread):
 
             __blame_lock__.acquire() # Global lock used to protect calls from here...
 
-            if self.blames.get((author, self.filename), None) is None:
-                self.blames[(author, self.filename)] = BlameEntry()
+            if self.blames.get(((author, email), self.filename), None) is None:
+                self.blames[((author, email), self.filename)] = BlameEntry()
 
-            self.blames[(author, self.filename)].comments += comments
-            self.blames[(author, self.filename)].rows += 1
+            self.blames[((author, email), self.filename)].comments += comments
+            self.blames[((author, email), self.filename)].rows += 1
 
             if (self.blamechunk_time - self.changes.first_commit_date).days > 0:
                 new_skew = ((self.changes.last_commit_date - self.blamechunk_time).days /
                             (7.0 if self.useweeks else AVG_DAYS_PER_MONTH))
-                self.blames[(author, self.filename)].skew += new_skew
+                self.blames[((author, email), self.filename)].skew += new_skew
 
             __blame_lock__.release() # ...to here.
 
@@ -250,7 +250,7 @@ class Blame(object):
 
         return summed_blames
 
-    def authors_by_responsibilities(self):
+    def committers_by_responsibilities(self):
         wrk = [ (k[0],v.rows) for (k,v) in self.blames.items()]
         aut = set([k[0] for k in wrk])
         res = sorted(aut,

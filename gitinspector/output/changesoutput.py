@@ -50,15 +50,15 @@ class ChangesOutput(Outputable):
             total_changes += authorinfo_dict.get(i).insertions
             total_changes += authorinfo_dict.get(i).deletions
 
-        for entry in author_list:
-            authorinfo = authorinfo_dict.get(entry)
+        for committer in author_list:
+            authorinfo = authorinfo_dict.get(committer)
             percentage = 0 if total_changes == 0 else \
                 (authorinfo.insertions + authorinfo.deletions) / total_changes * 100
 
             data_array.append({
-                "avatar": "<img src=\"{0}\"/>".format(gravatar.get_url(self.changes.get_latest_email_by_author(entry))),
-                "color": self.changes.colors_by_author[entry],
-                "name":  entry,
+                "avatar": "<img src=\"{0}\"/>".format(gravatar.get_url(committer[1])),
+                "color": self.changes.committers[committer]["color"],
+                "name":  committer[0],
                 "commits" : authorinfo.commits,
                 "insertions" : authorinfo.insertions,
                 "deletions" : authorinfo.deletions,
@@ -85,13 +85,14 @@ class ChangesOutput(Outputable):
             message_json = "\t\t\t\"message\": \"" + HISTORICAL_INFO_TEXT() + "\",\n"
             changes_json = ""
 
-            for i in sorted(authorinfo_list):
-                author_email = self.changes.get_latest_email_by_author(i)
-                authorinfo = authorinfo_list.get(i)
-                percentage = 0 if total_changes == 0 else (authorinfo.insertions + authorinfo.deletions) / total_changes * 100
+            for committer in sorted(authorinfo_list):
+                (author_name, author_email) = committer
+                authorinfo = authorinfo_list.get(committer)
+                percentage = 0 if total_changes == 0 else \
+                    (authorinfo.insertions + authorinfo.deletions) / total_changes * 100
 
                 changes_json += "{\n"
-                changes_json += "\t\t\t\t\"name\": \"" + i + "\",\n"
+                changes_json += "\t\t\t\t\"name\": \"" + author_name + "\",\n"
                 changes_json += "\t\t\t\t\"email\": \"" + author_email + "\",\n"
                 changes_json += "\t\t\t\t\"gravatar\": \"" + gravatar.get_url(author_email) + "\",\n"
                 changes_json += "\t\t\t\t\"commits\": " + str(authorinfo.commits) + ",\n"
@@ -128,7 +129,7 @@ class ChangesOutput(Outputable):
                 percentage = 0 if total_changes == 0 else \
                              (authorinfo.insertions + authorinfo.deletions) / total_changes * 100
 
-                self.out.write(terminal.ljust(i, 20)[0:20 - terminal.get_excess_column_count(i)])
+                self.out.write(terminal.ljust(i[0], 20)[0:20 - terminal.get_excess_column_count(i[0])])
                 self.out.write(str(authorinfo.commits).rjust(14))
                 self.out.write(str(authorinfo.insertions).rjust(14))
                 self.out.write(str(authorinfo.deletions).rjust(15))
@@ -149,13 +150,13 @@ class ChangesOutput(Outputable):
             message_xml = "\t\t<message>" + HISTORICAL_INFO_TEXT() + "</message>\n"
             changes_xml = ""
 
-            for i in sorted(authorinfo_list):
-                author_email = self.changes.get_latest_email_by_author(i)
-                authorinfo = authorinfo_list.get(i)
+            for committer in sorted(authorinfo_list):
+                (author_name, author_email) = committer
+                authorinfo = authorinfo_list.get(committer)
                 percentage = 0 if total_changes == 0 else (authorinfo.insertions + authorinfo.deletions) / total_changes * 100
 
                 changes_xml += "\t\t\t<author>\n"
-                changes_xml += "\t\t\t\t<name>" + i + "</name>\n"
+                changes_xml += "\t\t\t\t<name>" + author_name + "</name>\n"
                 changes_xml += "\t\t\t\t<email>" + author_email + "</email>\n"
                 changes_xml += "\t\t\t\t<gravatar>" + gravatar.get_url(author_email) + "</gravatar>\n"
                 changes_xml += "\t\t\t\t<commits>" + str(authorinfo.commits) + "</commits>\n"

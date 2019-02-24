@@ -115,11 +115,6 @@ class Commit(object):
             author = commit_line[3].strip()
             email = commit_line[4].strip()
             (real_author, real_email) = Commit.get_alias(author, email, config)
-            changes.emails_by_author[author] = real_email
-            changes.authors_by_email[email]  = real_author
-            if changes.colors_by_author.get(real_author) is None:
-                changes.colors_by_author[real_author] = AuthorColors.get_new_color()
-            changes.colors_by_author[author] = changes.colors_by_author[real_author]
             return (real_author, real_email)
         except IndexError:
             return "Unknown Author"
@@ -262,7 +257,7 @@ class Changes(object):
 
                     if self.config.progress and format.is_interactive_format():
                         terminal.output_progress(progress_text, i, len(lines))
-            else:
+            else: # Create one last thread
                 if CHANGES_PER_THREAD - 1 != i % CHANGES_PER_THREAD:
                     entry = entry.decode("utf-8", "replace").strip()
                     second_hash = entry
@@ -293,9 +288,7 @@ class Changes(object):
         try:
             self.authors.update(other.authors)
             self.authors_dateinfo.update(other.authors_dateinfo)
-            self.authors_by_email.update(other.authors_by_email)
-            self.emails_by_author.update(other.emails_by_author)
-            self.colors_by_author.update(other.colors_by_author)
+            self.committers.update(other.committers)
 
             for commit in other.commits:
                 bisect.insort(self.commits, commit)
@@ -323,32 +316,19 @@ class Changes(object):
     def get_authorinfo_list(self):
         if not self.authors:
             for i in self.commits:
-                self.update_dict_commit(self.authors, i.author, i)
+                self.update_dict_commit(self.authors, (i.author, i.email), i)
 
         return copy.deepcopy(self.authors)
 
     def get_authordateinfo_list(self):
         if not self.authors_dateinfo:
             for i in self.commits:
-                self.update_dict_commit(self.authors_dateinfo, (i.date, i.author), i)
+                self.update_dict_commit(self.authors_dateinfo, (i.date, (i.author, i.email)), i)
 
         return copy.deepcopy(self.authors_dateinfo)
 
-    def get_latest_author_by_email(self, email):
-        if not hasattr(email, "decode"):
-            email = str.encode(email)
-        try:
-            email = email.decode("unicode_escape", "ignore")
-        except UnicodeEncodeError:
-            pass
-
-        return self.authors_by_email[email]
-
-    def get_latest_email_by_author(self, name):
-        return self.emails_by_author[name]
-
     def authors_by_responsibilities(self):
-        wrk = [(c.author, sum([f.insertions + f.deletions for f in c.filediffs]))
+        wrk = [((c.author, c.email), sum([f.insertions + f.deletions for f in c.filediffs]))
                for c in self.commits]
         aut = set([k[0] for k in wrk])
         res = sorted(aut,

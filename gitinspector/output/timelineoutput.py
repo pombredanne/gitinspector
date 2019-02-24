@@ -45,7 +45,7 @@ class TimelineOutput(Outputable):
 
             timeline_data = timeline.TimelineData(self.changes, self.useweeks)
             periods = timeline_data.get_periods()
-            names = timeline_data.get_authors()
+            names = timeline_data.get_committers()
             (width, _unused) = terminal.get_size()
             max_periods_per_row = int((width - 21) / 11)
 
@@ -54,10 +54,12 @@ class TimelineOutput(Outputable):
 
     def output_html(self):
         timeline_xml = ""
+
         if self.changes.get_commits():
             timeline_data = timeline.TimelineData(self.changes, self.useweeks)
+
             periods = timeline_data.get_periods()
-            names = timeline_data.get_authors()
+            names = timeline_data.get_committers()
             max_periods_per_row = 8
 
             for i in range(0, len(periods), max_periods_per_row):
@@ -82,7 +84,7 @@ class TimelineOutput(Outputable):
             periods_json += "\t\t\t\"periods\": [\n\t\t\t"
 
             timeline_data = timeline.TimelineData(self.changes, self.useweeks)
-            names = timeline_data.get_authors()
+            names = timeline_data.get_committers()
 
             for period in timeline_data.get_periods():
                 name_json = "\t\t\t\t\"name\": \"" + str(period) + "\",\n"
@@ -121,7 +123,7 @@ class TimelineOutput(Outputable):
             periods_xml = "\t\t<periods length=\"{0}\">\n".format("week" if self.useweeks else "month")
 
             timeline_data = timeline.TimelineData(self.changes, self.useweeks)
-            names = timeline_data.get_authors()
+            names = timeline_data.get_committers()
 
             for period in timeline_data.get_periods():
                 name_xml = "\t\t\t\t<name>" + str(period) + "</name>\n"

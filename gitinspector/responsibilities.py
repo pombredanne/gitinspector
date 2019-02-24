@@ -22,11 +22,11 @@ class ResponsibiltyEntry(object):
 
 class Responsibilities(object):
     @staticmethod
-    def get(blame, author_name):
+    def get(blame, committer):
         author_blames = {}
 
         for i in blame.blames.items():
-            if author_name == i[0][0]:
+            if committer == i[0][0]:
                 total_rows = i[1].rows - i[1].comments
                 if total_rows > 0:
                     author_blames[i[0][1]] = total_rows

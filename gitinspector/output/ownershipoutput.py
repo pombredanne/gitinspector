@@ -9,23 +9,24 @@ class FileOwnerships(object):
     def __init__(self, changes):
         self.changes = changes
         self.owns = {}
-        self.authors = {}
+        self.committers = {}
 
-    def add(self, file, author, work, is_dir):
-        if not(author in self.authors):
-            self.authors[author] = self.changes.colors_by_author[author]
+    def add(self, file, committer, work, is_dir):
+        js_committer = committer[0] # Committers handled by just name and not email
+        if not(js_committer in self.committers):
+            self.committers[js_committer] = self.changes.committers[committer]["color"]
         sfile = file.split('/')
         if not(file in self.owns):
             self.owns[file] = { "work": {}, "parent": "", "is_dir" : is_dir, "name" : sfile[-1] }
-        if not(author in self.owns[file]["work"]):
-            self.owns[file]["work"][author] = work
+        if not(committer in self.owns[file]["work"]):
+            self.owns[file]["work"][js_committer] = work
         else:
-            self.owns[file]["work"][author] += work
+            self.owns[file]["work"][js_committer] += work
         sfile.pop()
         if (len(sfile) > 0):
             parent = "/".join(sfile)
             self.owns[file]["parent"] = parent
-            self.add(parent, author, work, "true")
+            self.add(parent, committer, work, "true")
 
     def compute_max_work(self):
         if not self.owns.values():
@@ -57,7 +58,7 @@ class OwnershipOutput(Outputable):
         with open(temp_file, 'r') as infile:
             src = string.Template( infile.read() )
             self.out.write(src.substitute(
-                authors=ownerships.authors,
+                authors=ownerships.committers,
                 ownerships=ownerships.owns,
                 max_work=max_work,
             ))

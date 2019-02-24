@@ -54,13 +54,14 @@ class BlameOutput(Outputable):
         data_array = []
 
         for entry in blames_list:
-            name = entry[0]
+            (name, email) = entry[0]
+
             data_array.append({
-                "avatar": "<img src=\"{0}\"/>".format(gravatar.get_url(self.changes.get_latest_email_by_author(name))),
-                "color": self.changes.colors_by_author[name],
+                "avatar": "<img src=\"{0}\"/>".format(gravatar.get_url(email)),
+                "color": self.changes.committers[entry[0]]["color"],
                 "name":  name,
                 "rows": entry[1].rows,
-                "stability": round(Blame.get_stability(name, entry[1].rows, self.changes),1),
+                "stability": round(Blame.get_stability(entry[0], entry[1].rows, self.changes),1),
                 "age": round(float(entry[1].skew) / entry[1].rows,1),
                 "comments": round(100.0 * entry[1].comments / entry[1].rows,2),
                 "ownership": round(100.0 *  entry[1].rows / total_blames,2),
@@ -79,9 +80,9 @@ class BlameOutput(Outputable):
         blame_json = ""
 
         for i in sorted(self.blames.get_summed_blames().items()):
-            author_email = self.changes.get_latest_email_by_author(i[0])
+            (author_name, author_email) = i[0]
 
-            name_json = "\t\t\t\t\"name\": \"" + i[0] + "\",\n"
+            name_json = "\t\t\t\t\"name\": \"" + author_name + "\",\n"
             email_json = "\t\t\t\t\"email\": \"" + author_email + "\",\n"
             gravatar_json = "\t\t\t\t\"gravatar\": \"" + gravatar.get_url(author_email) + "\",\n"
             rows_json = "\t\t\t\t\"rows\": " + str(i[1].rows) + ",\n"
@@ -108,7 +109,8 @@ class BlameOutput(Outputable):
                         terminal.rjust(_("Age"), 13) + terminal.rjust(_("% in comments"), 20) + "\n")
 
         for i in sorted(self.blames.get_summed_blames().items()):
-            self.out.write(terminal.ljust(i[0], 20)[0:20 - terminal.get_excess_column_count(i[0])])
+            committer = i[0]
+            self.out.write(terminal.ljust(committer[0], 20)[0:20 - terminal.get_excess_column_count(committer[0])])
             self.out.write(str(i[1].rows).rjust(11))
             self.out.write("{0:.1f}".format(Blame.get_stability(i[0], i[1].rows, self.changes)).rjust(15))
             self.out.write("{0:.1f}".format(float(i[1].skew) / i[1].rows).rjust(13))
@@ -119,13 +121,13 @@ class BlameOutput(Outputable):
         blame_xml = ""
 
         for i in sorted(self.blames.get_summed_blames().items()):
-            author_email = self.changes.get_latest_email_by_author(i[0])
+            (author_name, author_email) = i[0]
 
-            name_xml = "\t\t\t\t<name>" + i[0] + "</name>\n"
+            name_xml = "\t\t\t\t<name>" + author_name + "</name>\n"
             email_xml = "\t\t\t\t<email>" + author_email + "</email>\n"
             gravatar_xml = "\t\t\t\t<gravatar>" + gravatar.get_url(author_email) + "</gravatar>\n"
             rows_xml = "\t\t\t\t<rows>" + str(i[1].rows) + "</rows>\n"
-            stability_xml = ("\t\t\t\t<stability>" + "{0:.1f}".format(Blame.get_stability(i[0], i[1].rows,
+            stability_xml = ("\t\t\t\t<stability>" + "{0:.1f}".format(Blame.get_stability(author_name, i[1].rows,
                                                                                           self.changes)) + "</stability>\n")
             age_xml = ("\t\t\t\t<age>" + "{0:.1f}".format(float(i[1].skew) / i[1].rows) + "</age>\n")
             percentage_in_comments_xml = ("\t\t\t\t<percentage-in-comments>" +

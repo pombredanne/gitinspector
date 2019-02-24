@@ -43,16 +43,17 @@ class ActivityOutput(Outputable):
         period_ranges = { k: p for k,p in zip(periods, period_ranges) }
         max_work   = max([el[1][2] for el in list(data.total_changes_by_period.items())])
         entries = { p: [] for p in periods.keys() }
+
         for k, v in data.entries.items():
             author = k[0]
             period = k[1]
-            entries[period].append({ "author": author,
+            entries[period].append({ "author": author[0], # Just name and not email
                                      "work": v.insertions + v.deletions,
                                      "commit": [v.insertions, v.deletions, v.commits]})
         total_changes = {k: v[2] for k, v in data.total_changes_by_period.items()}
-
-        sorted_authors = { a: self.changes.colors_by_author[a]
+        sorted_authors = { a[0]: self.changes.committers[a]["color"] # Just name and not email
                            for a in self.changes.authors_by_responsibilities() }
+
         timeline_dict = {
             "periods": periods,
             "period_ranges" : period_ranges,

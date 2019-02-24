@@ -44,13 +44,13 @@ class ResponsibilitiesOutput(Outputable):
         self.out.writeln("\n" + textwrap.fill(RESPONSIBILITIES_INFO_TEXT() + ":",
                                               width=terminal.get_size()[0]))
 
-        for author in self.blame.authors_by_responsibilities():
+        for committer in self.blame.committers_by_responsibilities():
             responsibilities = sorted(((resp[1], resp[0])
-                                       for resp in resp.Responsibilities.get(self.blame, author)),
+                                       for resp in resp.Responsibilities.get(self.blame, committer)),
                                       reverse=True)
 
             if responsibilities:
-                self.out.writeln("\n" + author + " " + MOSTLY_RESPONSIBLE_FOR_TEXT() + ":")
+                self.out.writeln("\n" + committer[0] + " " + MOSTLY_RESPONSIBLE_FOR_TEXT() + ":")
 
                 for j, entry in enumerate(responsibilities):
                     (width, _unused) = terminal.get_size()
@@ -64,18 +64,19 @@ class ResponsibilitiesOutput(Outputable):
 
     def output_html(self):
         resp_xml = ""
-        for author in self.blame.authors_by_responsibilities():
+        for committer in self.blame.committers_by_responsibilities():
             responsibilities = sorted(((resp[1], resp[0])
-                                       for resp in resp.Responsibilities.get(self.blame, author)),
+                                       for resp in resp.Responsibilities.get(self.blame, committer)),
                                       reverse=True)
             if responsibilities:
                 resp_xml += "<div>"
+                color = self.changes.committers[committer]["color"]
                 rect = ("<svg width='16' height='16'><rect x='5' y='5' "
                         "width='16' height='16' fill='{0}'></rect></svg>").\
-                        format(self.changes.colors_by_author[author])
+                        format(color)
 
                 resp_xml += "<h4>{0} &nbsp; {1} {2}</h4>".\
-                    format(rect, author, MOSTLY_RESPONSIBLE_FOR_TEXT())
+                    format(rect, committer[0], MOSTLY_RESPONSIBLE_FOR_TEXT())
 
                 for j, entry in enumerate(responsibilities):
                     resp_xml += "<div" + (" class=\"odd\">" if j % 2 == 1 else ">") + \
@@ -98,16 +99,16 @@ class ResponsibilitiesOutput(Outputable):
         message_json = "\t\t\t\"message\": \"" + RESPONSIBILITIES_INFO_TEXT() + "\",\n"
         resp_json = ""
 
-        for author in self.blame.authors_by_responsibilities():
+        for committer in self.blame.committers_by_responsibilities():
             responsibilities = sorted(((resp[1], resp[0])
-                                       for resp in resp.Responsibilities.get(self.blame, author)),
+                                       for resp in resp.Responsibilities.get(self.blame, committer)),
                                       reverse=True)
 
             if responsibilities:
-                author_email = self.changes.get_latest_email_by_author(author)
+                (author_name, author_email) = committer
 
                 resp_json += "{\n"
-                resp_json += "\t\t\t\t\"name\": \"" + author + "\",\n"
+                resp_json += "\t\t\t\t\"name\": \"" + author_name + "\",\n"
                 resp_json += "\t\t\t\t\"email\": \"" + author_email + "\",\n"
                 resp_json += "\t\t\t\t\"gravatar\": \"" + gravatar.get_url(author_email) + "\",\n"
                 resp_json += "\t\t\t\t\"files\": [\n\t\t\t\t"
@@ -132,15 +133,14 @@ class ResponsibilitiesOutput(Outputable):
         message_xml = "\t\t<message>" + RESPONSIBILITIES_INFO_TEXT() + "</message>\n"
         resp_xml = ""
 
-        for author in self.blame.authors_by_responsibilities():
+        for committer in self.blame.committers_by_responsibilities():
+            (author_name, author_email) = committer
             responsibilities = sorted(((resp[1], resp[0])
-                                       for resp in resp.Responsibilities.get(self.blame, author)),
+                                       for resp in resp.Responsibilities.get(self.blame, committer)),
                                       reverse=True)
             if responsibilities:
-                author_email = self.changes.get_latest_email_by_author(author)
-
                 resp_xml += "\t\t\t<author>\n"
-                resp_xml += "\t\t\t\t<name>" + author + "</name>\n"
+                resp_xml += "\t\t\t\t<name>" + author_name + "</name>\n"
                 resp_xml += "\t\t\t\t<email>" + author_email + "</email>\n"
                 resp_xml += "\t\t\t\t<gravatar>" + gravatar.get_url(author_email) + "</gravatar>\n"
                 resp_xml += "\t\t\t\t<files>\n"

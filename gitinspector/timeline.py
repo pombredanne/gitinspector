@@ -48,8 +48,8 @@ class TimelineData(object):
             total_insertions = 0
             total_deletions = 0
 
-            for author in self.get_authors():
-                entry = self.entries.get((author[0], period), None)
+            for author in self.get_committers():
+                entry = self.entries.get((author, period), None)
                 if entry is not None:
                     total_insertions += entry.insertions
                     total_deletions += entry.deletions
@@ -63,8 +63,8 @@ class TimelineData(object):
     def get_total_changes_in_period(self, period):
         return self.total_changes_by_period[period]
 
-    def get_authors(self):
-        return sorted(set([(i[0][0], self.changes.get_latest_email_by_author(i[0][0])) for i in self.entries.items()]))
+    def get_committers(self):
+        return self.changes.committers
 
     def get_author_signs_in_period(self, author, period, multiplier):
         authorinfo = self.entries.get((author, period), None)
