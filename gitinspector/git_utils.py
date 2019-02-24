@@ -17,9 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
+import itertools
 import subprocess
 
 def local_branches():
+    """Returns the list of branches appearing as local references.
+    """
     branch_p = subprocess.Popen(["git", "branch", "--format=%(refname)"], bufsize=1,
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     branches = branch_p.communicate()[0].splitlines()
@@ -47,7 +50,7 @@ def sanitize_filename(file):
     return file
 
 def files(branch):
-    """Returns the list of the files in the given branch.
+    """Returns the list of the files appearing in the given branch.
     """
     ls_tree_p = subprocess.Popen(["git", "ls-tree", "--name-only", "-r",
                                   branch], bufsize=1,
@@ -59,6 +62,9 @@ def files(branch):
     return lines
 
 def commits(branch, since, until):
+    """Returns a list of SHA for the commits in the given branch, for the
+    given duration.
+    """
     git_command = filter(None, ["git", "rev-list", "--reverse", # "--no-merges", # For oavsa
                                 since, until, branch])
     git_rev_list_p = subprocess.Popen(git_command, bufsize=1,
@@ -67,3 +73,22 @@ def commits(branch, since, until):
     git_rev_list_p.wait()
     git_rev_list_p.stdout.close()
     return lines
+
+def commit_chunks(hashes, since, until, try_hard):
+    """Returns a list of commits containing the commit data with the
+    filediffs. Returned is a list of chunks, each chunk being one
+    commit represented by a list of lines. The return of this function
+    is intended to be handled by Commit.handle_diff_chunk.
+    """
+    git_command = filter(None,
+                     ["git", "log", "--reverse", "--pretty=---%n%ct|%cd|%H|%aN|%aE",
+                      "--stat=100000,8192", "--no-merges", "-w",
+                      since, until, "--date=short"] +
+                     (["-C", "-C", "-M"] if try_hard else []) + [ hashes ])
+    git_log_r = subprocess.Popen(git_command, bufsize=1, stdout=subprocess.PIPE)
+    lines = git_log_r.stdout.readlines()
+    git_log_r.wait()
+    git_log_r.stdout.close()
+    chunks = [ list(g) for (k,g) in itertools.groupby(lines, key=lambda l: l==b'---\n') ]
+    chunks = list(filter(lambda g:len(g)>1, chunks))
+    return chunks

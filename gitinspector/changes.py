@@ -90,14 +90,47 @@ class Commit(object):
             email = commit_line[4].strip()
             (self.author, self.email) = Commit.get_alias(author, email, self.config)
 
-    def __lt__(self, other):
-        return self.timestamp.__lt__(other.timestamp) # only used for sorting; we just consider the timestamp.
+    def __lt__(self, other): # only used for sorting; we just consider the timestamp.
+        return self.timestamp.__lt__(other.timestamp)
 
     def add_filediff(self, filediff):
         self.filediffs.append(filediff)
 
     def get_filediffs(self):
         return self.filediffs
+
+    @staticmethod
+    def handle_diff_chunk(config, changes, commits, chunk):
+        commit_line = chunk.pop(0).strip().\
+            decode("unicode_escape", "ignore").\
+            encode("latin-1", "replace").\
+            decode("utf-8", "replace")
+        (author, email) = Commit.get_author_and_email(config, changes, commit_line)
+        if (author, email) not in changes.committers:
+            changes.committers[(author, email)] = {
+                "color": AuthorColors.get_new_color() }
+        found_valid_extension = False
+        commit = Commit(commit_line, config)
+        has_been_filtered = (is_filtered(commit.author, Filters.AUTHOR) or \
+                             is_filtered(commit.email,  Filters.EMAIL) or \
+                             is_filtered(commit.sha,    Filters.REVISION) or \
+                             is_filtered(commit.sha,    Filters.MESSAGE))
+
+        if has_been_filtered:
+            return
+
+        for line in chunk:
+            line = line.strip().\
+                decode("unicode_escape", "ignore").\
+                encode("latin-1", "replace").\
+                decode("utf-8", "replace")
+            if FileDiff.is_filediff_line(line) and not has_been_filtered:
+                if is_acceptable_file_name(FileDiff.get_filename(line)):
+                    found_valid_extension = True
+                    filediff = FileDiff(line)
+                    commit.add_filediff(filediff)
+        if found_valid_extension:
+            bisect.insort(commits, commit)
 
     @staticmethod
     def get_alias(author, email, config):
@@ -149,53 +182,16 @@ class ChangesThread(threading.Thread):
         thread.start()
 
     def run(self):
-        git_command = filter(None,
-                             ["git", "log", "--reverse", "--pretty=%ct|%cd|%H|%aN|%aE",
-                              "--stat=100000,8192", "--no-merges", "-w",
-                              interval.get_since(), interval.get_until(),
-                              "--date=short"] +
-                             (["-C", "-C", "-M"] if self.config.hard else []) +
-                             [self.first_hash + self.second_hash])
-        git_log_r = subprocess.Popen(git_command, bufsize=1, stdout=subprocess.PIPE)
-        lines = git_log_r.stdout.readlines()
-        git_log_r.wait()
-        git_log_r.stdout.close()
-
-        commit = None
-        found_valid_extension = False
-        has_been_filtered = False
+        chunks =  git_utils.commit_chunks("--all" if (self.config.branch == "--all") \
+                                          else (self.first_hash + self.second_hash), \
+                                          interval.get_since(), interval.get_until(), \
+                                          self.config.hard)
         commits = []
 
         __changes_lock__.acquire() # Global lock used to protect calls from here...
 
-        for i in lines:
-            j = i.strip().decode("unicode_escape", "ignore")
-            j = j.encode("latin-1", "replace")
-            j = j.decode("utf-8", "replace")
-
-            if Commit.is_commit_line(j):
-                (author, email) = Commit.get_author_and_email(self.config, self.changes, j)
-
-            if Commit.is_commit_line(j) or i is lines[-1]:
-                if found_valid_extension:
-                    bisect.insort(commits, commit)
-
-                found_valid_extension = False
-                has_been_filtered = False
-                commit = Commit(j, self.config)
-
-                if Commit.is_commit_line(j) and \
-                   (is_filtered(commit.author, Filters.AUTHOR) or \
-                    is_filtered(commit.email,  Filters.EMAIL) or \
-                    is_filtered(commit.sha,    Filters.REVISION) or \
-                    is_filtered(commit.sha,    Filters.MESSAGE)):
-                    has_been_filtered = True
-
-            if FileDiff.is_filediff_line(j) and not has_been_filtered:
-                if is_acceptable_file_name(FileDiff.get_filename(j)):
-                    found_valid_extension = True
-                    filediff = FileDiff(j)
-                    commit.add_filediff(filediff)
+        for chunk in chunks:
+            Commit.handle_diff_chunk(self.config, self.changes, commits, chunk)
 
         self.changes.commits[self.offset // CHANGES_PER_THREAD] = commits
         __changes_lock__.release() # ...to here.
@@ -213,31 +209,19 @@ class Changes(object):
         changes.commits = []
         changes.authors = {}
         changes.authors_dateinfo = {}
-        changes.authors_by_email = {}
-        changes.emails_by_author = {}
-        changes.colors_by_author = {}
+        changes.committers = {}
         return changes
 
     def __init__(self, repo, config):
         self.commits = []
         self.authors = {}
         self.authors_dateinfo = {}
-        self.authors_by_email = {}
-        self.emails_by_author = {}
-        self.colors_by_author = {}
+        self.committers = {}
         self.config = config
 
         interval.set_ref("HEAD")
-        if config.branch == "--all":
-            lines = { l: 0 for l in git_utils.commits(interval.get_since(),
-                                                      interval.get_until(), "--all") }
-            for b in config.branches:
-                for l in git_utils.commits(interval.get_since(), interval.get_until(), b):
-                    lines[l] = 1
-            lines = [ l for l in lines if lines[l] == 1 ]
-        else:
-            lines = git_utils.commits(interval.get_since(),
-                                      interval.get_until(), config.branch)
+        lines = git_utils.commits(interval.get_since(),
+                                  interval.get_until(), config.branch)
 
         if lines:
             progress_text = _(PROGRESS_TEXT)
