@@ -23,6 +23,8 @@ def local_branches():
     branch_p = subprocess.Popen(["git", "branch", "--format=%(refname)"], bufsize=1,
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     branches = branch_p.communicate()[0].splitlines()
+    branches = [ b.decode("utf-8", "replace") for b in branches ]
+    branches = [ b for b in branches if b.startswith("refs") ] # Filter detached HEADs
     branch_p.wait()
     branch_p.stdout.close()
     return branches
