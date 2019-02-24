@@ -57,7 +57,7 @@ def files(branch):
     return lines
 
 def commits(branch, since, until):
-    git_command = filter(None, ["git", "rev-list", "--reverse", "--no-merges",
+    git_command = filter(None, ["git", "rev-list", "--reverse", # "--no-merges", # For oavsa
                                 since, until, branch])
     git_rev_list_p = subprocess.Popen(git_command, bufsize=1,
                                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
