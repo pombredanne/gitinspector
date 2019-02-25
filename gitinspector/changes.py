@@ -128,7 +128,9 @@ class Commit(object):
                 encode("latin-1", "replace").\
                 decode("utf-8", "replace")
             if FileDiff.is_filediff_line(line) and not has_been_filtered:
+                file_name = FileDiff.get_filename(line)
                 if is_acceptable_file_name(FileDiff.get_filename(line)):
+                    changes.files.append(file_name)
                     found_valid_extension = True
                     filediff = FileDiff(line)
                     commit.add_filediff(filediff)
@@ -213,6 +215,7 @@ class Changes(object):
         changes.authors = {}
         changes.authors_dateinfo = {}
         changes.committers = {}
+        changes.files = []
         return changes
 
     def __init__(self, repo, config):
@@ -220,6 +223,7 @@ class Changes(object):
         self.authors = {}
         self.authors_dateinfo = {}
         self.committers = {}
+        self.files = []
         self.config = config
 
         interval.set_ref("HEAD")
@@ -281,6 +285,8 @@ class Changes(object):
                 bisect.insort(self.commits, commit)
             if not self.commits and not other.commits:
                 self.commits = []
+
+            self.changes.files.update(other.files)
 
             return self
         except AttributeError:

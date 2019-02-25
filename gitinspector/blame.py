@@ -111,10 +111,12 @@ class BlameThread(threading.Thread):
             __blame_lock__.release() # ...to here.
 
     def run(self):
-        git_blame_cmd = subprocess.Popen(self.blame_command, bufsize=1, stdout=subprocess.PIPE)
+        git_blame_cmd = subprocess.Popen(self.blame_command, bufsize=1, stdout=subprocess.PIPE,
+                                         stderr=subprocess.PIPE)
         rows = git_blame_cmd.stdout.readlines()
         git_blame_cmd.wait()
         git_blame_cmd.stdout.close()
+        git_blame_cmd.stderr.close()
 
         self.__clear_blamechunk_info__()
 
@@ -161,13 +163,14 @@ class Blame(object):
 
         if self.config.branch == "--all":
             # Apply an heuristic to compute the blames on all the
-            # branches : The files taken into account are the more
+            # branches : The files taken into account are the most
             # recent ones over all the branches.
             branches = self.config.branches
-            lines = {}
-            times = {}
+            lines = {} # Associates files to branch
+            times = {} # Associates files to time
             for b in branches:
-                for f in git_utils.files(b):
+                # for f in git_utils.files(b):
+                for f in changes.files:
                     if f in lines:
                         if not(f in times):
                             times[f] = git_utils.last_commit(lines[f], f)
@@ -213,6 +216,7 @@ class Blame(object):
             # We also have to release them for future use.
             for i in range(0, NUM_THREADS):
                 __thread_lock__.release()
+
 
     def __iadd__(self, other):
         try:
