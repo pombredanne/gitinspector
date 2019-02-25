@@ -22,6 +22,7 @@ import copy
 import datetime
 import multiprocessing
 import os
+import re
 import subprocess
 import threading
 from .filtering import Filters, is_filtered, is_acceptable_file_name
@@ -73,7 +74,9 @@ class FileDiff(object):
 
     @staticmethod
     def get_filename(string):
-        return string.split("|")[0].strip().strip("{}").strip("\"").strip("'")
+        file_name = string.split("|")[0].strip()
+        file_name = re.sub(r"^([^\{]*)\{([^\}]*) => ([^\}]*)\}.*$", r"\1\3", file_name)
+        return file_name.strip("{}").strip("\"").strip("'")
 
 
 class Commit(object):
