@@ -34,11 +34,15 @@ def local_branches():
 
 def last_commit(branch, file):
     """Returns the date for the last commit on a file in a branch, in the
-       Unix format.
+       Unix format, 0 if the file does not belong to the branch.
     """
     log_p = subprocess.Popen(["git", "log", "-1", "--format=%at", branch, file], bufsize=1,
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    date = int(log_p.communicate()[0].strip().decode("utf-8"))
+    date_s = log_p.communicate()[0].strip().decode("utf-8")
+    try:
+        date = int(date_s)
+    except ValueError:
+        date = 0
     log_p.wait()
     log_p.stdout.close()
     return date
