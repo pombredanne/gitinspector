@@ -93,6 +93,10 @@ class BlameThread(threading.Thread):
 
             __blame_lock__.acquire() # Global lock used to protect calls from here...
 
+            if (author, email) not in self.changes.committers:
+                self.changes.committers[(author, email)] = { "color" : "#aaaaaa",
+                                                             "committer" : False }
+
             if self.blames.get(((author, email), self.filename), None) is None:
                 self.blames[((author, email), self.filename)] = BlameEntry()
 
