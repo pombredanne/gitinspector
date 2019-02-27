@@ -80,6 +80,26 @@ class MoGenerate(distutils.cmd.Command):
             subprocess.check_call(command)
 
 
+class FastTest(distutils.cmd.Command):
+    """A custom command to apply the quickest tests."""
+
+    description = 'run only the quickest tests'
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        command = [ "python", "-m", "unittest",
+                    "tests/test_comment.py",
+                    "tests/test_basic_repository.py",
+                    "tests/test_trie_repository.py",
+        ]
+        subprocess.check_call(command)
+
 setup(
         name = "gitinspector",
         version = __version__,
@@ -106,5 +126,6 @@ setup(
         cmdclass = {
             'generate_mo': MoGenerate,
             'coverage' : Coverage,
+            'fast_test' : FastTest,
         },
 )
