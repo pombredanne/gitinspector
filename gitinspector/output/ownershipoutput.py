@@ -18,7 +18,7 @@ class FileOwnerships(object):
         sfile = file.split('/')
         if not(file in self.owns):
             self.owns[file] = { "work": {}, "parent": "", "is_dir" : is_dir, "name" : sfile[-1] }
-        if not(committer in self.owns[file]["work"]):
+        if not(js_committer in self.owns[file]["work"]):
             self.owns[file]["work"][js_committer] = work
         else:
             self.owns[file]["work"][js_committer] += work

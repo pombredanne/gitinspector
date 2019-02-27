@@ -133,6 +133,7 @@ class Runner(object):
 
         os.chdir(previous_directory)
 
+
     def __output__(self):
         """
         Output the results of the run.
