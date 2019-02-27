@@ -97,6 +97,7 @@ class FastTest(distutils.cmd.Command):
                     "tests/test_comment.py",
                     "tests/test_basic_repository.py",
                     "tests/test_trie_repository.py",
+                    "tests/test_metrics.py",
         ]
         subprocess.check_call(command)
 
