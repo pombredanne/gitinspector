@@ -86,13 +86,12 @@ def commit_chunks(hashes, since, until, try_hard):
     """
     git_command = filter(None,
                      ["git", "log", "--reverse", "--pretty=---%n%ct|%cd|%H|%aN|%aE",
-                      "--stat=100000,8192", "--no-merges", "-w",
-                      since, until, "--date=short"] +
+                      "--stat=100000,8192", "-w", since, until, "--date=short"] +
                      (["-C", "-C", "-M"] if try_hard else []) + [ hashes ])
     git_log_r = subprocess.Popen(git_command, bufsize=1, stdout=subprocess.PIPE)
     lines = git_log_r.stdout.readlines()
     git_log_r.wait()
     git_log_r.stdout.close()
     chunks = [ list(g) for (k,g) in itertools.groupby(lines, key=lambda l: l==b'---\n') ]
-    chunks = list(filter(lambda g:len(g)>1, chunks))
+    chunks = list(filter(lambda g:len(g)>1, chunks)) # Strip merges
     return chunks
