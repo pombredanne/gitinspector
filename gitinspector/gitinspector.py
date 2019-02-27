@@ -41,11 +41,19 @@ localization.init()
 
 # The list of extensions that are analyzed when no filter is
 # specified for the files.
-DEFAULT_EXTENSIONS = ["*.java",
-                      "*.c",    "*.cc",   "*.cpp",
-                      "*.h",    "*.hh",   "*.hpp",
-                      "*.py",   "*.glsl", "*.rb",
-                      "*.js",   "*.sql"]
+DEFAULT_EXTENSIONS = ["*.java", "*.cs", "*.rb",
+                      "*.c",    "*.cc", "*.cpp", ".cxx",
+                      "*.h",    "*.hh", "*.hpp", ".hxx",
+                      "*.i",    "*.ii", "*.ipp", ".ixx",
+                      "*.rst",  "*.go",  "*.ml", "*.mli",
+                      "*.js",   "*.pl",  "*.pm", "*.py", "*.sh",
+                      "*.tex",  "*.bib",
+                      "*.md",   "*.txt",
+                      "*.s",    "*.asm",
+                      "*.l",    "*.y",
+                      "*.glsl", "*.sql",
+                      "*akefile",
+                     ]
 
 class StdoutWriter(io.StringIO):
     def __init__(self):
