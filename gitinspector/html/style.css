@@ -141,13 +141,17 @@ div.tooltip {
     border-radius: 3px;
     pointer-events: none;
 }
+td.bad {
+    color: #f00;
+    background-color: #f99;
+}
 td.severe {
     color: #a00;
-    background-color: #faa;
+    background-color: #fbb;
 }
 td.medium {
     color: #b50;
-    background-color: #fb9;
+    background-color: #fc5;
 }
 td.minor {
     color: #660;
