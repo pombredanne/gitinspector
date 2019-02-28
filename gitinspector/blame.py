@@ -241,11 +241,6 @@ class Blame(object):
             return 100 if author_insertions == 0 else 100.0 * blamed_rows / author_insertions
         return 100
 
-    @staticmethod
-    def get_time(string):
-        time = re.search(r" \(.*?(\d\d\d\d-\d\d-\d\d)", string)
-        return time.group(1).strip()
-
     def get_summed_blames(self):
         summed_blames = {}
         for i in self.blames.items():
