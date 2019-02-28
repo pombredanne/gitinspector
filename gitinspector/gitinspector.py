@@ -24,10 +24,12 @@ import datetime
 import io
 import os
 import sys
+
 from .blame import Blame
 from .changes import Changes
 from .config import GitConfig
 from .git_utils import local_branches
+from .messages import error, warning, debug
 from .metrics import MetricsLogic
 from .repository import Repository
 from . import (basedir, filtering, format, interval,
@@ -303,10 +305,8 @@ def main():
         run.process()
 
     except (filtering.InvalidRegExpError, format.InvalidFormatError) as exception:
-        print(sys.argv[0], "\b:", exception.msg, file=sys.stderr)
-        print(_("Try `{0} --help' for more information.").
-              format(sys.argv[0]), file=sys.stderr)
-        sys.exit(2)
+        error(exception.msg)
+
 
 
 @atexit.register

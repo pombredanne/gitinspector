@@ -21,6 +21,8 @@ import os
 import subprocess
 import sys
 
+from .messages import error, warning, debug
+
 def get_basedir():
     if hasattr(sys, "frozen"): # exists when running via py2exe
         return sys.prefix
@@ -31,7 +33,10 @@ def get_basedir_git(path=None):
 
     if path is not None:
         previous_directory = os.getcwd()
-        os.chdir(path)
+        try:
+            os.chdir(path)
+        except FileNotFoundError:
+            error("%s: No such file or directory" % (path))
 
     # Test if the repository is bare
     with open(os.devnull, "w") as stderr:
