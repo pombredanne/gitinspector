@@ -44,11 +44,11 @@ class MetricsTest(unittest.TestCase):
         # Launch runner
         r = Runner(opts, None)
         r.process()
-        self.assertEqual(len(r.changes.commits), 28)  # 28 commits + 1 rejected (README) + 2 merges
+        self.assertEqual(len(r.changes.commits), 29)  # 29 commits + 2 merges
         b_commits = [c for c in r.changes.commits if c.author == "Bilbo Baggins"]
         self.assertEqual(len(b_commits), 11)  # 11 commits + 1 merge
         f_commits = [c for c in r.changes.commits if c.author == "Frodo Baggins"]
-        self.assertEqual(len(f_commits), 5)   # 5 commits + 1 rejected (README)
+        self.assertEqual(len(f_commits), 6)   # 6 commits
         s_commits = [c for c in r.changes.commits if c.author == "Samwise Gamgee"]
         self.assertEqual(len(s_commits), 6)   # 6 commits + 1 merge
 
