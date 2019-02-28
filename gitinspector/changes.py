@@ -157,10 +157,6 @@ class Commit(object):
         except IndexError:
             return "Unknown Author"
 
-    @staticmethod
-    def is_commit_line(string):
-        return string.split("|").__len__() == 5
-
 
 class AuthorInfo(object):
     email = None
