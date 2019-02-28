@@ -193,7 +193,7 @@ def __get_validated_git_repos__(config):
 
 
 def __parse_arguments__(args=None):
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, allow_abbrev=False, description=
                                      _("List information about the repository in REPOSITORY. If no repository is \n"
                                        "specified, the current directory is used. If multiple repositories are \n"
                                        "given, information will be merged into a unified statistical report."), epilog=
@@ -264,7 +264,10 @@ def __parse_arguments__(args=None):
     parser.add_argument('-z', '--legacy', action='store_true', help=
                         _("display the legacy outputs for additional information (may be buggy)"))
 
-    options = parser.parse_args() if args is None else parser.parse_args(args)
+    options, unknown = parser.parse_known_args() if args is None else parser.parse_known_args(args)
+    if (unknown):
+        error("%s: Unknown option" % unknown[0])
+
     options.progress = True  # Display progress messages
 
     if options.grading:
