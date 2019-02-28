@@ -48,11 +48,11 @@ DEFAULT_EXTENSIONS = ["*.java", "*.cs", "*.rb",
                       "*.rst",  "*.go",  "*.ml", "*.mli",
                       "*.js",   "*.pl",  "*.pm", "*.py", "*.sh",
                       "*.tex",  "*.bib",
-                      "*.md",   "*.txt",
+                      "*.md",   "*.txt",  "*.xml",
                       "*.s",    "*.asm",
                       "*.l",    "*.y",
                       "*.glsl", "*.sql",
-                      "*akefile",
+                      "*akefile", "README", "INSTALL",
                      ]
 
 class StdoutWriter(io.StringIO):
