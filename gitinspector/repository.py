@@ -24,7 +24,7 @@ import sys
 import tempfile
 
 from urllib.parse import urlparse
-
+from .messages import error, warning, debug
 
 class Repository(object):
     cloned_paths = []  # List of paths of temporary repositories
@@ -43,7 +43,7 @@ class Repository(object):
             git_clone.wait()
 
             if git_clone.returncode != 0:
-                sys.exit(git_clone.returncode)
+                error("%s: Unable to clone git repository." % path)
 
             cls.cloned_paths.append(path)
             return Repository(os.path.basename(parsed_url.path), path, config)

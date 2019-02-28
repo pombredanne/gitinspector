@@ -165,8 +165,7 @@ def __check_python_version__():
     """
     if sys.version_info < (3, 6):
         python_version = str(sys.version_info[0]) + "." + str(sys.version_info[1])
-        sys.exit(_("gitinspector requires at least Python 3.6"
-                   "to run (version {0} was found).").format(python_version))
+        error(_("gitinspector requires Python >=3.6 (version {0} was found).").format(python_version))
 
 
 def __get_validated_git_repos__(config):

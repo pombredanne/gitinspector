@@ -48,7 +48,7 @@ def get_basedir_git(path=None):
         bare_command.stdout.close()
 
     if bare_command.returncode != 0:
-        sys.exit(_("Error processing git repository at \"%s\"." % os.getcwd()))
+        error(_("%s: Unable to process git repository." % os.getcwd()))
 
     isbare = (isbare[0].decode("utf-8", "replace").strip() == "true")
     absolute_path = None
@@ -65,7 +65,7 @@ def get_basedir_git(path=None):
     absolute_command.stdout.close()
 
     if not absolute_path:
-        sys.exit(_("Unable to determine absolute path of git repository."))
+        error(_("%s: Unable to determine git repository absolute path." % os.getcwd()))
 
     if path is not None:
         os.chdir(previous_directory)
