@@ -1,6 +1,6 @@
 # coding: utf-8
 #
-# Copyright © 2012-2017 Ejwa Software. All rights reserved.
+# Copyright © 2018-2019 David Renault. All rights reserved.
 #
 # This file is part of gitinspector.
 #
@@ -20,6 +20,7 @@
 import itertools
 import subprocess
 
+
 def local_branches():
     """Returns the list of branches appearing as local references.
     """
@@ -31,6 +32,7 @@ def local_branches():
     branch_p.wait()
     branch_p.stdout.close()
     return branches
+
 
 def last_commit(branch, file):
     """Returns the date for the last commit on a file in a branch, in the
@@ -47,11 +49,13 @@ def last_commit(branch, file):
     log_p.stdout.close()
     return date
 
+
 def sanitize_filename(file):
     file = file.strip().decode("unicode_escape", "ignore")
     file = file.encode("latin-1", "replace")
     file = file.decode("utf-8", "replace").strip("\"").strip("'").strip()
     return file
+
 
 def files(branch):
     """Returns the list of the files appearing in the given branch.
@@ -65,6 +69,7 @@ def files(branch):
     ls_tree_p.stdout.close()
     return lines
 
+
 def commits(branch, since, until):
     """Returns a list of SHA for the commits in the given branch, for the
     given duration.
@@ -77,6 +82,7 @@ def commits(branch, since, until):
     git_rev_list_p.wait()
     git_rev_list_p.stdout.close()
     return lines
+
 
 def commit_chunks(hashes, since, until, try_hard):
     """Returns a list of commits containing the commit data with the

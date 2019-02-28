@@ -1,7 +1,7 @@
 # coding: utf-8
 #
-# Copyright © 2012-2015 Ejwa Software. All rights reserved.
-#
+# Copyright © 2012-2017 Ejwa Software. All rights reserved.
+#             2017-2019 David Renault.
 # This file is part of gitinspector.
 #
 # gitinspector is free software: you can redistribute it and/or modify
@@ -54,6 +54,7 @@ DEFAULT_EXTENSIONS = ["*.java", "*.cs", "*.rb",
                       "*.glsl", "*.sql",
                       "*akefile", "README", "INSTALL",
                      ]
+
 
 class StdoutWriter(io.StringIO):
     def __init__(self):
