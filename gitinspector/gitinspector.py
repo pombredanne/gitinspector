@@ -89,9 +89,9 @@ class Runner(object):
         format.select(config.format)
         # Initialize bounds on commits dates
         if config.since:
-            interval.set_since(config.since.strftime('%Y-%m-%d'))
+            interval.set_since(config.since.isoformat())
         if config.until:
-            interval.set_until(config.until.strftime('%Y-%m-%d'))
+            interval.set_until(config.until.isoformat())
 
         # The following objects are additive : they begin empty, and
         # then one instance is added to the Runner for each repository
