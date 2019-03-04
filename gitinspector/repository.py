@@ -29,6 +29,11 @@ from .messages import error, warning, debug
 class Repository(object):
     cloned_paths = []  # List of paths of temporary repositories
 
+    def __init__(self, name, location, config):
+        self.name = name
+        self.location = location
+        self.config = config
+
     @classmethod
     def create(cls, url, config):
         parsed_url = urlparse(url)
@@ -54,11 +59,6 @@ class Repository(object):
     def delete_all(cls):
         for path in cls.cloned_paths:
             shutil.rmtree(path, ignore_errors=True)
-
-    def __init__(self, name, location, config):
-        self.name = name
-        self.location = location
-        self.config = config
 
     def authors(self):
         authors_cmd = subprocess.Popen(["git", "-C", self.location, "shortlog",
