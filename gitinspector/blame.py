@@ -20,7 +20,6 @@
 import datetime
 import multiprocessing
 import re
-import subprocess
 import threading
 
 from .changes import FileDiff
@@ -54,14 +53,15 @@ class BlameThread(threading.Thread):
     blamechunk_revision = None
     blamechunk_time = None
 
-    def __init__(self, config, changes, blame_command, extension, blames, filename):
+    def __init__(self, config, changes, blames, branch, filename):
         __thread_lock__.acquire() # Lock controlling the number of threads running
         threading.Thread.__init__(self)
 
+        self.config = config
+        self.branch = branch
         self.useweeks = config.weeks
         self.changes = changes
-        self.blame_command = blame_command
-        self.extension = extension
+        self.extension = FileDiff.get_extension(filename)
         self.blames = blames
         self.filename = filename
 
@@ -111,12 +111,7 @@ class BlameThread(threading.Thread):
             __blame_lock__.release() # ...to here.
 
     def run(self):
-        git_blame_cmd = subprocess.Popen(self.blame_command, bufsize=1, stdout=subprocess.PIPE,
-                                         stderr=subprocess.PIPE)
-        rows = git_blame_cmd.stdout.readlines()
-        git_blame_cmd.wait()
-        git_blame_cmd.stdout.close()
-        git_blame_cmd.stderr.close()
+        rows = git_utils.blames(self.branch, interval.get_since(), self.filename, self.config.hard)
 
         self.__clear_blamechunk_info__()
 
@@ -194,15 +189,8 @@ class Blame(object):
                 cpt += 1
 
                 if is_acceptable_file_name(filename):
-                    blame_command = filter(None,
-                                           ["git", "blame",
-                                            "--line-porcelain", "-w"] +
-                                           (["-C", "-C", "-M"] if config.hard else []) +
-                                           [interval.get_since(), branch,
-                                            "--", filename])
-                    thread = BlameThread(config, changes, blame_command,
-                                         FileDiff.get_extension(filename),
-                                         self.__blames__, filename)
+                    thread = BlameThread(config, changes, self.__blames__,
+                                         branch, filename)
                     thread.daemon = True
                     thread.start()
 

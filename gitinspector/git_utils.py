@@ -101,3 +101,19 @@ def commit_chunks(hashes, since, until, try_hard):
     chunks = [ list(g) for (k,g) in itertools.groupby(lines, key=lambda l: l==b'---\n') ]
     chunks = list(filter(lambda g: g[0] != b'---\n', chunks))
     return chunks
+
+def blames(branch, since, filename, try_hard):
+    """Returns a list of data representing the blames for a file on a
+    given branch.
+    """
+    blame_command = filter(None,
+                           ["git", "blame", "--line-porcelain", "-w"] +
+                           (["-C", "-C", "-M"] if try_hard else []) +
+                           [since, branch, "--", filename])
+    git_blame_cmd = subprocess.Popen(blame_command, bufsize=1, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE)
+    rows = git_blame_cmd.stdout.readlines()
+    git_blame_cmd.wait()
+    git_blame_cmd.stdout.close()
+    git_blame_cmd.stderr.close()
+    return rows
