@@ -312,7 +312,7 @@ class Changes(object):
     def merge_commits(self):
         return [ c for c in self.__commits__ if c.type == CommitType.MERGE ]
 
-    def update_dict_commit(self, dict, key, commit):
+    def __update_dict_commit__(self, dict, key, commit):
         if dict.get(key, None) is None:
             dict[key] = AuthorInfo()
 
@@ -326,14 +326,14 @@ class Changes(object):
     def get_authorinfo_list(self):
         if not self.authors:
             for i in self.__commits__:
-                self.update_dict_commit(self.authors, (i.author, i.email), i)
+                self.__update_dict_commit__(self.authors, (i.author, i.email), i)
 
         return copy.deepcopy(self.authors)
 
     def get_authordateinfo_list(self):
         if not self.authors_dateinfo:
             for i in self.__commits__:
-                self.update_dict_commit(self.authors_dateinfo, (i.date, (i.author, i.email)), i)
+                self.__update_dict_commit__(self.authors_dateinfo, (i.date, (i.author, i.email)), i)
 
         return copy.deepcopy(self.authors_dateinfo)
 
