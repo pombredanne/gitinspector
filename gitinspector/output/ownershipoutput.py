@@ -12,7 +12,7 @@ class FileOwnerships(object):
         self.committers = {}
 
     def add(self, file, committer, work, is_dir):
-        js_committer = committer[0] # Committers handled by just name and not email
+        js_committer = committer[0] + " " + committer[1] # JS does not handle pairs
         if not(js_committer in self.committers):
             self.committers[js_committer] = self.changes.committers[committer]["color"]
         sfile = file.split('/')
