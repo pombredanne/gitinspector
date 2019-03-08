@@ -154,11 +154,11 @@ class Blame(object):
     @classmethod
     def empty(cls):
         blame = Blame.__new__(Blame)
-        blame.blames = {}
+        blame.__blames__ = {}
         return blame
 
     def __init__(self, repo, changes, config):
-        self.blames = {}
+        self.__blames__ = {}
         self.config = config
 
         if self.config.branch == "--all":
@@ -202,7 +202,7 @@ class Blame(object):
                                             "--", filename])
                     thread = BlameThread(config, changes, blame_command,
                                          FileDiff.get_extension(filename),
-                                         self.blames, filename)
+                                         self.__blames__, filename)
                     thread.daemon = True
                     thread.start()
 
@@ -220,7 +220,7 @@ class Blame(object):
 
     def __iadd__(self, other):
         try:
-            self.blames.update(other.blames)
+            self.__blames__.update(other.__blames__)
             return self
         except AttributeError:
             return other
@@ -241,9 +241,12 @@ class Blame(object):
             return 100 if author_insertions == 0 else 100.0 * blamed_rows / author_insertions
         return 100
 
+    def all_blames(self):
+        return self.__blames__
+
     def get_summed_blames(self):
         summed_blames = {}
-        for i in self.blames.items():
+        for i in self.__blames__.items():
             if summed_blames.get(i[0][0], None) is None:
                 summed_blames[i[0][0]] = BlameEntry()
 
@@ -254,8 +257,19 @@ class Blame(object):
         return summed_blames
 
     def committers_by_responsibilities(self):
-        wrk = [ (k[0],v.rows) for (k,v) in self.blames.items()]
+        wrk = [ (k[0],v.rows) for (k,v) in self.__blames__.items()]
         aut = set([k[0] for k in wrk])
         res = sorted(aut,
                      key=lambda a: -sum([w for (b,w) in wrk if b == a]))
         return res
+
+    def get_responsibilities(self, committer):
+        author_blames = {}
+
+        for i in self.__blames__.items():
+            if committer == i[0][0]:
+                total_rows = i[1].rows - i[1].comments
+                if total_rows > 0:
+                    author_blames[i[0][1]] = total_rows
+
+        return sorted(author_blames.items())

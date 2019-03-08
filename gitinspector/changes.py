@@ -23,7 +23,6 @@ import datetime
 import multiprocessing
 import os
 import re
-import subprocess
 import threading
 from .filtering import Filters, is_filtered, is_acceptable_file_name
 from . import format, git_utils, interval, terminal

@@ -22,7 +22,6 @@ import string
 import textwrap
 
 from .. import format, gravatar, terminal
-from .. import responsibilities as resp
 from .outputable import Outputable
 
 RESPONSIBILITIES_INFO_TEXT = lambda: _("The following responsibilities, by author, were found in the current "
@@ -46,7 +45,7 @@ class ResponsibilitiesOutput(Outputable):
 
         for committer in self.blame.committers_by_responsibilities():
             responsibilities = sorted(((resp[1], resp[0])
-                                       for resp in resp.Responsibilities.get(self.blame, committer)),
+                                       for resp in self.blame.get_responsibilities(committer)),
                                       reverse=True)
 
             if responsibilities:
@@ -66,7 +65,7 @@ class ResponsibilitiesOutput(Outputable):
         resp_xml = ""
         for committer in self.blame.committers_by_responsibilities():
             responsibilities = sorted(((resp[1], resp[0])
-                                       for resp in resp.Responsibilities.get(self.blame, committer)),
+                                       for resp in self.blame.get_responsibilities(committer)),
                                       reverse=True)
             if responsibilities:
                 resp_xml += "<div>"
@@ -101,7 +100,7 @@ class ResponsibilitiesOutput(Outputable):
 
         for committer in self.blame.committers_by_responsibilities():
             responsibilities = sorted(((resp[1], resp[0])
-                                       for resp in resp.Responsibilities.get(self.blame, committer)),
+                                       for resp in self.blame.get_responsibilities(committer)),
                                       reverse=True)
 
             if responsibilities:
@@ -136,7 +135,7 @@ class ResponsibilitiesOutput(Outputable):
         for committer in self.blame.committers_by_responsibilities():
             (author_name, author_email) = committer
             responsibilities = sorted(((resp[1], resp[0])
-                                       for resp in resp.Responsibilities.get(self.blame, committer)),
+                                       for resp in self.blame.get_responsibilities(committer)),
                                       reverse=True)
             if responsibilities:
                 resp_xml += "\t\t\t<author>\n"

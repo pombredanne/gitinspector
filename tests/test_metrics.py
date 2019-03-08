@@ -32,6 +32,8 @@ class MetricsTest(unittest.TestCase):
         zip_ref = zipfile.ZipFile("tests/resources/trie-repository.zip", 'r')
         zip_ref.extractall("build/tests")
         zip_ref.close()
+        interval.__since__ = ""
+        interval.__until__ = ""
 
     def tearDown(self):
         pass
@@ -75,3 +77,16 @@ class MetricsTest(unittest.TestCase):
         self.assertEqual(len(f_commits), 0)  # 0 commits
         s_commits = [c for c in r.changes.all_commits() if c.author == "Samwise Gamgee"]
         self.assertEqual(len(s_commits), 1)  # 1 commits
+
+    def test_all_blames(self):
+        opts = __parse_arguments__(args=['--silent',
+                                         'build/tests/trie-repository'])
+        opts.progress = False
+
+        # Launch runner
+        r = Runner(opts, None)
+        r.process()
+
+        # for b,c in r.blames.blames.items():
+        #     print(b)
+        #     print(c.rows)

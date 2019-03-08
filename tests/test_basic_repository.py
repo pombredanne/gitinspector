@@ -74,12 +74,13 @@ class BasicRepositoryTest(unittest.TestCase):
         self.assertEqual(authors[1], "Andrew Johnson")
 
         # Check the blames
-        self.assertEqual(len(r.blames.blames.keys()), 2)
-        blame_keys = sorted(list(r.blames.blames.keys()))
+        blames = r.blames.all_blames()
+        self.assertEqual(len(blames.keys()), 2)
+        blame_keys = sorted(list(blames.keys()))
         self.assertEqual(blame_keys[0], (('Abraham Lincoln', 'abe@gov.us'), 'README.txt'))
         self.assertEqual(blame_keys[1], (('Andrew Johnson', 'jojo@gov.us'), 'file.c'))
-        self.assertEqual(r.blames.blames[blame_keys[0]].rows, 1) # README.txt is 1 line long
-        self.assertEqual(r.blames.blames[blame_keys[1]].rows, 6) # main.c     is 6 lines long
+        self.assertEqual(blames[blame_keys[0]].rows, 1) # README.txt is 1 line long
+        self.assertEqual(blames[blame_keys[1]].rows, 6) # main.c     is 6 lines long
 
         # Check the metrics
         self.assertEqual(r.metrics.eloc, {}) # Both files are too short, no metrics to report
@@ -218,10 +219,11 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
         self.assertEqual(authors[0], "Andrew Johnson")
 
         # Check the blames
-        self.assertEqual(len(r.blames.blames.keys()), 1)
-        blame_keys = sorted(list(r.blames.blames.keys()))
+        blames = r.blames.all_blames()
+        self.assertEqual(len(blames.keys()), 1)
+        blame_keys = sorted(list(blames.keys()))
         self.assertEqual(blame_keys[0], (('Andrew Johnson', 'jojo@gov.us'), 'file.c'))
-        self.assertEqual(r.blames.blames[blame_keys[0]].rows, 6) # main.c is 6 lines long
+        self.assertEqual(blames[blame_keys[0]].rows, 6) # main.c is 6 lines long
 
         # Check the metrics
         self.assertEqual(r.metrics.eloc, {}) # Both files are too short, no metrics to report

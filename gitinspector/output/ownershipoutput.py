@@ -49,7 +49,7 @@ class OwnershipOutput(Outputable):
 
     def output_html(self):
         ownerships = FileOwnerships(self.changes)
-        for key,val in self.blames.blames.items():
+        for key,val in self.blames.all_blames().items():
             ownerships.add(key[1],key[0],val.rows,"false")
         max_work = ownerships.compute_max_work()
 
