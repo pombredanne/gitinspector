@@ -136,6 +136,7 @@ div.tooltip {
     text-align: center;
     padding: 5px;
     font: 12px sans-serif;
+    min-width: 200px;
     background: white;
     border: 1px solid black;
     border-radius: 3px;

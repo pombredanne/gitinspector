@@ -14,7 +14,7 @@
     </div>
 
     <script>
-      (function () {
+     (function () {
       var timeline = $timeline;
       var svg = d3.select("svg#timeline_svg"),
           xsep = 200, ysep = 80, ybsep = 50,
@@ -47,12 +47,12 @@
            .style("text-anchor", "start");
       gaxis.selectAll(".tick line").attr("stroke", "#ccc").attr("y1", height-ybsep-60);
       gaxis.selectAll(".tick")
-	   .on('mouseover', function(d, i) {
-	       tooltip.html(d + "<br/>" + timeline.period_ranges[d])
-		   .style("opacity", .8)
-		   .style("top", 0)
-		   .style("left", xsep + dx*i); })
-	   .on('mouseout', function() { tooltip.style("opacity", 0); });
+           .on('mouseover', function(d, i) {
+               tooltip.html(d + "<br/>" + timeline.period_ranges[d])
+                   .style("opacity", .8)
+                   .style("top", 0)
+                   .style("left", xsep + dx*i); })
+           .on('mouseout', function() { tooltip.style("opacity", 0); });
 
       var cAxis = d3.axisBottom(x).tickFormat(d => timeline.changes[d]);
       var uaxis = svg.append("g").attr("transform", "translate(0," + (height-ybsep+10) + ")");
@@ -71,14 +71,15 @@
               var b = height-ybsep;
               commits.sort(sort_fun).forEach(function(c) {
                   var work = c["work"] * (height-ybsep-ysep) / timeline.max_work;
+                  var acol = timeline.authors[c["author"]]["color"];
                   b -= work;
                   gentries.append("rect").attr("x", a-dx/2).attr("y", b)
                           .attr("height", work).attr("width", dx)
-                          .attr("fill", timeline.authors[c["author"]])
+                          .attr("fill", acol)
                           .on("mouseover", function(d, i){
                               var coords = d3.mouse(this);
-                              svg.selectAll("rect[fill='" + timeline.authors[c["author"]] + "']")
-                                  .attr("fill", d3.color(timeline.authors[c["author"]]).brighter());
+                              svg.selectAll("rect[fill='" + acol + "']")
+                                  .attr("fill", d3.color(acol).brighter());
                               tooltip.html("<b>Author&nbsp;:</b>&nbsp;" + c["author"] +
                                            "<br/><b>Commits&nbsp;:</b>&nbsp;" + c["commit"][2] +
                                            "<br/><b>Work&nbsp;:</b>&nbsp;" + c["work"])
@@ -87,9 +88,9 @@
                                   .style("left", parseInt(d3.select(this).attr("x")) + dx/2);
                           }).on("mouseout", function(d, i){
                               svg.selectAll("rect[fill='" +
-                                            d3.color(timeline.authors[c["author"]]).brighter() +
+                                            d3.color(acol).brighter() +
                                             "']")
-                                  .attr("fill", timeline.authors[c["author"]])
+                                  .attr("fill", acol)
                               tooltip.style("opacity", 0);
                           });
               });
@@ -100,29 +101,31 @@
 
       var aheight = Math.min(dy, 50);
       Object.keys(timeline.authors).forEach(function (a) {
+          var acol = timeline.authors[a]["color"];
           gauths.append("text").attr("x", 30).attr("y", y(a)+7)
               .style("font-size", "x-small")
-              .text(a)
+              .text(timeline.authors[a]["name"])
+              .attr("title", timeline.authors[a]["email"])
               .on("mouseover", function(d, i){
-                  svg.selectAll("rect[fill='" + timeline.authors[a] + "']")
-                      .attr("fill", d3.color(timeline.authors[a]).brighter())
+                  svg.selectAll("rect[fill='" + acol + "']")
+                      .attr("fill", d3.color(acol).brighter())
               }).on("mouseout", function(d, i){
                   svg.selectAll("rect[fill='" +
-                                d3.color(timeline.authors[a]).brighter() + "']")
-                      .attr("fill", timeline.authors[a])
+                                d3.color(acol).brighter() + "']")
+                      .attr("fill", acol)
               }).on("click", function () {
                   generate_entries((u,v) => (u["author"] == a) ? -1 : 1);
               });
           gauths.append("rect").attr("y", y(a)-10).attr("height", 20)
               .attr("x", 0).attr("width", 20)
-              .attr("fill", timeline.authors[a]);
+              .attr("fill", acol);
       });
 
       generate_entries((a,b) => 1);
 
       // Register the div in the summary
       register_box("Activity timeline", "activity_div");
-      })();
+     })();
     </script>
 
   </div>
