@@ -57,7 +57,7 @@ class BlameOutput(Outputable):
             (name, email) = entry[0]
 
             data_array.append({
-                "avatar": "<img src=\"{0}\"/>".format(gravatar.get_url(email)),
+                "avatar": "<img src=\"{0}\" title=\"{1}\"/>".format(gravatar.get_url(email), email),
                 "color": self.changes.committers[entry[0]]["color"],
                 "name":  name,
                 "rows": entry[1].rows,

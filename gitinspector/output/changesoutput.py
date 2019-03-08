@@ -56,9 +56,9 @@ class ChangesOutput(Outputable):
                 (authorinfo.insertions + authorinfo.deletions) / total_changes * 100
 
             data_array.append({
-                "avatar": "<img src=\"{0}\"/>".format(gravatar.get_url(committer[1])),
+                "avatar": "<img src=\"{0}\" title=\"{1}\"/>".format(gravatar.get_url(committer[1]), committer[1]),
                 "color": self.changes.committers[committer]["color"],
-                "name":  committer[0],
+                "name": committer[0],
                 "commits" : authorinfo.commits,
                 "insertions" : authorinfo.insertions,
                 "deletions" : authorinfo.deletions,
