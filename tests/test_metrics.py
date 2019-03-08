@@ -32,11 +32,12 @@ class MetricsTest(unittest.TestCase):
         zip_ref = zipfile.ZipFile("tests/resources/trie-repository.zip", 'r')
         zip_ref.extractall("build/tests")
         zip_ref.close()
-        interval.__since__ = ""
-        interval.__until__ = ""
 
     def tearDown(self):
-        pass
+        filtering.clear()
+        interval.__since__ = ""
+        interval.__until__ = ""
+        shutil.rmtree("build/tests/trie-repository")
 
     def test_all_changes(self):
         opts = __parse_arguments__(args=['--silent',
@@ -79,7 +80,7 @@ class MetricsTest(unittest.TestCase):
         self.assertEqual(len(s_commits), 1)  # 1 commits
 
     def test_all_blames(self):
-        opts = __parse_arguments__(args=['--silent',
+        opts = __parse_arguments__(args=['--silent', #'-b', 'master'
                                          'build/tests/trie-repository'])
         opts.progress = False
 
@@ -87,6 +88,17 @@ class MetricsTest(unittest.TestCase):
         r = Runner(opts, None)
         r.process()
 
-        # for b,c in r.blames.blames.items():
-        #     print(b)
-        #     print(c.rows)
+        blames = r.blames.all_blames()
+        r_blames = [ (c[0], blames[c].rows) for c in blames if c[1] == "README" ]
+        self.assertEqual(len(r_blames), 1)
+        r_blames_1 = r_blames[0]
+        self.assertEqual(r_blames_1[0][0], "Frodo Baggins")
+        self.assertEqual(r_blames_1[1],    8)
+        t_blames = [ (c[0], blames[c].rows) for c in blames if c[1] == "src/trie.c" ]
+        self.assertEqual(len(t_blames), 5)
+        t_blames_1 = [ t for t in t_blames if t[0][0] == "Frodo Baggins" ][0]
+        self.assertEqual(t_blames_1[1], 41) # don't forget that blames are counted with "-w"
+        t_blames_2 = [ t for t in t_blames if t[0][0] == "Peregrin Took" ][0]
+        self.assertEqual(t_blames_2[1], 56)
+        t_blames_3 = [ t for t in t_blames if t[0][0] == "Bilbo Baggins" ][0]
+        self.assertEqual(t_blames_3[1], 109)
