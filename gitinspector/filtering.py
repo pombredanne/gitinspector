@@ -47,10 +47,6 @@ class InvalidRegExpError(ValueError):
         super(InvalidRegExpError, self).__init__(msg)
         self.msg = msg
 
-# -- Unused function
-# def get():
-#     return __filters__
-
 def __add_one_filter__(string,filter_type=Filters.FILE_IN):
     """
     Function that takes a string and records the corresponding filter
@@ -88,8 +84,10 @@ def clear():
 def get_filtered(filter_type=Filters.FILE_IN):
     return __filters__[filter_type][1]
 
-# Returns True iff there is at least one active filter
 def has_filtered():
+    """
+    Returns True iff there is at least one active filter.
+    """
     for filter in Filters:
         if __filters__[filter][1]:
             return True

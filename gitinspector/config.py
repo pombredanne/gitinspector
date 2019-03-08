@@ -19,8 +19,7 @@
 
 import ast
 import os
-import subprocess
-from . import filtering, format, interval
+from . import filtering, format, git_utils, interval
 
 
 class GitConfig(object):
@@ -30,23 +29,7 @@ class GitConfig(object):
         self.global_only = global_only
 
     def __read_git_config__(self, variable):
-        previous_directory = os.getcwd()
-        os.chdir(self.repo)
-        setting_cmd = subprocess.Popen(filter(None, ["git", "config",
-                                                     "--global" if self.global_only else "",
-                                                     "inspector." + variable]), bufsize=1,
-                                       stdout=subprocess.PIPE)
-        setting_cmd.wait()
-        os.chdir(previous_directory)
-
-        try:
-            setting = setting_cmd.stdout.readlines()[0].strip().decode("utf-8", "replace")
-        except IndexError:
-            setting = ""
-
-        setting_cmd.stdout.close()
-
-        return setting
+        return git_utils.config(self.repo, variable, self.global_only)
 
     def __read_git_config_bool__(self, variable):
         variable = self.__read_git_config__(variable)

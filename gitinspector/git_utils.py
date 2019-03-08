@@ -102,6 +102,7 @@ def commit_chunks(hashes, since, until, try_hard):
     chunks = list(filter(lambda g: g[0] != b'---\n', chunks))
     return chunks
 
+
 def blames(branch, since, filename, try_hard):
     """Returns a list of data representing the blames for a file on a
     given branch.
@@ -117,3 +118,21 @@ def blames(branch, since, filename, try_hard):
     git_blame_cmd.stdout.close()
     git_blame_cmd.stderr.close()
     return rows
+
+
+def config(repo, variable, global_only):
+    """Returns the value of a variable configured in a repository.
+    """
+    setting_cmd = subprocess.Popen(filter(None, ["git", "-C", repo, "config",
+                                                 "--global" if global_only else "",
+                                                 "inspector." + variable]), bufsize=1,
+                                   stdout=subprocess.PIPE)
+    setting_cmd.wait()
+
+    try:
+        setting = setting_cmd.stdout.readlines()[0].strip().decode("utf-8", "replace")
+    except IndexError:
+        setting = ""
+
+    setting_cmd.stdout.close()
+    return setting
