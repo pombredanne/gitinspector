@@ -11,24 +11,43 @@ commits = list(repo.iter_commits('--all'))
 
 print("Repository : {0}".format(repo))
 print("Commits : {0}".format(len(commits)))
-print("Last ten commits : ")
-for i in range(0,10):
-    print("{0} ({1}) : {2}".format(commits[i],
-                                   commits[i].author,
-                                   commits[i].message.strip()))
+print("Last five commits : ")
+for i in range(0,5):
+    print("{0} ({1} <{2}>)".format(commits[i],
+                                    commits[i].author.name,
+                                    commits[i].author.email))
+    print("{0} : {1}".format(commits[i].committed_datetime,
+                             commits[i].message.strip()))
     for f in commits[i].stats.files:
-        print("- {0} ({1}".format(f, commits[i].stats.files[f]))
+        print("- {0} ({1})".format(f.ljust(45), commits[i].stats.files[f]))
+
+# Gitinspector commits contain :
+# - sha
+# - author
+# - email
+# - timestamp (used to sort commits)
+# - date      (used in the TimelineData)
+# - filediffs (basically a list of [name, insertions, deletions])
 
 tree = repo.heads.master.commit.tree
 # print(tree.trees) # subdirectories
 # print(tree.blobs) # simple files
 all_files = list(tree.traverse())
-for f in all_files:
-    print(f.path)
+print("Number of files in repository : {0}".format(len(all_files)))
+# for f in all_files:
+#     print(f.path)
 
-file = tree['gitinspector/gitinspector.py']
+file = tree[0]
+print("Displaying blames on '{0}' : ".format(file.path))
 blames = repo.blame(repo.head, file.path)
-for b in blames:
-    commit = b[0]
-    code = b[1][0]
-    print("{0}\t{1}".format(str(commit.author).ljust(20),code))
+blame_authors = set([ b[0].author for b in blames])
+for a in blame_authors:
+    lines = sum([ len(b[1]) for b in blames if b[0].author == a ])
+    print("{0} : {1}".format(str(a).ljust(20),lines))
+
+# Gitinspector blames contain
+# - author
+# - file
+# - rows
+# - skew (computed in blame.py for code average age)
+# - comments (computed in blame.py for comment lines)
