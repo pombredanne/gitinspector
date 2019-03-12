@@ -305,13 +305,6 @@ class Changes(object):
         except AttributeError:
             return other
 
-    def all_commits(self):
-        return self.__commits__
-    def relevant_commits(self):
-        return [ c for c in self.__commits__ if c.type == CommitType.RELEVANT ]
-    def merge_commits(self):
-        return [ c for c in self.__commits__ if c.type == CommitType.MERGE ]
-
     def __update_dict_commit__(self, dict, key, commit):
         if dict.get(key, None) is None:
             dict[key] = AuthorInfo()
@@ -322,8 +315,20 @@ class Changes(object):
         for j in commit.get_filediffs():
             dict[key].insertions += j.insertions
             dict[key].deletions += j.deletions
+            dict[key].types[j.type] += j.insertions + j.deletions
+
+    def all_commits(self):
+        return self.__commits__
+    def relevant_commits(self):
+        return [ c for c in self.__commits__ if c.type == CommitType.RELEVANT ]
+    def merge_commits(self):
+        return [ c for c in self.__commits__ if c.type == CommitType.MERGE ]
 
     def get_authorinfo_list(self):
+        """
+        Returns a hash associating authors to AuthorInfo objects,
+        technically a number of insertions, deletions and commits.
+        """
         if not self.authors:
             for i in self.__commits__:
                 self.__update_dict_commit__(self.authors, (i.author, i.email), i)
@@ -331,6 +336,10 @@ class Changes(object):
         return copy.deepcopy(self.authors)
 
     def get_authordateinfo_list(self):
+        """
+        Returns a hash associating (authors * dates) to AuthorInfo objects.
+        Basically splits the return of get_authorinfo_list() on the dates.
+        """
         if not self.authors_dateinfo:
             for i in self.__commits__:
                 self.__update_dict_commit__(self.authors_dateinfo, (i.date, (i.author, i.email)), i)
@@ -338,6 +347,10 @@ class Changes(object):
         return copy.deepcopy(self.authors_dateinfo)
 
     def authors_by_responsibilities(self):
+        """
+        Returns a list of authors sorted according to their amount of
+        work, namely the sum of their insertions and deletions.
+        """
         wrk = [((c.author, c.email), sum([f.insertions + f.deletions for f in c.filediffs]))
                for c in self.__commits__]
         aut = set([k[0] for k in wrk])
