@@ -62,6 +62,7 @@ class ChangesOutput(Outputable):
                 "commits" : authorinfo.commits,
                 "insertions" : authorinfo.insertions,
                 "deletions" : authorinfo.deletions,
+                "types" : "code : {0}, doc : {1}, other : {2}".format(authorinfo.types[0], authorinfo.types[1], authorinfo.types[2]),
                 "changes" : round(percentage,2),
                 })
 

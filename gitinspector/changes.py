@@ -44,6 +44,29 @@ class CommitType(Enum):
     MERGE = "merge"
 
 
+class FileType(Enum):
+    """
+    An enumeration class representing the different commit types.
+    O for code
+    1 for documentation
+    2 for other
+    """
+    __types__ = {
+        "bib" : 1,
+        "c"   : 0,
+        "cpp" : 0,
+        "h"   : 0,
+        "hpp" : 0,
+        "py"  : 0,
+        "tex" : 1,
+        "txt" : 1,
+    }
+
+    @staticmethod
+    def create(extension):
+        return FileType.__types__.get(extension, 2)
+
+
 class AuthorColors(object):
     """
     A class providing different colors for the authors
@@ -70,6 +93,7 @@ class FileDiff(object):
 
         if commit_line.__len__() == 2:
             self.name = commit_line[0].strip()
+            self.type = FileType.create(FileDiff.get_extension(self.name))
             self.insertions = commit_line[1].count("+")
             self.deletions = commit_line[1].count("-")
 
@@ -176,10 +200,12 @@ class Commit(object):
 
 
 class AuthorInfo(object):
-    email = None
-    insertions = 0
-    deletions = 0
-    commits = 0
+    def __init__(self):
+        self.email = None
+        self.insertions = 0
+        self.deletions = 0
+        self.commits = 0
+        self.types = { 0 : 0, 1 : 0, 2 : 0 } # cf. FileTypes
 
 
 class ChangesThread(threading.Thread):
