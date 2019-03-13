@@ -52,9 +52,12 @@ class ChangesOutput(Outputable):
 
         for committer in author_list:
             authorinfo = authorinfo_dict.get(committer)
+            authorwork = authorinfo.insertions + authorinfo.deletions
             percentage = 0 if total_changes == 0 else \
-                (authorinfo.insertions + authorinfo.deletions) / total_changes * 100
-
+                authorwork / total_changes * 100
+            authorinfo.types = "<svg values='{0}' class='changes_svg_types'/>".format([
+                0 if authorwork == 0 else 100*a/authorwork
+                for a in list(authorinfo.types.values()) ])
             data_array.append({
                 "avatar": "<img src=\"{0}\" title=\"{1}\"/>".format(gravatar.get_url(committer[1]), committer[1]),
                 "color": self.changes.committers[committer]["color"],
@@ -62,7 +65,7 @@ class ChangesOutput(Outputable):
                 "commits" : authorinfo.commits,
                 "insertions" : authorinfo.insertions,
                 "deletions" : authorinfo.deletions,
-                "types" : "code : {0}, doc : {1}, other : {2}".format(authorinfo.types[0], authorinfo.types[1], authorinfo.types[2]),
+                "types" : authorinfo.types,
                 "changes" : round(percentage,2),
                 })
 
