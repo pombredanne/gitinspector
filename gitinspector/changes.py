@@ -47,25 +47,40 @@ class CommitType(Enum):
 class FileType(Enum):
     """
     An enumeration class representing the different commit types.
-    O for code
-    1 for documentation
-    2 for other
     """
+    OTHER  = 1000
+    BUILD  = 0
+    C      = 1
+    CPP    = 2
+    PYTHON = 3
+    SHELL  = 4
+    TEX    = 5
+    TXT    = 6
+    UI     = 7
+
     __types__ = {
-        "bib" : 1,
-        "c"   : 0,
-        "cpp" : 0,
-        "h"   : 0,
-        "hpp" : 0,
-        "py"  : 0,
-        "tex" : 1,
-        "txt" : 1,
+        "bib"   : TEX,
+        "c"     : C,
+        "cpp"   : CPP,
+        "cmake" : BUILD,
+        "h"     : C,
+        "hpp"   : CPP,
+        "py"    : PYTHON,
+        "sh"    : SHELL,
+        "tex"   : TEX,
+        "txt"   : TXT,
+        "ui"    : UI,
+        "Makefile" : BUILD,
     }
 
     @staticmethod
-    def create(extension):
-        return FileType.__types__.get(extension, 2)
-
+    def create(file):
+        _, rfile = os.path.split(file)
+        _, ext = os.path.splitext(rfile)
+        if ext:
+            return FileType.__types__.get(ext[1:], FileType.OTHER.value)
+        else:
+            return FileType.__types__.get(rfile, FileType.OTHER.value)
 
 class AuthorColors(object):
     """
@@ -93,7 +108,7 @@ class FileDiff(object):
 
         if commit_line.__len__() == 2:
             self.name = commit_line[0].strip()
-            self.type = FileType.create(FileDiff.get_extension(self.name))
+            self.type = FileType.create(self.name)
             self.insertions = commit_line[1].count("+")
             self.deletions = commit_line[1].count("-")
 
@@ -164,17 +179,15 @@ class Commit(object):
                     decode("unicode_escape", "ignore").\
                     encode("latin-1", "replace").\
                     decode("utf-8", "replace")
-                if FileDiff.is_filediff_line(line) and not has_been_filtered:
+                if FileDiff.is_filediff_line(line):
                     file_name = FileDiff.get_filename(line)
-                    if is_acceptable_file_name(FileDiff.get_filename(line)):
+                    if is_acceptable_file_name(file_name):
                         changes.files.append(file_name)
-                        found_valid_extension = True
                         filediff = FileDiff(line)
                         commit.add_filediff(filediff)
-            if found_valid_extension:
-                commit.type = CommitType.RELEVANT
-            else:
-                commit.type = CommitType.FILTERED
+                        commit.type = CommitType.RELEVANT
+                    else:
+                        commit.type = CommitType.FILTERED
 
         bisect.insort(commits, commit)
 
@@ -205,7 +218,7 @@ class AuthorInfo(object):
         self.insertions = 0
         self.deletions = 0
         self.commits = 0
-        self.types = { 0 : 0, 1 : 0, 2 : 0 } # cf. FileTypes
+        self.types = { }
 
 
 class ChangesThread(threading.Thread):
@@ -341,7 +354,10 @@ class Changes(object):
         for j in commit.get_filediffs():
             dict[key].insertions += j.insertions
             dict[key].deletions += j.deletions
-            dict[key].types[j.type] += j.insertions + j.deletions
+            if (j.type in dict[key].types):
+                dict[key].types[j.type] += j.insertions + j.deletions
+            else:
+                dict[key].types[j.type] = j.insertions + j.deletions
 
     def all_commits(self):
         return self.__commits__

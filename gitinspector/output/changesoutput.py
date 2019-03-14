@@ -22,6 +22,7 @@ import os
 import string
 import textwrap
 from .. import format, gravatar, terminal
+from ..changes import FileType
 from .outputable import Outputable
 
 HISTORICAL_INFO_TEXT = lambda: _("The following historical commit information, by author, was found in the repository")
@@ -43,6 +44,7 @@ class ChangesOutput(Outputable):
         author_list.sort(key=lambda x: authorinfo_dict[x].insertions + \
                          authorinfo_dict[x].deletions, reverse=True)
         data_array = []
+        types_array = {}
 
         # Compute total changes
         total_changes = 0.0
@@ -50,16 +52,25 @@ class ChangesOutput(Outputable):
             total_changes += authorinfo_dict.get(i).insertions
             total_changes += authorinfo_dict.get(i).deletions
 
+        total_types = set([FileType(k).name for c in author_list
+                           for k in authorinfo_dict.get(c).types])
+
         for committer in author_list:
             authorinfo = authorinfo_dict.get(committer)
             authorwork = authorinfo.insertions + authorinfo.deletions
             percentage = 0 if total_changes == 0 else \
                 authorwork / total_changes * 100
-            authorinfo.types = "<svg values='{0}' class='changes_svg_types'/>".format([
-                0 if authorwork == 0 else 100*a/authorwork
-                for a in list(authorinfo.types.values()) ])
+            authortypes = {FileType(k).name: 0 if authorwork == 0 else 100*a/authorwork
+                           for k,a in authorinfo.types.items() }
+            for t in total_types:
+                if not(t in authortypes):
+                    authortypes[t] = 0
+            authorinfo.types = "<svg class='changes_svg_types'>{0}</svg>".format(\
+                                    json.dumps(authortypes))
+
             data_array.append({
-                "avatar": "<img src=\"{0}\" title=\"{1}\"/>".format(gravatar.get_url(committer[1]), committer[1]),
+                "avatar": "<img src=\"{0}\" title=\"{1}\"/>".format(
+                    gravatar.get_url(committer[1]), committer[1]),
                 "color": self.changes.committers[committer]["color"],
                 "name": committer[0],
                 "commits" : authorinfo.commits,
@@ -75,6 +86,7 @@ class ChangesOutput(Outputable):
             src = string.Template( infile.read() )
             self.out.write(src.substitute(
                 changes_data=str(data_array),
+                changes_types=str(types_array),
             ))
 
     def output_json(self):
