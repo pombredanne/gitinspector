@@ -21,9 +21,10 @@ import os
 import string
 import textwrap
 
+from ..changes import FileType
 from ..filtering import get_filtered, has_filtered, Filters
-from .. import terminal
 from .outputable import Outputable
+from .. import terminal
 
 FILTERING_FILE_INFO_TEXT = lambda: _("The following files were excluded from the statistics due to the specified exclusion patterns")
 FILTERING_AUTHOR_INFO_TEXT = lambda: _("The following authors were excluded from the statistics due to the specified exclusion patterns")
@@ -38,6 +39,7 @@ class FilteringOutput(Outputable):
     def __init__(self, runner):
         Outputable.__init__(self)
         self.display = bool(runner.changes.all_commits())
+        self.changes = runner.changes
         self.out = runner.out
 
     @staticmethod
@@ -53,13 +55,23 @@ class FilteringOutput(Outputable):
         return filtering_xml
 
     def output_html(self):
-        if has_filtered():
+        authorinfo_dict = self.changes.get_authorinfo_list()
+        filtered_files = {k:v.types[FileType.OTHER] for k,v in authorinfo_dict.items()}
+        filtered_sizes = [len(s) for s in filtered_files.values()]
+        if has_filtered() or any(filtered_sizes):
+            other_files = "<table>"
+            for committer, files in filtered_files.items():
+                if (len(files)>0):
+                    other_files += "<tr><td>{0} &lt;{1}&gt;&nbsp;:</td><td>{2}</td></tr>".\
+                        format(committer[0], committer[1], files)
+            other_files += "</table>"
 
             temp_file = os.path.join(os.path.dirname(__file__),
                                      "../templates/filtering_output.html")
             with open(temp_file, 'r') as infile:
                 src = string.Template( infile.read() )
                 self.out.write(src.substitute(
+                    other_files=other_files,
                     files_filtering_text=FILTERING_FILE_INFO_TEXT(),
                     files_filtered=", ".join(get_filtered(Filters.FILE_OUT)),
                     authors_filtering_text=FILTERING_AUTHOR_INFO_TEXT(),

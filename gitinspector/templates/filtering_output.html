@@ -8,7 +8,9 @@
     <div id="filtering_box">
 
       <div id="files_filters" style="display:none">
-	$files_filtering_text : $files_filtered
+	$files_filtering_text :
+	<div id="files_filters_filter">$files_filtered</div>
+	<div id="files_filters_other">$other_files</div>
       </div>
       <div id="authors_filters" style="display:none">
 	$authors_filtering_text : $authors_filtered
@@ -24,9 +26,14 @@
 
     <script>
       (function () {
+	  var other_files = "$other_files";
+	  var files_filtered = "$files_filtered";
           // Hide the empty sections
-	  if ("$files_filtered".length > 0)
+	  if ((other_files.length > 0) || (files_filtered.length > 0)) {
 	      $$("#files_filters").css("display", "block");
+	      $$("#files_filters_filter").html(files_filtered);
+	      $$("#files_filters_other").html(other_files);
+	  }
 	  if ("$authors_filtered".length > 0)
 	      $$("#authors_filters").css("display", "block");
 	  if ("$emails_filtered".length > 0)

@@ -53,7 +53,7 @@ class ChangesOutput(Outputable):
             total_changes += authorinfo_dict.get(i).deletions
 
         total_types = set([FileType(k).name for c in author_list
-                           for k in authorinfo_dict.get(c).types])
+                           for k in authorinfo_dict.get(c).types if k != FileType.OTHER ])
 
         for committer in author_list:
             authorinfo = authorinfo_dict.get(committer)
@@ -61,12 +61,13 @@ class ChangesOutput(Outputable):
             percentage = 0 if total_changes == 0 else \
                 authorwork / total_changes * 100
             authortypes = {FileType(k).name: 0 if authorwork == 0 else 100*a/authorwork
-                           for k,a in authorinfo.types.items() }
+                           for k,a in authorinfo.types.items() if k != FileType.OTHER }
             for t in total_types:
                 if not(t in authortypes):
                     authortypes[t] = 0
             authorinfo.types = "<svg class='changes_svg_types'>{0}</svg>".format(\
-                                    json.dumps(authortypes))
+                                    json.dumps({ "relevant" : authortypes,
+                                                 "other" : len(authorinfo.types[FileType.OTHER]) }))
 
             data_array.append({
                 "avatar": "<img src=\"{0}\" title=\"{1}\"/>".format(
@@ -86,7 +87,6 @@ class ChangesOutput(Outputable):
             src = string.Template( infile.read() )
             self.out.write(src.substitute(
                 changes_data=str(data_array),
-                changes_types=str(types_array),
             ))
 
     def output_json(self):

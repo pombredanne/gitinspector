@@ -52,20 +52,28 @@ class FileType(Enum):
     BUILD  = 0
     C      = 1
     CPP    = 2
-    PYTHON = 3
-    SHELL  = 4
-    TEX    = 5
-    TXT    = 6
-    UI     = 7
+    GIT    = 3
+    JAVA   = 4
+    PYTHON = 5
+    SHELL  = 6
+    TEX    = 7
+    TXT    = 8
+    UI     = 9
 
     __types__ = {
         "bib"   : TEX,
         "c"     : C,
+        "cc"    : CPP,
         "cpp"   : CPP,
         "cmake" : BUILD,
+        ".gitignore" : GIT,
         "h"     : C,
+        "hh"    : CPP,
         "hpp"   : CPP,
+        "java"  : JAVA,
+        "md"    : TXT,
         "py"    : PYTHON,
+        "README" : TXT,
         "sh"    : SHELL,
         "tex"   : TEX,
         "txt"   : TXT,
@@ -78,9 +86,14 @@ class FileType(Enum):
         _, rfile = os.path.split(file)
         _, ext = os.path.splitext(rfile)
         if ext:
-            return FileType.__types__.get(ext[1:], FileType.OTHER.value)
+            key = ext[1:]
         else:
-            return FileType.__types__.get(rfile, FileType.OTHER.value)
+            key = rfile
+        type = FileType.__types__.get(key)
+        if (type is None):
+            return FileType.OTHER
+        else:
+            return FileType(type)
 
 class AuthorColors(object):
     """
@@ -107,7 +120,7 @@ class FileDiff(object):
         commit_line = string.split("|")
 
         if commit_line.__len__() == 2:
-            self.name = commit_line[0].strip()
+            self.name = FileDiff.get_filename(commit_line[0].strip())
             self.type = FileType.create(self.name)
             self.insertions = commit_line[1].count("+")
             self.deletions = commit_line[1].count("-")
@@ -218,7 +231,7 @@ class AuthorInfo(object):
         self.insertions = 0
         self.deletions = 0
         self.commits = 0
-        self.types = { }
+        self.types = { FileType.OTHER: set() }
 
 
 class ChangesThread(threading.Thread):
@@ -352,12 +365,15 @@ class Changes(object):
             dict[key].commits += 1
 
         for j in commit.get_filediffs():
-            dict[key].insertions += j.insertions
-            dict[key].deletions += j.deletions
-            if (j.type in dict[key].types):
-                dict[key].types[j.type] += j.insertions + j.deletions
+            if (j.type == FileType.OTHER):
+                dict[key].types[j.type].add(j.name)
             else:
-                dict[key].types[j.type] = j.insertions + j.deletions
+                dict[key].insertions += j.insertions
+                dict[key].deletions += j.deletions
+                if (j.type in dict[key].types):
+                    dict[key].types[j.type] += j.insertions + j.deletions
+                else:
+                    dict[key].types[j.type] = j.insertions + j.deletions
 
     def all_commits(self):
         return self.__commits__

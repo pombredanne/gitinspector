@@ -41,7 +41,6 @@
     <script>
       (function () {
           var changes_data = $changes_data;
-          var changes_types = $changes_types;
           // Control which data appear inside the pie
           var changes_filter = d => d.changes > 0.5;
           var changes_data_pie = changes_data.filter(changes_filter);
@@ -67,17 +66,24 @@
 
           // Generate the commit types
           d3.selectAll("svg.changes_svg_types").
-              attr("width", 83).
-              attr("height", 25).
+              attr("width", 113).
+              attr("height", 26).
               each(function () {
                   var el = d3.select(this);
                   var types = JSON.parse(el.html());
+		  var relevant = types["relevant"];
+		  var types_str = "";
+		  Object.keys(relevant).forEach(function (k) {
+		      if (relevant[k] > 0) {
+			  if (types_str.length > 0) { types_str = types_str + " / "; }
+			  types_str = types_str + k.toLowerCase() + ":" + relevant[k].toFixed(2) + "%"; }
+		  });
                   var dx = 1;
-                  Object.keys(types).sort().forEach( function(k,i) {
-                      var v = types[k];
+                  Object.keys(relevant).sort().forEach( function(k,i) {
+                      var v = relevant[k];
                       el.append("rect").
                           attr("width", 0.8*v).attr("x", dx).
-                          attr("height", 15).attr("y", 5).
+                          attr("height", 16).attr("y", 5).
                           attr("fill", d3.hsl(50*i,0.6,0.6)).
                           on("mouseover", function(d, i){
                               var r = d3.select(this);
@@ -86,12 +92,18 @@
                           on("mouseout", function(d, i){
                               var r = d3.select(this);
                               r.attr("fill", r.attr("oldfill")); }).
-                          append("title").html(k.toLowerCase() + " : " + v.toFixed(2) + "%");
+                          append("title").html(types_str);
                       dx += 0.8*v;
                   });
-                  el.append("rect").attr("width", 81).attr("height", 15).
-                      attr("x", 1).attr("y", 5).attr("stroke", "#333333").
+                  el.append("rect").attr("width", 81).attr("height", 16).
+                      attr("x", 1).attr("y", 5).attr("stroke", "#000000").
                       attr("fill", "none");
+		  if(types["other"] > 0)
+                      el.append("text").attr("x", 86).attr("y", 18).
+		      html("+" + types["other"]);
+		  else
+		      el.append("text").attr("x", 86).attr("y", 18).
+		      style("fill", "#aaaaaa").html("+" + types["other"]);
               });
 
           // Link pie chart sections with lines
