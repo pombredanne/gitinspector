@@ -194,13 +194,10 @@ class Commit(object):
                     decode("utf-8", "replace")
                 if FileDiff.is_filediff_line(line):
                     file_name = FileDiff.get_filename(line)
-                    if is_acceptable_file_name(file_name):
-                        changes.files.append(file_name)
-                        filediff = FileDiff(line)
-                        commit.add_filediff(filediff)
-                        commit.type = CommitType.RELEVANT
-                    else:
-                        commit.type = CommitType.FILTERED
+                    changes.files.append(file_name)
+                    filediff = FileDiff(line)
+                    commit.add_filediff(filediff)
+                    commit.type = CommitType.RELEVANT
 
         bisect.insort(commits, commit)
 
