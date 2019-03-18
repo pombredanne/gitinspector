@@ -41,7 +41,7 @@ class ChangesOutput(Outputable):
     def output_html(self):
         authorinfo_dict = self.changes.get_authorinfo_list()
         author_list = list(authorinfo_dict.keys())
-        author_list.sort(key=lambda x: authorinfo_dict[x].insertions + \
+        author_list.sort(key=lambda x: authorinfo_dict[x].insertions +
                          authorinfo_dict[x].deletions, reverse=True)
         data_array = []
         types_array = {}
@@ -53,8 +53,9 @@ class ChangesOutput(Outputable):
             total_changes += authorinfo_dict.get(i).deletions
 
         total_types = set([FileType(k).name for c in author_list
-                           for k in authorinfo_dict.get(c).types if k != FileType.OTHER ])
-
+                           for k in authorinfo_dict.get(c).types
+                           if k != FileType.OTHER])
+        max_other = 0
         for committer in author_list:
             authorinfo = authorinfo_dict.get(committer)
             authorwork = authorinfo.insertions + authorinfo.deletions
@@ -65,9 +66,11 @@ class ChangesOutput(Outputable):
             for t in total_types:
                 if not(t in authortypes):
                     authortypes[t] = 0
+            othertypes = len(authorinfo.types[FileType.OTHER])
+            max_other = max(max_other, othertypes)
             authorinfo.types = "<svg class='changes_svg_types'>{0}</svg>".format(\
                                     json.dumps({ "relevant" : authortypes,
-                                                 "other" : len(authorinfo.types[FileType.OTHER]) }))
+                                                 "other" :  othertypes }))
 
             data_array.append({
                 "avatar": "<img src=\"{0}\" title=\"{1}\"/>".format(
@@ -87,6 +90,7 @@ class ChangesOutput(Outputable):
             src = string.Template( infile.read() )
             self.out.write(src.substitute(
                 changes_data=str(data_array),
+                max_other=max_other,
             ))
 
     def output_json(self):

@@ -27,19 +27,21 @@ from .filtering import Filters, is_filtered, is_acceptable_file_name
 from . import comment, format, git_utils, interval, terminal
 
 NUM_THREADS = multiprocessing.cpu_count()
+AVG_DAYS_PER_MONTH = 30.4167
+
 
 class BlameEntry(object):
     """A simple record class that stores informations about a blame. All
     BlameEntry objects are stored into hashes (author, file) -> BlameEntry.
     """
     rows = 0
-    skew = 0 # Used when calculating average code age.
+    skew = 0     # Used when calculating average code age.
     comments = 0
+
 
 __thread_lock__ = threading.BoundedSemaphore(NUM_THREADS)
 __blame_lock__ = threading.Lock()
 
-AVG_DAYS_PER_MONTH = 30.4167
 
 class BlameThread(threading.Thread):
     """A class that launches a thread counting the blames for a given
@@ -76,8 +78,9 @@ class BlameThread(threading.Thread):
 
     def __handle_blamechunk_content__(self, content):
         author = None
-        (comments, self.is_inside_comment) = comment.handle_comment_block(self.is_inside_comment,
-                                                                          self.extension, content)
+        (comments, self.is_inside_comment) = \
+            comment.handle_comment_block(self.is_inside_comment,
+                                         self.extension, content)
 
         if self.blamechunk_is_prior and interval.get_since():
             return
@@ -111,7 +114,8 @@ class BlameThread(threading.Thread):
             __blame_lock__.release() # ...to here.
 
     def run(self):
-        rows = git_utils.blames(self.branch, interval.get_since(), self.filename, self.config.hard)
+        rows = git_utils.blames(self.branch, interval.get_since(),
+                                self.filename, self.config.hard)
 
         self.__clear_blamechunk_info__()
 

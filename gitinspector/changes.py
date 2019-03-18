@@ -26,7 +26,7 @@ import re
 import threading
 from .filtering import Filters, is_filtered, is_acceptable_file_name
 from . import format, git_utils, interval, terminal
-from enum import Enum
+from enum import Enum, auto
 
 CHANGES_PER_THREAD = 200
 NUM_THREADS = multiprocessing.cpu_count()
@@ -48,36 +48,43 @@ class FileType(Enum):
     """
     An enumeration class representing the different commit types.
     """
-    OTHER  = 1000
-    BUILD  = 0
-    C      = 1
-    CPP    = 2
-    GIT    = 3
-    JAVA   = 4
-    PYTHON = 5
-    SHELL  = 6
-    TEX    = 7
-    TXT    = 8
-    UI     = 9
+    OTHER  = auto()
+    BUILD  = auto()
+    C      = auto()
+    CPP    = auto()
+    GIT    = auto()
+    JAVA   = auto()
+    PYTHON = auto()
+    RUBY   = auto()
+    SHELL  = auto()
+    TEX    = auto()
+    TXT    = auto()
 
     __types__ = {
         "bib"   : TEX,
         "c"     : C,
         "cc"    : CPP,
         "cpp"   : CPP,
+        "cxx"   : CPP,
         "cmake" : BUILD,
         ".gitignore" : GIT,
         "h"     : C,
         "hh"    : CPP,
         "hpp"   : CPP,
+        "hxx"   : CPP,
+        "i"     : CPP,
+        "ii"    : CPP,
+        "inl"   : CPP,
+        "ipp"   : CPP,
+        "ixx"   : CPP,
         "java"  : JAVA,
         "md"    : TXT,
         "py"    : PYTHON,
         "README" : TXT,
+        "rb"    : RUBY,
         "sh"    : SHELL,
         "tex"   : TEX,
         "txt"   : TXT,
-        "ui"    : UI,
         "Makefile" : BUILD,
     }
 
