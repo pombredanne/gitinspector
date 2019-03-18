@@ -52,9 +52,8 @@ class ChangesOutput(Outputable):
             total_changes += authorinfo_dict.get(i).insertions
             total_changes += authorinfo_dict.get(i).deletions
 
-        total_types = set([FileType(k).name for c in author_list
-                           for k in authorinfo_dict.get(c).types
-                           if k != FileType.OTHER])
+        total_types = self.changes.get_total_types()
+
         max_other = 0
         for committer in author_list:
             authorinfo = authorinfo_dict.get(committer)

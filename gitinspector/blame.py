@@ -22,7 +22,7 @@ import multiprocessing
 import re
 import threading
 
-from .changes import FileDiff
+from .changes import FileDiff, FileType
 from .filtering import Filters, is_filtered, is_acceptable_file_name
 from . import comment, format, git_utils, interval, terminal
 
@@ -247,6 +247,19 @@ class Blame(object):
             summed_blames[committer].comments += blame.comments
 
         return summed_blames
+
+    def get_typed_blames(self):
+        typed_blames = {}
+        for (committer,file),blame in self.__blames__.items():
+            if typed_blames.get(committer, None) is None:
+                typed_blames[committer] = {}
+            type = FileType.create(file).name
+            if type in typed_blames[committer]:
+                typed_blames[committer][type] += blame.rows
+            else:
+                typed_blames[committer][type] = blame.rows
+
+        return typed_blames
 
     def committers_by_responsibilities(self):
         wrk = [ (k[0],v.rows) for (k,v) in self.__blames__.items()]

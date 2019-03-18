@@ -17,6 +17,7 @@
               <th>Rows</th>
               <th>Stability</th>
               <th>Age</th>
+              <th>Types</th>
               <th>% of comments</th>
               <th>% of changes</th>
               <th/>
@@ -66,6 +67,44 @@
                                   d => d.rows, d => d.data.color);
           // Generate the table
           var lines = generate_sortable_table("remains_table", titles, remains_data, remains_filter);
+
+          // Generate the commit types
+          const tab_width = 100;
+          d3.selectAll("svg.blames_svg_types").
+              attr("width", tab_width + 2).
+              attr("height", 26).
+              each(function () {
+                  var el = d3.select(this);
+                  var types = JSON.parse(el.html());
+                  var types_str = "";
+                  Object.keys(types).forEach(function (k) {
+                      if (types[k] > 0) {
+                          if (types_str.length > 0) { types_str = types_str + " / "; }
+                          types_str = types_str + k.toLowerCase() + ":" + types[k].toFixed(2) + "%"; }
+                  });
+                  var dx = 1;
+                  Object.keys(types).sort().forEach( function(k,i) {
+                      var v = types[k];
+                      el.append("rect").
+                          attr("width", tab_width*v/100).attr("x", dx).
+                          attr("height", 16).attr("y", 5).
+                          attr("fill", d3.hsl(40*i,0.6,0.6)).
+                          attr("stroke", d3.hsl(40*i,0.4,0.4)).
+                          on("mouseover", function(d, i){
+                              var r = d3.select(this);
+                              r.attr("oldfill", r.attr("fill"));
+                              r.attr("fill", d3.color(r.attr("fill")).brighter()); }).
+                          on("mouseout", function(d, i){
+                              var r = d3.select(this);
+                              r.attr("fill", r.attr("oldfill")); }).
+                          append("title").html(types_str);
+                      dx += tab_width*v/100;
+                  });
+                  el.append("rect").attr("width", tab_width).attr("height", 16).
+                      attr("x", 1).attr("y", 5).attr("stroke", "#000000").
+                      attr("fill", "none");
+              });
+
 
           // Link pie chart sections with lines
           link_table_and_pie(lines, arcs);

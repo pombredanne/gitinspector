@@ -397,6 +397,13 @@ class Changes(object):
 
         return copy.deepcopy(self.authors)
 
+    def get_total_types(self):
+        author_list = self.get_authorinfo_list()
+        total_types = set([FileType(k).name for c in author_list
+                           for k in author_list.get(c).types
+                           if k != FileType.OTHER])
+        return total_types
+
     def get_authordateinfo_list(self):
         """
         Returns a hash associating (authors * dates) to AuthorInfo objects.

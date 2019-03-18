@@ -50,11 +50,21 @@ class BlameOutput(Outputable):
         total_blames = 0
         for i in blames_list:
             total_blames += i[1].rows
+        typed_blames = self.blames.get_typed_blames()
+        total_types = self.changes.get_total_types()
 
         data_array = []
 
         for entry in blames_list:
             (name, email) = entry[0]
+            author_blames = typed_blames[entry[0]]
+            for t in total_types:
+                if not(t in author_blames):
+                    author_blames[t] = 0
+            author_work   = sum(author_blames.values())
+            author_types = "<svg class='blames_svg_types'>{0}</svg>".format(\
+                                    json.dumps({k: 100*v/author_work
+                                                for k,v in author_blames.items()}))
 
             data_array.append({
                 "avatar": "<img src=\"{0}\" title=\"{1}\"/>".format(gravatar.get_url(email), email),
@@ -63,6 +73,7 @@ class BlameOutput(Outputable):
                 "rows": entry[1].rows,
                 "stability": round(Blame.get_stability(entry[0], entry[1].rows, self.changes),1),
                 "age": round(float(entry[1].skew) / entry[1].rows,1),
+                "types": author_types,
                 "comments": round(100.0 * entry[1].comments / entry[1].rows,2),
                 "ownership": round(100.0 *  entry[1].rows / total_blames,2),
             })
