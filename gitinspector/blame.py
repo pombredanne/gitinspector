@@ -238,13 +238,13 @@ class Blame(object):
 
     def get_summed_blames(self):
         summed_blames = {}
-        for i in self.__blames__.items():
-            if summed_blames.get(i[0][0], None) is None:
-                summed_blames[i[0][0]] = BlameEntry()
+        for (committer,file),blame in self.__blames__.items():
+            if summed_blames.get(committer, None) is None:
+                summed_blames[committer] = BlameEntry()
 
-            summed_blames[i[0][0]].rows += i[1].rows
-            summed_blames[i[0][0]].skew += i[1].skew
-            summed_blames[i[0][0]].comments += i[1].comments
+            summed_blames[committer].rows += blame.rows
+            summed_blames[committer].skew += blame.skew
+            summed_blames[committer].comments += blame.comments
 
         return summed_blames
 
