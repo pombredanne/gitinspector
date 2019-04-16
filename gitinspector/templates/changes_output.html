@@ -70,7 +70,7 @@
           const tab_width = 100;
           d3.selectAll("svg.changes_svg_types").
               attr("width", tab_width + 25 +
-                   10*Math.floor(Math.log(max_other)/Math.log(10))).
+                   10*Math.floor(Math.log(Math.max(1,max_other))/Math.log(10))).
               attr("height", 26).
               each(function () {
                   var el = d3.select(this);
@@ -79,8 +79,8 @@
                   var types_str = "";
                   Object.keys(relevant).forEach(function (k) {
                       if (relevant[k] > 0) {
-                          if (types_str.length > 0) { types_str = types_str + " / "; }
-                          types_str = types_str + k.toLowerCase() + ":" + relevant[k].toFixed(2) + "%"; }
+                          if (types_str.length > 0) { types_str += " / "; }
+                          types_str += k.toLowerCase() + ":" + relevant[k].toFixed(2) + "%"; }
                   });
                   var dx = 1;
                   Object.keys(relevant).sort().forEach( function(k,i) {

@@ -50,42 +50,58 @@ class FileType(Enum):
     """
     OTHER  = auto()
     BUILD  = auto()
-    C      = auto()
     CPP    = auto()
+    CSHARP = auto()
     GIT    = auto()
+    GO     = auto()
+    HTML   = auto()
     JAVA   = auto()
+    OCAML  = auto()
     PYTHON = auto()
     RUBY   = auto()
+    RUST   = auto()
+    SCHEME = auto()
     SHELL  = auto()
     TEX    = auto()
     TXT    = auto()
+    VISUALBASIC = auto()
 
     __types__ = {
-        "bib"   : TEX,
-        "c"     : C,
-        "cc"    : CPP,
-        "cpp"   : CPP,
-        "cxx"   : CPP,
-        "cmake" : BUILD,
+        "bib"      : TEX,
+        "c"        : CPP,
+        "cc"       : CPP,
+        "cpp"      : CPP,
+        "cxx"      : CPP,
+        "cmake"    : BUILD,
+        "cs"       : CSHARP,
         ".gitignore" : GIT,
-        "h"     : C,
-        "hh"    : CPP,
-        "hpp"   : CPP,
-        "hxx"   : CPP,
-        "i"     : CPP,
-        "ii"    : CPP,
-        "inl"   : CPP,
-        "ipp"   : CPP,
-        "ixx"   : CPP,
-        "java"  : JAVA,
-        "md"    : TXT,
-        "py"    : PYTHON,
-        "README" : TXT,
-        "rb"    : RUBY,
-        "sh"    : SHELL,
-        "tex"   : TEX,
-        "txt"   : TXT,
+        "go"       : GO,
+        "h"        : CPP,
+        "hh"       : CPP,
+        "hpp"      : CPP,
+        "html"     : HTML,
+        "hxx"      : CPP,
+        "i"        : CPP,
+        "ii"       : CPP,
+        "inl"      : CPP,
+        "ipp"      : CPP,
+        "ixx"      : CPP,
+        "java"     : JAVA,
         "Makefile" : BUILD,
+        "md"       : TXT,
+        "ml"       : OCAML,
+        "mli"      : OCAML,
+        "py"       : PYTHON,
+        "Rakefile" : BUILD,
+        "README"   : TXT,
+        "rb"       : RUBY,
+        "rkt"      : SCHEME,
+        "rs"       : RUST,
+        "sh"       : SHELL,
+        "tex"      : TEX,
+        "txt"      : TXT,
+        "vb"       : VISUALBASIC,
+        "xml"      : TXT,
     }
 
     @staticmethod
