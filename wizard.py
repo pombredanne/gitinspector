@@ -19,10 +19,12 @@ class Task(object):
 def __parse_arguments__():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=_("Prepare the analysis of REPOSITORY."))
-    parser.add_argument('repository', metavar='REPOSITORY', type=str,
+    parser.add_argument('repositories', metavar='REPOSITORY', type=str, nargs='*',
                         help=_('the address of a repository to be analyzed'))
 
     namespace = parser.parse_args()
+    if not("branch" in namespace):
+        namespace.branch = "master"
     return namespace
 
 
@@ -80,11 +82,15 @@ def __input_merge__(authors):
     query_to = __query_number__(len(authors))
     if query_to == query_from:
         return
-    __alias_author__(authors, itms[query_from-1][0], itms[query_to-1][0])
+    __alias_author__(authors, itms[query_from-1][0], authors[itms[query_to-1][0]])
     print("")
 
 
-def __initialize_authors__(repository):
+def __initialize_authors_in_repository__(authors, repository):
+    authors.update({ a.split("<")[1][0:-1]: a for a in repository.authors() })
+
+
+def __initialize_authors__(authors, repository):
     config_cmd = subprocess.Popen(["git", "-C", repository.location,
                                    "config", "inspector.aliases"],
                                   bufsize=1, stdout=subprocess.PIPE)
@@ -95,10 +101,18 @@ def __initialize_authors__(repository):
     if config:
         if len(config) > 1:
             raise "Invalid config"
-        dict = ast.literal_eval(config[0].decode("utf-8", "replace").strip())
-        return dict
+        authors.update(ast.literal_eval(config[0].decode("utf-8", "replace").strip()))
     else:
-        return { a: a for a in repository.authors() }
+        __initialize_authors_in_repository__(authors, repository)
+
+
+def __clear_aliases__(authors):
+    authors.clear()
+
+
+def __reset_authors__(authors, repository):
+    __clear_aliases__(authors)
+    __initialize_authors_in_repository__(authors, repository)
 
 
 def __finalize__(authors, repository):
@@ -113,9 +127,11 @@ def __finalize__(authors, repository):
 
 def main():
     opts = __parse_arguments__()
-    repo = gitinspector.__get_validated_git_repos__([opts.repository])[0]
-    authors = __initialize_authors__(repo)
-    print("Managing options for repository " + str(repo.name) + " opts=" + str(opts) + "\n")
+    repo = gitinspector.__get_validated_git_repos__(opts)[0]
+    authors = {}
+    __initialize_authors__(authors, repo)
+    print("Managing options for repository " + str(repo.name) +
+          " opts=" + str(opts) + "\n")
 
     while True:
         try:
@@ -123,6 +139,8 @@ def main():
                 Task("List authors", lambda: __list_authors__(authors)),
                 Task("Rename an author", lambda: __input_rename__(authors)),
                 Task("Merge two authors", lambda: __input_merge__(authors)),
+                Task("Reset authors", lambda: __reset_authors__(authors, repo)),
+                Task("Clear aliases", lambda: __clear_aliases__(authors)),
                 Task("Dump config and exit", lambda: __finalize__(authors, repo)),
             ]
             for i, opt in enumerate(tasks):
