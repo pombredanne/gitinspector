@@ -5,23 +5,24 @@
                 <title>{title}</title>
                 {jquery_js}
                 {d3_js}
-		{custom_js}
-		{style_css}
+                {custom_js}
+                {style_css}
         </head>
         <body>
           <div id="introduction_div"
-	       style="position: fixed; top: 0px; left: 0px; z-index:1; width: 100%">
+               style="position: fixed; top: 0px; left: 0px; width: 100%; margin: 0px; z-index:1">
             <div class="box logo">
               <a href="https://github.com/ejwa/gitinspector">
-		<img src="data:image/png;base64,{logo}" />
-	      </a>
+                <img src="data:image/png;base64,{logo}" />
+              </a>
               <p>{repo_text}<br/>{logo_text}</p>
             </div>
           </div>
-	  <div id="summary_div" class="box"
-	       style="width:200px; position: fixed; top: 100px; left: 0px; z-index:1">
-	    <div class="box_title">Summary</div>
-	    <ul id="summary_ul">
-	    </ul>
-	  </div>
-	  <div id="main_div" style="margin: 110 0 0 225; z-index:0">
+          <div id="summary_div" class="box"
+               style="position: fixed; left: 0px; width:200px; z-index:1">
+            <div class="box_title">Summary</div>
+            <ul id="summary_ul">
+            </ul>
+          </div>
+          <div id="main_div"
+               style="position: relative; margin: 0px; z-index:0">

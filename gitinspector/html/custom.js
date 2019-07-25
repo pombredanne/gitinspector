@@ -1,6 +1,11 @@
 function resize_main_div() {
-    const nw = $("#introduction_div").width() - $("#summary_div").width() - 60;
-    d3.selectAll("#main_div").style("width", nw);
+    const s = $("#summary_div").width();
+    const w = $("#introduction_div").width() - s - 80;
+    const h = $("#introduction_div").height();
+    d3.selectAll("#main_div").style("width", w);
+    d3.selectAll("#main_div").style("left", s + 30);
+    d3.selectAll("#main_div").style("top", h - 20);
+    d3.selectAll("#summary_div").style("top", h - 20);
 }
 
 function generate_pie(group, radius, data, value_fun, color_fun) {
@@ -152,11 +157,11 @@ function generate_table(div, id, data) {
 
 function register_box(label, div) {
     d3.selectAll("ul#summary_ul").append("li").append("a").attr("href", "#").html(label)
-	.on("click", function () {
-	    const top = $("#" + div).offset().top - 110;
-	    console.log(top);
-	    $('html,body').animate({scrollTop: top}, 100);
-	});
+        .on("click", function () {
+            const top = $("#" + div).offset().top - 110;
+            console.log(top);
+            $('html,body').animate({scrollTop: top}, 100);
+        });
 }
 
 $(document).ready(function() {
