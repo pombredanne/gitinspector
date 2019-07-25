@@ -139,11 +139,11 @@ class AuthorColors(object):
 
 
 class FileDiff(object):
-    def __init__(self, string):
-        commit_line = string.split("|")
+    def __init__(self, name, line):
+        commit_line = line.split("|")
 
         if commit_line.__len__() == 2:
-            self.name = FileDiff.get_filename(commit_line[0].strip())
+            self.name = name
             self.type = FileType.create(self.name)
             self.insertions = commit_line[1].count("+")
             self.deletions = commit_line[1].count("-")
@@ -161,8 +161,10 @@ class FileDiff(object):
     @staticmethod
     def get_filename(string):
         file_name = string.split("|")[0].strip()
-        file_name = re.sub(r"^([^\{]*)\{([^\}]*) => ([^\}]*)\}.*$", r"\1\3", file_name)
-        return file_name.strip("{}").strip("\"").strip("'")
+        file_name = re.sub(r"^(.*)\{([^\}]*) => ([^\}]*)\}(.*)$", r"\1\3\4", file_name)
+        file_name = re.sub(r"^(.*) => (.*)$", r"\2", file_name)
+        file_name = file_name.strip("{}").strip("\"").strip("'")
+        return file_name
 
 
 class Commit(object):
@@ -218,7 +220,7 @@ class Commit(object):
                 if FileDiff.is_filediff_line(line):
                     file_name = FileDiff.get_filename(line)
                     changes.files.append(file_name)
-                    filediff = FileDiff(line)
+                    filediff = FileDiff(file_name, line)
                     commit.add_filediff(filediff)
                     commit.type = CommitType.RELEVANT
 

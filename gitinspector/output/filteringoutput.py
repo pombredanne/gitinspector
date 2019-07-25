@@ -59,11 +59,17 @@ class FilteringOutput(Outputable):
         filtered_files = {k:v.types[FileType.OTHER] for k,v in authorinfo_dict.items()}
         filtered_sizes = [len(s) for s in filtered_files.values()]
         if has_filtered() or any(filtered_sizes):
-            other_files = "<table>"
+            other_files = "<table class='git2'>"
+            par = "even"
             for committer, files in filtered_files.items():
                 if (len(files)>0):
-                    other_files += "<tr><td>{0} &lt;{1}&gt;&nbsp;:</td><td>{2}</td></tr>".\
-                        format(committer[0], committer[1], files)
+                    par   = "even" if par == "odd" else "odd"
+                    color = self.changes.committers[committer]["color"]
+                    rect  = ("<svg width='16' height='16'><rect x='5' y='5' "
+                             "width='16' height='16' fill='{0}'></rect></svg>").\
+                             format(color)
+                    other_files += "<tr class='{0}'><td style='text-align:left'>{1} {2}</td><td>{3}</td></tr>".\
+                        format(par, rect, committer[0], ", ".join(files))
             other_files += "</table>"
 
             temp_file = os.path.join(os.path.dirname(__file__),
