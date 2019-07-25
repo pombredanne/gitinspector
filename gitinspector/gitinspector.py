@@ -192,31 +192,36 @@ def __get_validated_git_repos__(config):
 
 
 def __parse_arguments__(args=None):
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, allow_abbrev=False, description=
-                                     _("List information about the repository in REPOSITORY. If no repository is \n"
-                                       "specified, the current directory is used. If multiple repositories are \n"
-                                       "given, information will be merged into a unified statistical report."), epilog=
-                                     _("gitinspector will filter statistics to only include commits that modify, \n"
-                                       "add or remove one of the specified extensions, see -f or --file-types for \n"
-                                       "more information. \n\n"
-                                       "gitinspector requires that the git executable is available in your PATH. \n"
-                                       "Report gitinspector bugs to gitinspector@ejwa.se."))
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     allow_abbrev=False, description=
+        _("List information about the repository in REPOSITORY. If no repository is \n"
+          "specified, the current directory is used. If multiple repositories are \n"
+          "given, information will be merged into a unified statistical report."), epilog=
+        _("gitinspector will filter statistics to only include commits that modify, \n"
+          "add or remove one of the specified extensions, see -f or --file-types for \n"
+          "more information. \n\n"
+          "gitinspector requires that the git executable is available in your PATH. \n"
+          "Report gitinspector bugs to gitinspector@ejwa.se."))
     parser.add_argument('repositories', metavar='REPOSITORY', type=str, nargs='*',
                         help=_('the address of a repository to be analyzed'))
     parser.add_argument('-a', '--aliases', metavar='ALIASES', help=
                         _("a dictionary string indicating aliases for the authors"),
                         type=lambda s: ast.literal_eval(s), default={})
+    parser.add_argument('-A', '--merge-authors', action='store_true', help=
+                        _("merge authors with the same email"))
     parser.add_argument('-b', '--branch', metavar='BRANCH', help=
                         _("the name of the branch for git to checkout, the default "
                           "being 'master'"), default="--all")
     parser.add_argument('-f', '--file-types', metavar='TYPES', help=
                         _("a comma separated list of file extensions to include when "
-                          "computing statistics. The default extensions used are: ") + str(DEFAULT_EXTENSIONS) + " " +
+                          "computing statistics. The default extensions used are: ") +
+                        str(DEFAULT_EXTENSIONS) + " " +
                         _("Specifying * includes files with no extension, while ** includes all files"),
                         default=",".join(DEFAULT_EXTENSIONS))
     parser.add_argument('-F', '--format', metavar='FORMAT', help=
                         _("define in which format output should be generated; the "
-                          "default format is 'text' and the available formats are: ") + str(__available_formats__),
+                          "default format is 'text' and the available formats are: ") +
+                        str(__available_formats__),
                         default="text", choices=__available_formats__)
     parser.add_argument('-g', '--grading', action='store_true', help=
                         _("show statistics and information in a way that is formatted "

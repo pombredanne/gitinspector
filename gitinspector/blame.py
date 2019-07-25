@@ -22,7 +22,7 @@ import multiprocessing
 import re
 import threading
 
-from .changes import FileDiff, FileType
+from .changes import Commit, FileDiff, FileType
 from .filtering import Filters, is_filtered, is_acceptable_file_name
 from . import comment, format, git_utils, interval, terminal
 
@@ -84,11 +84,10 @@ class BlameThread(threading.Thread):
 
         if self.blamechunk_is_prior and interval.get_since():
             return
-        try:
-            author = self.blamechunk_author
-            email = self.blamechunk_email
-        except KeyError:
-            return
+
+        (author, email) = Commit.get_alias(self.blamechunk_author,
+                                           self.blamechunk_email,
+                                           self.config)
 
         if not is_filtered(author, Filters.AUTHOR) and \
            not is_filtered(self.blamechunk_email, Filters.EMAIL) and \

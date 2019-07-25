@@ -228,12 +228,13 @@ class Commit(object):
 
     @staticmethod
     def get_alias(author, email, config):
-        author_mail = "{0} <{1}>".format(author, email)
-        if author_mail in config.aliases.keys():
-            new_author_mail = config.aliases[author_mail].split("<")
+        if email in config.aliases.keys():
+            new_author_mail = config.aliases[email].split("<")
             return (new_author_mail[0].strip(), new_author_mail[1][0:-1])
-
-        return (author, email)
+        else:
+            if config.merge_authors:
+                config.aliases[email] = "{0} <{1}>".format(author, email)
+            return (author, email)
 
     @staticmethod
     def get_author_and_email(config, changes, string):
