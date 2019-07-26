@@ -181,13 +181,16 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
         # Set options
         opts = __parse_arguments__(args=['--grading', '--legacy',
                                          '--branch', 'master',
-                                         '--file-types', '*.c,*.txt',
-                                         '--exclude', 'author:Abraham Lincoln,message:README',
+                                         '--file-types', '*.c,*.txt,Make*',
+                                         '--exclude', 'author:Abraham Lincoln,file_out:Makefile',
                                          '--since', '2001-01-01',
                                          '--until', '2020-01-01',
                                          '--silent',
                                          'build/tests/basic-repository'])
         opts.progress = False
+
+        # 1 commit is excluded from the author "Abraham Lincoln"
+        # 1 file is filtered because it only applies to the "Makefile"
 
         # Launch runner
         r = Runner(opts, None)
@@ -204,18 +207,22 @@ class BasicFilteredRepositoryTest(unittest.TestCase):
 
         # Check the commits
         rel_commits = r.changes.relevant_commits()
-        # self.assertEqual(len(rel_commits), 2) # 2 commits, 2 excluded
+        self.assertEqual(len(rel_commits), 3) # 4 commits, 1 excluded
         all_commits = r.changes.all_commits()
-        self.assertEqual(len(all_commits), 4) # 2 commits, 2 excluded
+        self.assertEqual(len(all_commits), 4) # 4 commits, 1 excluded
         authors = sorted(list(map(lambda c: c.author, rel_commits)))
         self.assertEqual(authors[0], "Andrew Johnson")
+
+        filtered_files = r.changes.filtered_files(('Andrew Johnson', 'jojo@gov.us'))
+        self.assertEqual(len(filtered_files), 1)
+        self.assertEqual(list(filtered_files)[0], "Makefile")
 
         # Check the blames
         blames = r.blames.all_blames()
         self.assertEqual(len(blames.keys()), 1)
         blame_keys = sorted(list(blames.keys()))
         self.assertEqual(blame_keys[0], (('Andrew Johnson', 'jojo@gov.us'), 'file.c'))
-        # self.assertEqual(blames[blame_keys[0]].rows, 6) # file.c is 6 lines long
+        self.assertEqual(blames[blame_keys[0]].rows, 40) # file.c is 40 lines long
 
         # Check the metrics
         self.assertEqual(r.metrics.eloc, {}) # Both files are too short, no metrics to report

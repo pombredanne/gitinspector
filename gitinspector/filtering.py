@@ -147,7 +147,6 @@ def is_acceptable_file_name(string):
     according to the configuration for file names. First, the filename
     must pass at least one positive check (in FILE_IN), and second, it
     must not belong to any negative check (in FILE_OUT)
-
     """
     search_for = string.strip()
     accepted = False

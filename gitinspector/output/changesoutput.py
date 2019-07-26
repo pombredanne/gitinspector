@@ -44,7 +44,6 @@ class ChangesOutput(Outputable):
         author_list.sort(key=lambda x: authorinfo_dict[x].insertions +
                          authorinfo_dict[x].deletions, reverse=True)
         data_array = []
-        types_array = {}
 
         # Compute total changes
         total_changes = 0.0
@@ -65,7 +64,7 @@ class ChangesOutput(Outputable):
             for t in total_types:
                 if not(t in authortypes):
                     authortypes[t] = 0
-            othertypes = len(authorinfo.types[FileType.OTHER])
+            othertypes = len(self.changes.filtered_files(committer))
             max_other = max(max_other, othertypes)
             authorinfo.types = "<svg class='changes_svg_types'>{0}</svg>".format(\
                                     json.dumps({ "relevant" : authortypes,

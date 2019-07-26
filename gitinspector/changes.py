@@ -20,12 +20,10 @@
 import bisect
 import copy
 import datetime
-import multiprocessing
 import os
 import re
-import threading
 from .filtering import Filters, is_filtered, is_acceptable_file_name
-from . import format, git_utils, interval, terminal
+from . import format, git_utils, interval
 from enum import Enum, auto
 
 
@@ -50,6 +48,7 @@ class FileType(Enum):
     GO     = auto()
     HTML   = auto()
     JAVA   = auto()
+    JAVASCRIPT = auto()
     OCAML  = auto()
     PYTHON = auto()
     RUBY   = auto()
@@ -81,6 +80,7 @@ class FileType(Enum):
         "ipp"      : CPP,
         "ixx"      : CPP,
         "java"     : JAVA,
+        "js"       : JAVASCRIPT,
         "Makefile" : BUILD,
         "md"       : TXT,
         "ml"       : OCAML,
@@ -138,7 +138,10 @@ class FileDiff(object):
 
         if commit_line.__len__() == 2:
             self.name = name
-            self.type = FileType.create(self.name)
+            if is_acceptable_file_name(self.name):
+                self.type = FileType.create(self.name)
+            else:
+                self.type = FileType.OTHER
             self.insertions = commit_line[1].count("+")
             self.deletions = commit_line[1].count("-")
 
@@ -213,6 +216,7 @@ class Commit(object):
         elif not chunk: # Chunk is [], it is a pure merge
             commit.type = CommitType.MERGE
         else:
+            commit.type = CommitType.FILTERED # if all files are filtered
             for line in chunk:
                 line = line.strip().\
                     decode("unicode_escape", "ignore").\
@@ -403,3 +407,14 @@ class Changes(object):
         res = sorted(aut,
                      key=lambda a: -sum([w for (b,w) in wrk if b == a]))
         return res
+
+    def filtered_files(self, author):
+        """
+        Returns a list of files that have been filtered during the run,
+        given an (author,email) key.
+        """
+        authorinfo_dict = self.get_authorinfo_list()
+        if (author in authorinfo_dict):
+            return authorinfo_dict[author].types[FileType.OTHER]
+        else:
+            raise "Incorrect author key in 'Changes.filtered_files'"

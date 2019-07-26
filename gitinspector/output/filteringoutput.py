@@ -56,7 +56,7 @@ class FilteringOutput(Outputable):
 
     def output_html(self):
         authorinfo_dict = self.changes.get_authorinfo_list()
-        filtered_files = {k:v.types[FileType.OTHER] for k,v in authorinfo_dict.items()}
+        filtered_files = {k:self.changes.filtered_files(k) for k in authorinfo_dict}
         filtered_sizes = [len(s) for s in filtered_files.values()]
         if has_filtered() or any(filtered_sizes):
             other_files = "<table class='git2'>"
