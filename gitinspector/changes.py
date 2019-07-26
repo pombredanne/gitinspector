@@ -28,12 +28,6 @@ from .filtering import Filters, is_filtered, is_acceptable_file_name
 from . import format, git_utils, interval, terminal
 from enum import Enum, auto
 
-CHANGES_PER_THREAD = 200
-NUM_THREADS = multiprocessing.cpu_count()
-
-__thread_lock__ = threading.BoundedSemaphore(NUM_THREADS)
-__changes_lock__ = threading.Lock()
-
 
 class CommitType(Enum):
     """
@@ -250,45 +244,15 @@ class Commit(object):
 
 class AuthorInfo(object):
     def __init__(self):
-        self.email = None
+        # self.email = None
         self.insertions = 0
         self.deletions = 0
         self.commits = 0
         self.types = { FileType.OTHER: set() }
 
-
-class ChangesThread(threading.Thread):
-    def __init__(self, config, changes, first_hash, second_hash, offset):
-        __thread_lock__.acquire() # Lock controlling the number of threads running
-        threading.Thread.__init__(self)
-
-        self.config = config
-        self.changes = changes
-        self.first_hash = first_hash
-        self.second_hash = second_hash
-        self.offset = offset
-
-    @staticmethod
-    def create(config, changes, first_hash, second_hash, offset):
-        thread = ChangesThread(config, changes, first_hash, second_hash, offset)
-        thread.daemon = True
-        thread.start()
-
-    def run(self):
-        chunks =  git_utils.commit_chunks("--all" if (self.config.branch == "--all") \
-                                          else (self.first_hash + self.second_hash), \
-                                          interval.get_since(), interval.get_until(), \
-                                          self.config.hard)
-        commits = []
-
-        __changes_lock__.acquire() # Global lock used to protect calls from here...
-
-        for chunk in chunks:
-            Commit.handle_diff_chunk(self.config, self.changes, commits, chunk)
-
-        self.changes.__commits__[self.offset // CHANGES_PER_THREAD] = commits
-        __changes_lock__.release() # ...to here.
-        __thread_lock__.release() # Lock controlling the number of threads running
+    def __repr__(self):
+        return "Info(ins: {0}, del: {1}, commits: {2})".\
+            format(self.insertions, self.deletions, self.commits)
 
 
 PROGRESS_TEXT = _("Fetching and calculating primary statistics (1 of 2): {0:.0f}%")
@@ -315,42 +279,19 @@ class Changes(object):
         self.config = config
 
         interval.set_ref("HEAD")
-        lines = git_utils.commits(interval.get_since(),
-                                  interval.get_until(), config.branch)
 
-        if lines:
-            progress_text = _(PROGRESS_TEXT)
-            if repo is not None:
-                progress_text = "[%s] " % repo.name + progress_text
+        progress_text = _(PROGRESS_TEXT)
+        if repo is not None:
+            progress_text = "[%s] " % repo.name + progress_text
 
-            chunks = len(lines) // CHANGES_PER_THREAD
-            self.__commits__ = [None] * (chunks if len(lines) % CHANGES_PER_THREAD == 0 else chunks + 1)
-            first_hash = ""
+        chunks =  git_utils.commit_chunks(self.config.branch, \
+                                          interval.get_since(), interval.get_until(), \
+                                          self.config.hard)
 
-            for i, entry in enumerate(lines):
-                if i % CHANGES_PER_THREAD == CHANGES_PER_THREAD - 1:
-                    entry = entry.decode("utf-8", "replace").strip()
-                    second_hash = entry
-                    ChangesThread.create(self.config, self, first_hash, second_hash, i)
-                    first_hash = entry + ".."
-
-                    if self.config.progress and format.is_interactive_format():
-                        terminal.output_progress(progress_text, i, len(lines))
-            else: # Create one last thread
-                if CHANGES_PER_THREAD - 1 != i % CHANGES_PER_THREAD:
-                    entry = entry.decode("utf-8", "replace").strip()
-                    second_hash = entry
-                    ChangesThread.create(self.config, self, first_hash, second_hash, i)
-
-        # Make sure all threads have completed.
-        for i in range(0, NUM_THREADS):
-            __thread_lock__.acquire()
-
-        # We also have to release them for future use.
-        for i in range(0, NUM_THREADS):
-            __thread_lock__.release()
-
-        self.__commits__ = [item for sublist in self.__commits__ for item in sublist]
+        commits = []
+        for chunk in chunks:
+            Commit.handle_diff_chunk(self.config, self, commits, chunk)
+        self.__commits__ = commits
 
         if self.__commits__:
             if interval.has_interval(): # or self.config.branch != "master":
