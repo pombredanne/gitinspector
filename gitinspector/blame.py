@@ -38,6 +38,10 @@ class BlameEntry(object):
     skew = 0     # Used when calculating average code age.
     comments = 0
 
+    def __repr__(self):
+        return "BlameEntry(rows:{0}, skew:{1} comments:{2})".\
+            format(self.rows, self.skew, self.comments)
+
 
 __thread_lock__ = threading.BoundedSemaphore(NUM_THREADS)
 __blame_lock__ = threading.Lock()
