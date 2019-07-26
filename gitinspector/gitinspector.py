@@ -84,13 +84,23 @@ class Runner(object):
         self.config = config  # Namespace object containing the config
         self.out = writer     # Buffer for containing the output
 
+        # Initialize the filters
+        filtering.clear()
+        if config.exclude:
+            for pat in config.exclude:
+                filtering.add_filters(pat)
+        for f in config.file_types.split(','):
+            filtering.__add_one_filter__(f)
+
         # Initialize a list of Repository objects
         self.repos = __get_validated_git_repos__(config)
         # We need the repos above to be set before we read the git config.
         GitConfig(self, self.repos[-1].location).read()
         # Initialize extensions and formats
         format.select(config.format)
+
         # Initialize bounds on commits dates
+        interval.clear()
         if config.since:
             interval.set_since(config.since.isoformat())
         if config.until:
@@ -281,12 +291,6 @@ def __parse_arguments__(args=None):
         options.hard = True
         options.timeline = True
         options.weeks = True
-
-    if options.exclude:
-        for pat in options.exclude:
-            filtering.add_filters(pat)
-    for f in options.file_types.split(','):
-        filtering.__add_one_filter__(f)
 
     return options
 

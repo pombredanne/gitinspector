@@ -22,6 +22,9 @@ import re
 import subprocess
 from enum import Enum
 
+# TODO: We definitely need to rewrite the 'filtering' module to be part
+# of the Runner context and NOT BEING GLOBAL! (for our own sake!)...
+
 class Filters(Enum):
     """
     An enumeration class representing the different filter types

@@ -35,13 +35,6 @@ class TrieRepositoryTest(unittest.TestCase):
         zip_ref.close()
 
     def tearDown(self):
-        # TODO: We definitely need to rewrite the 'filtering' and the
-        # 'interval' modules to be part of the Runner context and NOT
-        # BEING GLOBAL! (for our own sake!)...
-
-        filtering.clear()
-        interval.__since__ = ""
-        interval.__until__ = ""
         shutil.rmtree("build/tests/trie-repository")
 
     def test_process(self):
