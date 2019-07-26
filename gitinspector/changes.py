@@ -144,8 +144,8 @@ class FileDiff(object):
 
     @staticmethod
     def is_filediff_line(string):
-        string = string.split("|")
-        return string.__len__() == 2 and string[1].find("Bin") == -1 and ('+' in string[1] or '-' in string[1])
+        pattern = re.compile("^[^\|]+\|[ ]*(Bin[ ].*|[0-9]+[ ]*[+-]*)$")
+        return pattern.match(string) is not None
 
     @staticmethod
     def get_extension(string):
