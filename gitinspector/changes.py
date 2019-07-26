@@ -33,7 +33,7 @@ class CommitType(Enum):
     """
     An enumeration class representing the different commit types
     """
-    RELEVANT = "relevant"
+    CODE = "code"
     FILTERED = "filtered"
     MERGE = "merge"
 
@@ -211,8 +211,7 @@ class Commit(object):
         if has_been_filtered:
             commit.type = CommitType.FILTERED
         elif not chunk: # Chunk is [], it is a pure merge
-            # commit.type = CommitType.MERGE
-            commit.type = CommitType.RELEVANT # Count merges as relevant
+            commit.type = CommitType.MERGE
         else:
             for line in chunk:
                 line = line.strip().\
@@ -224,7 +223,7 @@ class Commit(object):
                     changes.files.append(file_name)
                     filediff = FileDiff(file_name, line)
                     commit.add_filediff(filediff)
-                    commit.type = CommitType.RELEVANT
+                    commit.type = CommitType.CODE
 
         bisect.insort(commits, commit)
 
@@ -357,7 +356,10 @@ class Changes(object):
     def all_commits(self):
         return self.__commits__
     def relevant_commits(self):
-        return [ c for c in self.__commits__ if c.type == CommitType.RELEVANT ]
+        return [ c for c in self.__commits__
+                 if c.type == CommitType.CODE or c.type == CommitType.MERGE ]
+    def code_commits(self):
+        return [ c for c in self.__commits__ if c.type == CommitType.CODE ]
     def merge_commits(self):
         return [ c for c in self.__commits__ if c.type == CommitType.MERGE ]
 

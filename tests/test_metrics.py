@@ -28,6 +28,8 @@ from gitinspector.gitinspector import Runner, FileWriter, filtering, interval, _
 from gitinspector.changes import CommitType
 
 
+# Test the metrics on the basic repository, a very simple repository
+# with no merge and two branches
 class MetricsBasicTest(unittest.TestCase):
 
     def setUp(self):
@@ -72,7 +74,8 @@ class MetricsBasicTest(unittest.TestCase):
         self.assertEqual(len(j_commits), 3)  # 3 commits
 
 
-
+# Test the metrics on the trie repository, a fairly simple repository
+# with some merges
 class MetricsTrieTest(unittest.TestCase):
 
     def setUp(self):
@@ -95,17 +98,17 @@ class MetricsTrieTest(unittest.TestCase):
         r = Runner(opts, None)
         r.process()
         self.assertEqual(len(r.changes.all_commits()), 31)  # 29 commits + 2 merges
-        # self.assertEqual(len(r.changes.relevant_commits()), 29)
-        # self.assertEqual(len(r.changes.merge_commits()), 2)
+        self.assertEqual(len(r.changes.code_commits()), 29)
+        self.assertEqual(len(r.changes.merge_commits()), 2)
         b_commits = [c for c in r.changes.all_commits() if c.author == "Bilbo Baggins"]
         self.assertEqual(len(b_commits), 12)  # 11 commits + 1 merge
-        # self.assertEqual(len([c for c in b_commits if c.type == CommitType.RELEVANT]), 11)
-        # self.assertEqual(len([c for c in b_commits if c.type == CommitType.MERGE]), 1)
+        self.assertEqual(len([c for c in b_commits if c.type == CommitType.CODE]), 11)
+        self.assertEqual(len([c for c in b_commits if c.type == CommitType.MERGE]), 1)
         f_commits = [c for c in r.changes.all_commits() if c.author == "Frodo Baggins"]
         self.assertEqual(len(f_commits), 6)   # 6 commits
         s_commits = [c for c in r.changes.all_commits() if c.author == "Samwise Gamgee"]
         self.assertEqual(len(s_commits), 7)   # 6 commits + 1 merge
-        # self.assertEqual(len([c for c in s_commits if c.type == CommitType.RELEVANT]), 6)
+        self.assertEqual(len([c for c in s_commits if c.type == CommitType.CODE]), 6)
 
     def test_small_changes(self):
         opts = __parse_arguments__(args=['--silent', '--since=2015-10-20', '--until=2015-10-22',
@@ -116,11 +119,12 @@ class MetricsTrieTest(unittest.TestCase):
         r = Runner(opts, None)
         r.process()
         self.assertEqual(len(r.changes.all_commits()), 5)  # 4 commits + 1 merge
-        # self.assertEqual(len(r.changes.relevant_commits()), 4)
+        self.assertEqual(len(r.changes.code_commits()), 4)
+        self.assertEqual(len(r.changes.merge_commits()), 1)
         b_commits = [c for c in r.changes.all_commits() if c.author == "Bilbo Baggins"]
         self.assertEqual(len(b_commits), 4)  # 3 commits + 1 merge
-        # self.assertEqual(len([c for c in b_commits if c.type == CommitType.RELEVANT]), 3)
-        # self.assertEqual(len([c for c in b_commits if c.type == CommitType.MERGE]), 1)
+        self.assertEqual(len([c for c in b_commits if c.type == CommitType.CODE]), 3)
+        self.assertEqual(len([c for c in b_commits if c.type == CommitType.MERGE]), 1)
         f_commits = [c for c in r.changes.all_commits() if c.author == "Frodo Baggins"]
         self.assertEqual(len(f_commits), 0)  # 0 commits
         s_commits = [c for c in r.changes.all_commits() if c.author == "Samwise Gamgee"]
