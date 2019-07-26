@@ -211,7 +211,8 @@ class Commit(object):
         if has_been_filtered:
             commit.type = CommitType.FILTERED
         elif not chunk: # Chunk is [], it is a pure merge
-            commit.type = CommitType.MERGE
+            # commit.type = CommitType.MERGE
+            commit.type = CommitType.RELEVANT # Count merges as relevant
         else:
             for line in chunk:
                 line = line.strip().\
@@ -332,11 +333,15 @@ class Changes(object):
             return other
 
     def __update_dict_commit__(self, dict, key, commit):
-        if dict.get(key, None) is None:
+        """
+        Given `dict` whose values are AuthorInfos, add to dict[key] the
+        properties of `commit` (insertions, deletions).
+        """
+        if key not in dict:
             dict[key] = AuthorInfo()
 
-        if commit.get_filediffs():
-            dict[key].commits += 1
+        # Even commits with no diffs (for example merges) are counted
+        dict[key].commits += 1
 
         for j in commit.get_filediffs():
             if (j.type == FileType.OTHER):
