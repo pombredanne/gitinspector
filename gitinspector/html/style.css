@@ -250,6 +250,20 @@ div.button, div#responsibilities div.button {
     background-color: #ddcece;
     min-height: 0;
 }
+div#summary_div ul {
+    list-style: none;
+    margin: 5px 0px 2px 0px;
+    padding: 0px;
+}
+div#summary_div ul li {
+    padding: 5px 10px 5px 10px;
+    font-size: x-small;
+    background-color: #eeeeee;
+    border-bottom: 1px solid #cccccc;
+}
+div#summary_div ul li:hover {
+    background: #eedd99;
+}
 div#summary_div ul a {
     text-decoration: none;
 }
