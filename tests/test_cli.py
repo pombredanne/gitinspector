@@ -15,15 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
-import hashlib
-import locale
-import os
 import shutil
-import tempfile
 import unittest
 import zipfile
-
-from gitinspector.gitinspector import Runner, FileWriter, filtering, interval, __parse_arguments__
 
 
 class CommandLineOptionsTest(unittest.TestCase):
@@ -66,7 +60,7 @@ class CommandLineOptionsTest(unittest.TestCase):
         # Setting a fake sys.argv and ssys.stdout
         argv_orig = sys.argv
         stdout_orig = sys.stdout
-        sys.stdout = custom_stdout = StringIO()
+        sys.stdout = StringIO()
 
         # Running the software on '--version'
         sys.argv = ['./gitinspector.py', '--version']
@@ -89,7 +83,7 @@ class CommandLineOptionsTest(unittest.TestCase):
         # Setting a fake sys.argv and sys.stdout
         argv_orig = sys.argv
         stdout_orig = sys.stdout
-        sys.stdout = custom_stdout = StringIO()
+        sys.stdout = StringIO()
 
         # Extracting the repository
         zip_ref = zipfile.ZipFile("tests/resources/basic-repository.zip", 'r')

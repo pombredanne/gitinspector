@@ -15,16 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
-import hashlib
-import locale
-import os
 import shutil
-import tempfile
 import unittest
 import zipfile
 
 
-from gitinspector.gitinspector import Runner, FileWriter, filtering, interval, __parse_arguments__
+from gitinspector.gitinspector import Runner, __parse_arguments__
 from gitinspector.changes import CommitType
 
 
@@ -84,9 +80,6 @@ class MetricsTrieTest(unittest.TestCase):
         zip_ref.close()
 
     def tearDown(self):
-        filtering.clear()
-        interval.__since__ = ""
-        interval.__until__ = ""
         shutil.rmtree("build/tests/trie-repository")
 
     def test_all_changes(self):

@@ -21,6 +21,7 @@ import os
 import unittest
 import gitinspector.comment
 
+
 # Returns the number of lines in a given `commented_file` with
 # extension `extension` that are comments.
 def __test_extension__(commented_file, extension):
@@ -40,12 +41,14 @@ def __test_extension__(commented_file, extension):
 
     return comment_counter
 
+
 # Test the number of comments inside two different files inside the
 # resources/ dir
 class TexFileTest(unittest.TestCase):
     def test(self):
         comment_counter = __test_extension__("/resources/commented_file.tex", "tex")
         self.assertEqual(comment_counter, 39)
+
 
 class CppFileTest(unittest.TestCase):
     def test(self):

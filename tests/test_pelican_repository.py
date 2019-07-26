@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
-import hashlib
-import locale
 import os
 import shutil
 import tempfile
@@ -24,7 +22,7 @@ import unittest
 import zipfile
 
 import gitinspector.localization as localization
-from gitinspector.gitinspector import Runner, FileWriter, filtering, interval, __parse_arguments__
+from gitinspector.gitinspector import Runner, FileWriter, __parse_arguments__
 
 
 class PelicanRepositoryTest(unittest.TestCase):

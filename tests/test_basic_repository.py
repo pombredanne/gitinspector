@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
-import hashlib
-import locale
 import os
 import shutil
 import tempfile
@@ -24,7 +22,7 @@ import unittest
 import zipfile
 
 import gitinspector.localization as localization
-from gitinspector.gitinspector import Runner, FileWriter, filtering, interval, __parse_arguments__
+from gitinspector.gitinspector import Runner, FileWriter, __parse_arguments__
 
 
 # Test gitinspector over a git repository present in the resources/
@@ -40,7 +38,7 @@ class BasicRepositoryTest(unittest.TestCase):
         shutil.rmtree("build/tests/basic-repository")
 
     def test_process(self):
-       # Set options
+        # Set options
         opts = __parse_arguments__(args=['--grading', '--legacy',
                                          '--branch', 'master',
                                          '--file-types', '*.c,*.txt,Makefile',
@@ -83,7 +81,7 @@ class BasicRepositoryTest(unittest.TestCase):
         self.assertEqual(r.metrics.eloc, {}) # Both files are too short, no metrics to report
 
     def test_output_text(self):
-       # Set options
+        # Set options
         opts = __parse_arguments__(args=['--grading', '--legacy',
                                          '--file-types', '*.c,*.txt',
                                          '--exclude', 'author:John Doe',
