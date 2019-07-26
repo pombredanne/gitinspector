@@ -63,6 +63,9 @@ class FilteringOutput(Outputable):
             par = "even"
             for committer, files in filtered_files.items():
                 if (len(files)>0):
+                    if len(files) > 20:
+                        old_len = len(files)
+                        files = list(files)[0:20] + ["... and {0} other files".format(old_len-20)]
                     par   = "even" if par == "odd" else "odd"
                     color = self.changes.committers[committer]["color"]
                     rect  = ("<svg width='16' height='16'><rect x='5' y='5' "
