@@ -142,6 +142,9 @@ class FileDiff(object):
             self.insertions = commit_line[1].count("+")
             self.deletions = commit_line[1].count("-")
 
+    def __repr__(self):
+        return "FileDiff(name: {0})".format(self.name)
+
     @staticmethod
     def is_filediff_line(string):
         pattern = re.compile("^[^\|]+\|[ ]*(Bin[ ].*|[0-9]+[ ]*[+-]*)$")
@@ -177,6 +180,10 @@ class Commit(object):
 
     def __lt__(self, other): # only used for sorting; we just consider the timestamp.
         return self.timestamp.__lt__(other.timestamp)
+
+    def __repr__(self):
+        return "Commit(sha: {0}, author: {1}, mail: {2}, diffs: {3})".\
+            format(self.sha[0:8], self.author, self.email, self.filediffs)
 
     def add_filediff(self, filediff):
         self.filediffs.append(filediff)
@@ -303,6 +310,9 @@ class Changes(object):
             self.last_commit_date = datetime.date(int(self.__commits__[-1].date[0:4]),
                                                   int(self.__commits__[-1].date[5:7]),
                                                   int(self.__commits__[-1].date[8:10]))
+
+    def __repr__(self):
+        return "Changes(commits: {0})".format(len(self.__commits__))
 
     def __iadd__(self, other):
         try:
