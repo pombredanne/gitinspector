@@ -146,7 +146,8 @@ class FileDiff(object):
             self.deletions = commit_line[1].count("-")
 
     def __repr__(self):
-        return "FileDiff(name: {0})".format(self.name)
+        return "FileDiff(name: {0}, ins: {1}, del: {2})".\
+            format(self.name, self.insertions, self.deletions)
 
     @staticmethod
     def is_filediff_line(string):
@@ -185,8 +186,12 @@ class Commit(object):
         return self.timestamp.__lt__(other.timestamp)
 
     def __repr__(self):
-        return "Commit(sha: {0}, author: {1}, mail: {2}, diffs: {3})".\
-            format(self.sha[0:8], self.author, self.email, self.filediffs)
+        if (self.type == CommitType.MERGE):
+            return "Merge(sha: {0}, author: {1}, mail: {2})".\
+                format(self.sha[0:8], self.author, self.email)
+        else:
+            return "Commit(sha: {0}, author: {1}, mail: {2}, diffs: {3})".\
+                format(self.sha[0:8], self.author, self.email, self.filediffs)
 
     def add_filediff(self, filediff):
         self.filediffs.append(filediff)
