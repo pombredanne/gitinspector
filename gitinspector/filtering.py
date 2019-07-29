@@ -19,7 +19,7 @@
 
 import fnmatch
 import re
-import subprocess
+from . import git_utils
 from enum import Enum
 
 # TODO: We definitely need to rewrite the 'filtering' module to be part
@@ -96,18 +96,6 @@ def has_filtered():
             return True
     return False
 
-def __find_commit_message__(sha):
-    git_show_r = subprocess.Popen(filter(None, ["git", "show", "-s",
-                                                "--pretty=%B", "-w", sha]), bufsize=1,
-                                  stdout=subprocess.PIPE)
-    commit_message = git_show_r.stdout.read()
-    git_show_r.wait()
-    git_show_r.stdout.close()
-
-    commit_message = commit_message.strip().decode("unicode_escape", "ignore")
-    commit_message = commit_message.encode("latin-1", "replace")
-    return commit_message.decode("utf-8", "replace")
-
 def is_filtered(string, filter_type):
     """
     The function that tests whether 'string' passes the filters
@@ -125,7 +113,7 @@ def is_filtered(string, filter_type):
 
     for regexp in __filters__[filter_type][0]:
         if filter_type == Filters.MESSAGE:
-            search_for = __find_commit_message__(string)
+            search_for = git_utils.commit_message(string)
         else:
             search_for = string
 

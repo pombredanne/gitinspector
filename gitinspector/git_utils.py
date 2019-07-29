@@ -103,6 +103,20 @@ def commit_chunks(hashes, since, until, try_hard):
     return chunks
 
 
+def commit_message(hash):
+    """Returns the commit message of a given hash, as a list of strings"""
+    git_command = filter(None, ["git", "show", "-s",
+                                "--pretty=%B", hash])
+    git_show_r = subprocess.Popen(git_command, bufsize=1, stdout=subprocess.PIPE)
+    message = git_show_r.stdout.read() # all lines in one go
+    git_show_r.wait()
+    git_show_r.stdout.close()
+
+    message = message.strip().decode("unicode_escape", "ignore")
+    message = message.encode("latin-1", "replace")
+    return message.decode("utf-8", "replace")
+
+
 def blames(branch, since, filename, try_hard):
     """Returns a list of data representing the blames for a file on a
     given branch.
