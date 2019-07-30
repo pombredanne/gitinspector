@@ -115,6 +115,9 @@ def output_header(runner):
             ind = cli_text.index("-o")
             del cli_text[ind]
             del cli_text[ind]
+        for r in runner.config.repositories: # remove the repositories
+            if r in cli_text:
+                cli_text.remove(r)
         cli_text = " ".join(cli_text)
 
         runner.out.writeln(
