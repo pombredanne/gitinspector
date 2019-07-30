@@ -55,13 +55,6 @@ def __output_html_template__(name):
     file_r.close()
     return template
 
-def __get_zip_file_content__(name, file_name="/html/flot.zip"):
-    zip_file = zipfile.ZipFile(basedir.get_basedir() + file_name, "r")
-    content = zip_file.read(name)
-
-    zip_file.close()
-    return content.decode("utf-8", "replace")
-
 INFO_START_ONE_REPO   = lambda: _("Statistical information for the repository")
 INFO_START_MANY_REPOS = lambda: _("Statistical information for the repositories")
 INFO_MID_ANY_REPO     = lambda: _("was gathered on the")
