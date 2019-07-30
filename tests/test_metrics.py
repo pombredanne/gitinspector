@@ -44,6 +44,8 @@ class MetricsBasicTest(unittest.TestCase):
         # Launch runner
         r = Runner(opts, None)
         r.process()
+
+        # Test number of commits
         self.assertEqual(len(r.changes.all_commits()), 6)  # 6 commits, no merges
         self.assertEqual(len(r.changes.relevant_commits()), 6)
         self.assertEqual(len(r.changes.merge_commits()), 0)
@@ -51,6 +53,18 @@ class MetricsBasicTest(unittest.TestCase):
         self.assertEqual(len(l_commits), 3)  # 3 commits
         j_commits = [c for c in r.changes.all_commits() if c.author == "Andrew Johnson"]
         self.assertEqual(len(l_commits), 3)  # 3 commits
+
+        # Test insertions and deletions
+        authorinfos = r.changes.get_authorinfo_list()
+        self.assertEqual(len(authorinfos), 2) # 2 authors
+        abe_commits = authorinfos[('Abraham Lincoln', 'abe@gov.us')]
+        self.assertEqual(abe_commits.commits, 3)
+        self.assertEqual(abe_commits.insertions, 28) # 10 + 17 + 1
+        self.assertEqual(abe_commits.deletions, 0)
+        and_commits = authorinfos[('Andrew Johnson', 'jojo@gov.us')]
+        self.assertEqual(and_commits.commits, 3)
+        self.assertEqual(and_commits.insertions, 50) # 10 + 34 + 6
+        self.assertEqual(and_commits.deletions, 0)
 
     def test_master_changes(self):
         opts = __parse_arguments__(args=['--silent',
@@ -61,6 +75,8 @@ class MetricsBasicTest(unittest.TestCase):
         # Launch runner
         r = Runner(opts, None)
         r.process()
+
+        # Test number of commits
         self.assertEqual(len(r.changes.all_commits()), 4)  # 4 commits, no merges
         self.assertEqual(len(r.changes.relevant_commits()), 4)
         self.assertEqual(len(r.changes.merge_commits()), 0)
@@ -68,6 +84,18 @@ class MetricsBasicTest(unittest.TestCase):
         self.assertEqual(len(l_commits), 1)  # 1 commits
         j_commits = [c for c in r.changes.all_commits() if c.author == "Andrew Johnson"]
         self.assertEqual(len(j_commits), 3)  # 3 commits
+
+        # Test insertions and deletions
+        authorinfos = r.changes.get_authorinfo_list()
+        self.assertEqual(len(authorinfos), 2) # 2 authors
+        abe_commits = authorinfos[('Abraham Lincoln', 'abe@gov.us')]
+        self.assertEqual(abe_commits.commits, 1)
+        self.assertEqual(abe_commits.insertions, 1) # 1
+        self.assertEqual(abe_commits.deletions, 0)
+        and_commits = authorinfos[('Andrew Johnson', 'jojo@gov.us')]
+        self.assertEqual(and_commits.commits, 3)
+        self.assertEqual(and_commits.insertions, 50) # 10 + 34 + 6
+        self.assertEqual(and_commits.deletions, 0)
 
 
 # Test the metrics on the trie repository, a fairly simple repository
@@ -90,6 +118,8 @@ class MetricsTrieTest(unittest.TestCase):
         # Launch runner
         r = Runner(opts, None)
         r.process()
+
+        # Test number of commits
         self.assertEqual(len(r.changes.all_commits()), 31)  # 29 commits + 2 merges
         self.assertEqual(len(r.changes.code_commits()), 29)
         self.assertEqual(len(r.changes.merge_commits()), 2)
@@ -103,6 +133,10 @@ class MetricsTrieTest(unittest.TestCase):
         self.assertEqual(len(s_commits), 7)   # 6 commits + 1 merge
         self.assertEqual(len([c for c in s_commits if c.type == CommitType.CODE]), 6)
 
+        # Test insertions and deletions
+        authorinfos = r.changes.get_authorinfo_list()
+        self.assertEqual(len(authorinfos), 5) # 5 authors
+
     def test_small_changes(self):
         opts = __parse_arguments__(args=['--silent', '--since=2015-10-20', '--until=2015-10-22',
                                          'build/tests/trie-repository'])
@@ -110,6 +144,8 @@ class MetricsTrieTest(unittest.TestCase):
 
         # Launch runner
         r = Runner(opts, None)
+
+        # Test number of commits
         r.process()
         self.assertEqual(len(r.changes.all_commits()), 5)  # 4 commits + 1 merge
         self.assertEqual(len(r.changes.code_commits()), 4)
@@ -123,8 +159,19 @@ class MetricsTrieTest(unittest.TestCase):
         s_commits = [c for c in r.changes.all_commits() if c.author == "Samwise Gamgee"]
         self.assertEqual(len(s_commits), 1)  # 1 commits
 
-    def test_all_blames(self):
-        opts = __parse_arguments__(args=['--silent', #'-b', 'master'
+        # Test insertions and deletions
+        authorinfos = r.changes.get_authorinfo_list()
+        bilbo_commits = authorinfos[('Bilbo Baggins', 'bilbo.baggins@shire.net')]
+        self.assertEqual(bilbo_commits.commits, 4)
+        self.assertEqual(bilbo_commits.insertions, 14) # 3 + 7 + 4
+        self.assertEqual(bilbo_commits.deletions, 8)   # 4 + 0 + 4
+        sam_commits = authorinfos[('Samwise Gamgee', 'samwise.gamgee@shire.net')]
+        self.assertEqual(sam_commits.commits, 1)
+        self.assertEqual(sam_commits.insertions, 41) # 41 (22+19)
+        self.assertEqual(sam_commits.deletions, 0)
+
+    def test_all_blames_without_spaces(self):
+        opts = __parse_arguments__(args=['--silent', # '-b', 'master'
                                          'build/tests/trie-repository'])
         opts.progress = False
 
@@ -132,16 +179,43 @@ class MetricsTrieTest(unittest.TestCase):
         r = Runner(opts, None)
         r.process()
 
-        blames = r.blames.all_blames()
-        r_blames = [ (c[0], blames[c].rows) for c in blames if c[1] == "README" ]
+        # Count the blames in the README
+        r_blames = r.blames.blames_for_file("README")
         self.assertEqual(len(r_blames), 1)
         r_blames_1 = r_blames[0]
         self.assertEqual(r_blames_1[0][0], "Frodo Baggins")
-        self.assertEqual(r_blames_1[1],    8)
-        t_blames = [ (c[0], blames[c].rows) for c in blames if c[1] == "src/trie.c" ]
-        self.assertEqual(len(t_blames), 5)
+        self.assertEqual(r_blames_1[1],    8) # 8 lines from Frodo
+        # Count the blames in src/trie.c
+        t_blames = r.blames.blames_for_file("src/trie.c")
+        self.assertEqual(len(t_blames), 5)    # 5 authors
         t_blames_1 = [ t for t in t_blames if t[0][0] == "Frodo Baggins" ][0]
-        self.assertEqual(t_blames_1[1], 41) # don't forget that blames are counted with "-w"
+        self.assertEqual(t_blames_1[1], 40)
+        t_blames_2 = [ t for t in t_blames if t[0][0] == "Peregrin Took" ][0]
+        self.assertEqual(t_blames_2[1], 64)
+        t_blames_3 = [ t for t in t_blames if t[0][0] == "Bilbo Baggins" ][0]
+        self.assertEqual(t_blames_3[1], 107)
+
+    def test_all_blames_with_spaces(self):
+        opts = __parse_arguments__(args=['--silent', # '-b', 'master'
+                                         '-W',
+                                         'build/tests/trie-repository'])
+        opts.progress = False
+
+        # Launch runner
+        r = Runner(opts, None)
+        r.process()
+
+        # Count the blames in the README
+        r_blames = r.blames.blames_for_file("README")
+        self.assertEqual(len(r_blames), 1)
+        r_blames_1 = r_blames[0]
+        self.assertEqual(r_blames_1[0][0], "Frodo Baggins")
+        self.assertEqual(r_blames_1[1],    8) # 8 lines from Frodo
+        # Count the blames in src/trie.c
+        t_blames = r.blames.blames_for_file("src/trie.c")
+        self.assertEqual(len(t_blames), 5)    # 5 authors
+        t_blames_1 = [ t for t in t_blames if t[0][0] == "Frodo Baggins" ][0]
+        self.assertEqual(t_blames_1[1], 41)
         t_blames_2 = [ t for t in t_blames if t[0][0] == "Peregrin Took" ][0]
         self.assertEqual(t_blames_2[1], 56)
         t_blames_3 = [ t for t in t_blames if t[0][0] == "Bilbo Baggins" ][0]
