@@ -39,7 +39,7 @@ class BlameEntry(object):
     comments = 0
 
     def __repr__(self):
-        return "BlameEntry(rows:{0}, skew:{1} comments:{2})".\
+        return "BlameEntry(rows:{0}, skew:{1}, comments:{2})".\
             format(self.rows, self.skew, self.comments)
 
 
@@ -212,8 +212,8 @@ class Blame(object):
             for i in range(0, NUM_THREADS):
                 __thread_lock__.release()
 
-
     def __iadd__(self, other):
+        """Concatenate lists of blames"""
         try:
             self.__blames__.update(other.__blames__)
             return self
@@ -222,6 +222,7 @@ class Blame(object):
 
     @staticmethod
     def is_revision(string):
+        """Tests if a string is a git revision"""
         revision = re.search("([0-9a-f]{40})", string)
 
         if revision is None:
@@ -237,11 +238,24 @@ class Blame(object):
         return 100
 
     def all_blames(self):
+        """Returns a list of all the BlameEntry objects"""
         return self.__blames__
 
+    def blames_for_file(self, file):
+        """Returns a list of pairs ((author,email),num) that counts the blames
+        for a given file
+
+        Ex. : [(('Frodo Baggins', 'frodo.baggins@shire.net'), 8)]"""
+        return [(c[0], self.__blames__[c].rows)
+                for c in self.__blames__ if c[1] == file]
+
     def get_summed_blames(self):
+        """Returns a hash where keys are (author,email) and values are
+        BlameEntries that are the sums of the entries in __blames__.
+
+        Ex. : {('Frodo', 'f@s.n'): BlameEntry(rows:71, skew:101, comm:12)"""
         summed_blames = {}
-        for (committer,file),blame in self.__blames__.items():
+        for (committer, file), blame in self.__blames__.items():
             if summed_blames.get(committer, None) is None:
                 summed_blames[committer] = BlameEntry()
 
@@ -252,8 +266,12 @@ class Blame(object):
         return summed_blames
 
     def get_typed_blames(self):
+        """Returns a hash where keys are (author,email) and values are
+        a hash associating a CommitType to a number of lines.
+
+        Ex. : {('Frodo', 'f@s.n'): {'TXT': 8, 'CPP': 63}}"""
         typed_blames = {}
-        for (committer,file),blame in self.__blames__.items():
+        for (committer, file), blame in self.__blames__.items():
             if typed_blames.get(committer, None) is None:
                 typed_blames[committer] = {}
             type = FileType.create(file).name
@@ -265,13 +283,19 @@ class Blame(object):
         return typed_blames
 
     def committers_by_responsibilities(self):
-        wrk = [ (k[0],v.rows) for (k,v) in self.__blames__.items()]
+        """Sorts the (author,email) in __blames__ by decreasing order of
+        responsibility."""
+        wrk = [(k[0], v.rows) for (k, v) in self.__blames__.items()]
         aut = set([k[0] for k in wrk])
         res = sorted(aut,
-                     key=lambda a: -sum([w for (b,w) in wrk if b == a]))
+                     key=lambda a: -sum([w for (b, w) in wrk if b == a]))
         return res
 
     def get_responsibilities(self, committer):
+        """Returns the list of blames of a given (author,email) where each
+        blame is a pair (file,number_of_lines)
+
+        Ex. : [('Makefile',20), ('include/trie.h',5), ('src/Makefile',22)]"""
         author_blames = {}
 
         for i in self.__blames__.items():
