@@ -92,16 +92,18 @@ def commit_chunks(hashes, since, until, config):
     """
     git_command = list(filter(None,
                          ["git", "log", "--reverse",
-                          "--pretty=---%n%ct|%cd|%H|%aN|%aE",
+                          "--pretty='---%n%ct|%cd|%H|%aN|%aE'",
                           "--stat=100000,8192"] +
                          (["-w"] if config.ignore_space else []) +
                          [since, until, "--date=short"] +
                          (["-C", "-C", "-M"] if config.hard else []) +
                          [hashes]))
+    git_command = " ".join(git_command)
     if config.debug_mode:
-        print(" ".join(git_command))
+        print(git_command)
 
-    git_log_r = subprocess.Popen(git_command, bufsize=1, stdout=subprocess.PIPE)
+    git_log_r = subprocess.Popen(git_command,
+                                 bufsize=1, stdout=subprocess.PIPE, shell=True)
     lines = git_log_r.stdout.readlines()
     git_log_r.wait()
     git_log_r.stdout.close()
