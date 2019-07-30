@@ -1,12 +1,12 @@
 [![Latest release](https://img.shields.io/github/release/ejwa/gitinspector.svg?style=flat)](https://github.com/ejwa/gitinspector/releases/latest)
 [![License](https://img.shields.io/github/license/ejwa/gitinspector.svg?style=flat)](https://github.com/ejwa/gitinspector/blob/master/LICENSE.txt)
 
-This version of Gitinspector is a work-in-progress fork of the
+ ⚠ This version of Gitinspector is a work-in-progress fork of the
 [original gitinspector](https://github.com/ejwa/gitinspector). It
 integrates a series of features and modifications from the original
 code, the list of which shall eventually appear on this page one
 day. The links in the remainder of this page point to the original
-program.
+program. ⚠
 
 <h2>
  <img align="left" height="65px"
