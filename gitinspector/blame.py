@@ -220,6 +220,9 @@ class Blame(object):
         except AttributeError:
             return other
 
+    def __repr__(self):
+        return "Blames({0})".format(self.__blames__)
+
     @staticmethod
     def is_revision(string):
         """Tests if a string is a git revision"""

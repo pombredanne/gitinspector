@@ -146,7 +146,7 @@ class FileDiff(object):
             self.deletions = commit_line[1].count("-")
 
     def __repr__(self):
-        return "FileDiff(name: {0}, ins: {1}, del: {2})".\
+        return "FileDiff(name: {0}, ins: \033[92m{1}\033[0m, del: \033[91m{2}\033[0m)".\
             format(self.name, self.insertions, self.deletions)
 
     @staticmethod
@@ -187,7 +187,7 @@ class Commit(object):
 
     def __repr__(self):
         if (self.type == CommitType.MERGE):
-            return "Merge(sha: {0}, author: {1}, mail: {2})".\
+            return " Merge(sha: {0}, author: {1}, mail: {2})".\
                 format(self.sha[0:8], self.author, self.email)
         else:
             return "Commit(sha: {0}, author: {1}, mail: {2}, diffs: {3})".\
@@ -267,7 +267,7 @@ class AuthorInfo(object):
         self.types = { FileType.OTHER: set() }
 
     def __repr__(self):
-        return "Info(ins: {0}, del: {1}, commits: {2})".\
+        return "Info(ins: \033[92m{0}\033[0m, del: \033[91m{1}\033[0m, commits: {2})".\
             format(self.insertions, self.deletions, self.commits)
 
 
@@ -321,7 +321,9 @@ class Changes(object):
                                                   int(self.__commits__[-1].date[8:10]))
 
     def __repr__(self):
-        return "Changes(commits: {0})".format(len(self.__commits__))
+        comm_str = "\n".join([ str(s) for s in self.__commits__ ])
+        return "Changes(commits: {0})\n{1}".format(len(self.__commits__),
+                                                   comm_str)
 
     def __iadd__(self, other):
         try:
@@ -364,13 +366,19 @@ class Changes(object):
 
     def all_commits(self):
         return self.__commits__
+
     def relevant_commits(self):
-        return [ c for c in self.__commits__
-                 if c.type == CommitType.CODE or c.type == CommitType.MERGE ]
+        return [c for c in self.__commits__
+                if c.type == CommitType.CODE or c.type == CommitType.MERGE]
+
     def code_commits(self):
-        return [ c for c in self.__commits__ if c.type == CommitType.CODE ]
+        return [c for c in self.__commits__ if c.type == CommitType.CODE]
+
     def merge_commits(self):
-        return [ c for c in self.__commits__ if c.type == CommitType.MERGE ]
+        return [c for c in self.__commits__ if c.type == CommitType.MERGE]
+
+    def commits_for_author(self, author):
+        return [c for c in self.__commits__ if c.author == author]
 
     def get_authorinfo_list(self):
         """
