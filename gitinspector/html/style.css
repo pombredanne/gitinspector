@@ -21,10 +21,14 @@ div.box {
     box-shadow: 1px 1px 3px #666;
     -moz-box-shadow: 1px 1px 3px #666;
 }
+div.logo a {
+    text-decoration:none
+}
 div.logo p {
     width: 60em;
     display:inline-block;
     vertical-align:middle;
+    font-size: x-small;
 }
 div.logo img {
     vertical-align:middle;
