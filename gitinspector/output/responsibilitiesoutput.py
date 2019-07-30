@@ -62,28 +62,31 @@ class ResponsibilitiesOutput(Outputable):
                         break
 
     def output_html(self):
-        resp_xml = ""
+        resp_xml = "<table class='git2'>"
+        par = "even"
         for committer in self.blame.committers_by_responsibilities():
             responsibilities = sorted(((resp[1], resp[0])
                                        for resp in self.blame.get_responsibilities(committer)),
                                       reverse=True)
             if responsibilities:
-                resp_xml += "<div>"
+                par = "odd" if par == "even" else "even"
+                resp_xml += "<tr class='{0}'>".format(par)
                 color = self.changes.committers[committer]["color"]
                 rect = ("<svg width='16' height='16'><rect x='5' y='5' "
                         "width='16' height='16' fill='{0}'></rect></svg>").\
                         format(color)
 
-                resp_xml += "<h4>{0} &nbsp; {1} {2}</h4>".\
-                    format(rect, committer[0], MOSTLY_RESPONSIBLE_FOR_TEXT())
+                resp_xml += "<td style='text-align:left; width:25%'>{0} &nbsp; {1}</td><td>".\
+                    format(rect, committer[0])
 
-                for j, entry in enumerate(responsibilities):
-                    resp_xml += "<div" + (" class=\"odd\">" if j % 2 == 1 else ">") + \
+                for i, entry in enumerate(responsibilities):
+                    resp_xml += "<div style='padding:0px'>" + \
                         entry[1] + " (" + str(entry[0]) + " eloc)</div>"
-                    if j >= 9:
+                    if i > 9:
                         break
+                resp_xml += "</td></tr>"
 
-                resp_xml += "</div>"
+        resp_xml += "</table>"
 
         temp_file = os.path.join(os.path.dirname(__file__),
                                  "../templates/responsibilities_output.html")
