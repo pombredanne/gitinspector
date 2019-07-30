@@ -84,16 +84,23 @@ def commits(branch, since, until):
     return lines
 
 
-def commit_chunks(hashes, since, until, try_hard):
+def commit_chunks(hashes, since, until, config):
     """Returns a list of commits containing the commit data with the
     filediffs. Returned is a list of chunks, each chunk being one
     commit represented by a list of lines. The return of this function
     is intended to be handled by Commit.handle_diff_chunk.
     """
-    git_command = filter(None,
-                     ["git", "log", "--reverse", "--pretty=---%n%ct|%cd|%H|%aN|%aE",
-                      "--stat=100000,8192", "-w", since, until, "--date=short"] +
-                     (["-C", "-C", "-M"] if try_hard else []) + [ hashes ])
+    git_command = list(filter(None,
+                         ["git", "log", "--reverse",
+                          "--pretty=---%n%ct|%cd|%H|%aN|%aE",
+                          "--stat=100000,8192"] +
+                         (["-w"] if config.ignore_space else []) +
+                         [since, until, "--date=short"] +
+                         (["-C", "-C", "-M"] if config.hard else []) +
+                         [hashes]))
+    if config.debug_mode:
+        print(" ".join(git_command))
+
     git_log_r = subprocess.Popen(git_command, bufsize=1, stdout=subprocess.PIPE)
     lines = git_log_r.stdout.readlines()
     git_log_r.wait()
@@ -117,14 +124,18 @@ def commit_message(hash):
     return message.decode("utf-8", "replace")
 
 
-def blames(branch, since, filename, try_hard):
+def blames(branch, since, filename, config):
     """Returns a list of data representing the blames for a file on a
     given branch.
     """
-    blame_command = filter(None,
-                           ["git", "blame", "--line-porcelain", "-w"] +
-                           (["-C", "-C", "-M"] if try_hard else []) +
-                           [since, branch, "--", filename])
+    blame_command = list(filter(None,
+                           ["git", "blame", "--line-porcelain"] +
+                           (["-w"] if config.ignore_space else []) +
+                           (["-C", "-C", "-M"] if config.hard else []) +
+                           [since, branch, "--", filename]))
+    if config.debug_mode:
+        print(" ".join(blame_command))
+
     git_blame_cmd = subprocess.Popen(blame_command, bufsize=1, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
     rows = git_blame_cmd.stdout.readlines()

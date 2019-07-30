@@ -302,7 +302,7 @@ class Changes(object):
 
         chunks =  git_utils.commit_chunks(self.config.branch, \
                                           interval.get_since(), interval.get_until(), \
-                                          self.config.hard)
+                                          self.config)
 
         commits = []
         for chunk in chunks:

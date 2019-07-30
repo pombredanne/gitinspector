@@ -118,7 +118,7 @@ class BlameThread(threading.Thread):
 
     def run(self):
         rows = git_utils.blames(self.branch, interval.get_since(),
-                                self.filename, self.config.hard)
+                                self.filename, self.config)
 
         self.__clear_blamechunk_info__()
 

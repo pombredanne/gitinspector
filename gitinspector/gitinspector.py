@@ -222,6 +222,8 @@ def __parse_arguments__(args=None):
     parser.add_argument('-b', '--branch', metavar='BRANCH', help=
                         _("the name of the branch for git to checkout, the default "
                           "being 'master'"), default="--all")
+    parser.add_argument('-d', '--debug-mode', action='store_true', help=
+                        _("displays some debug messages"))
     parser.add_argument('-f', '--file-types', metavar='TYPES', help=
                         _("a comma separated list of file extensions to include when "
                           "computing statistics. The default extensions used are: ") +
@@ -270,6 +272,8 @@ def __parse_arguments__(args=None):
                         _("display the current version of the program"))
     parser.add_argument('-w', '--weeks', action='store_true', help=
                         _("show all statistical information in weeks instead of in months"))
+    parser.add_argument('-W', '--ignore-space', action='store_true', help=
+                        _("add 'ignore-all-space' option to git commands"))
     parser.add_argument('-x', '--exclude', metavar='PATTERN', action='append', help=
                         _("an exclusion pattern of the form KEY:PAT, describing the file paths, "
                           "revisions, revisions with certain commit messages, author names or "
