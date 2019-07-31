@@ -86,9 +86,10 @@ class BlameThread(threading.Thread):
             comment.handle_comment_block(self.is_inside_comment,
                                          self.extension, content)
 
-        if self.blamechunk_is_prior and interval.get_since():
+        if self.blamechunk_is_prior \
+           and self.config.since \
+           and self.blamechunk_time < self.config.since.date():
             return
-
         (author, email) = Commit.get_alias(self.blamechunk_author,
                                            self.blamechunk_email,
                                            self.config)
