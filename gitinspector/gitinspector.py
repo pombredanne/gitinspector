@@ -144,8 +144,6 @@ class Runner(object):
             if self.config.progress and sys.stdout.isatty() and format.is_interactive_format():
                 terminal.clear_row()
 
-        print(self.blames)
-
         os.chdir(previous_directory)
 
     def __output__(self):

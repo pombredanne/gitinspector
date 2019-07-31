@@ -386,6 +386,9 @@ class Changes(object):
     def last_commit(self):
         return self.__commits__[-1]
 
+    def diffs_for_file(self, file):
+        return [d for c in self.__commits__ for d in c.filediffs if d.name == file]
+
     def get_authorinfo_list(self):
         """
         Returns a hash associating authors to AuthorInfo objects,
