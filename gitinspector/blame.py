@@ -39,7 +39,7 @@ class BlameEntry(object):
     comments = 0
 
     def __repr__(self):
-        return "BlameEntry(rows:{0}, skew:{1}, comments:{2})".\
+        return "BlameEntry(rows:\033[92m{0}\033[0m, skew:{1}, comments:{2})".\
             format(self.rows, self.skew, self.comments)
 
 
@@ -76,7 +76,7 @@ class BlameThread(threading.Thread):
     def __clear_blamechunk_info__(self):
         self.blamechunk_email = None
         self.blamechunk_is_last = False
-        self.blamechunk_is_prior = False
+        self.blamechunk_is_prior = False # Checks blame's sha to be a boundary commit
         self.blamechunk_revision = None
         self.blamechunk_time = None
 
@@ -117,15 +117,14 @@ class BlameThread(threading.Thread):
             __blame_lock__.release() # ...to here.
 
     def run(self):
-        rows = git_utils.blames(self.branch, interval.get_since(),
+        rows = git_utils.blames(self.changes.last_commit().sha,
                                 self.filename, self.config)
-
         self.__clear_blamechunk_info__()
 
         #pylint: disable=W0201
         for row in rows:
             row = row.decode("utf-8", "replace").strip()
-            keyval = row.split(" ", 2)
+            keyval = row.split(" ", 2) # array of strings
 
             if self.blamechunk_is_last:
                 self.__handle_blamechunk_content__(row)
@@ -221,7 +220,11 @@ class Blame(object):
             return other
 
     def __repr__(self):
-        return "Blames({0})".format(self.__blames__)
+        num_rows  = sum([e.rows for b,e in self.__blames__.items()])
+        blame_str = "\n".join(["Blame(\033[93m{0}\033[0m : {1} {2})".format(f, (a,e), b)
+                               for ((a,e),f),b in self.__blames__.items()])
+        return "Blames({0}, rows:\033[92m{1}\033[0m)\n{2}".\
+            format(len(self.__blames__), num_rows, blame_str)
 
     @staticmethod
     def is_revision(string):
