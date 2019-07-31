@@ -229,7 +229,7 @@ class Commit(object):
                     decode("utf-8", "replace")
                 if FileDiff.is_filediff_line(line):
                     file_name = FileDiff.get_filename(line)
-                    changes.files.append(file_name)
+                    changes.files.add(file_name)
                     filediff = FileDiff(file_name, line)
                     commit.add_filediff(filediff)
                     commit.type = CommitType.CODE
@@ -283,7 +283,7 @@ class Changes(object):
         changes.authors = {}
         changes.authors_dateinfo = {}
         changes.committers = {}
-        changes.files = []
+        changes.files = set()
         return changes
 
     def __init__(self, repo, config):
@@ -291,7 +291,7 @@ class Changes(object):
         self.authors = {}
         self.authors_dateinfo = {}
         self.committers = {}
-        self.files = []
+        self.files = set()
         self.config = config
 
         interval.set_ref("HEAD")
