@@ -146,7 +146,7 @@ class FileDiff(object):
             self.deletions = commit_line[1].count("-")
 
     def __repr__(self):
-        return "FileDiff(name: {0}, ins: \033[92m{1}\033[0m, del: \033[91m{2}\033[0m)".\
+        return "FileDiff(name: \033[93m{0}\033[0m, ins: \033[92m{1}\033[0m, del: \033[91m{2}\033[0m)".\
             format(self.name, self.insertions, self.deletions)
 
     @staticmethod
@@ -187,10 +187,10 @@ class Commit(object):
 
     def __repr__(self):
         if (self.type == CommitType.MERGE):
-            return " Merge(sha: {0}, author: {1}, mail: {2})".\
+            return " Merge(sha: {0}, author: {1} <{2}>)".\
                 format(self.sha[0:8], self.author, self.email)
         else:
-            return "Commit(sha: {0}, author: {1}, mail: {2}, diffs: {3})".\
+            return "Commit(sha: {0}, author: {1} <{2}>, diffs: {3})".\
                 format(self.sha[0:8], self.author, self.email, self.filediffs)
 
     def add_filediff(self, filediff):
