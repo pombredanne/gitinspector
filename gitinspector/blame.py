@@ -171,7 +171,7 @@ class Blame(object):
             lines = {} # Associates files to branch
             times = {} # Associates files to time
             for b in branches:
-                # for f in git_utils.files(b):
+                # for f in git_utils.files(b, config):
                 for f in changes.files:
                     if f in lines:
                         if not(f in times):
@@ -183,7 +183,8 @@ class Blame(object):
                     else:
                         lines[f] = b
         else:
-            lines = {l: self.config.branch for l in git_utils.files(config.branch)}
+            lines = {l: self.config.branch
+                     for l in git_utils.files(changes.last_commit().sha, config)}
 
         if lines:
             progress_text = _(PROGRESS_TEXT)

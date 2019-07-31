@@ -57,11 +57,15 @@ def sanitize_filename(file):
     return file
 
 
-def files(branch):
+def files(branch, config):
     """Returns the list of the files appearing in the given branch.
     """
-    ls_tree_p = subprocess.Popen(["git", "ls-tree", "--name-only", "-r",
-                                  branch], bufsize=1,
+    ls_command = ["git", "ls-tree", "--name-only", "-r", branch]
+
+    if config.debug_mode:
+        print(" ".join(ls_command))
+
+    ls_tree_p = subprocess.Popen(ls_command, bufsize=1,
                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines = ls_tree_p.communicate()[0].splitlines()
     lines = [ sanitize_filename(l) for l in lines ]
@@ -126,7 +130,7 @@ def commit_message(hash):
     return message.decode("utf-8", "replace")
 
 
-def blames(branch, since, filename, config):
+def blames(sha, filename, config):
     """Returns a list of data representing the blames for a file on a
     given branch.
     """
@@ -134,12 +138,13 @@ def blames(branch, since, filename, config):
                            ["git", "blame", "--line-porcelain"] +
                            (["-w"] if config.ignore_space else []) +
                            (["-C", "-C", "-M"] if config.hard else []) +
-                           [since, branch, "--", filename]))
+                           [sha, "--", filename]))
+    blame_command = " ".join(blame_command)
     if config.debug_mode:
-        print(" ".join(blame_command))
+        print(blame_command)
 
-    git_blame_cmd = subprocess.Popen(blame_command, bufsize=1, stdout=subprocess.PIPE,
-                                     stderr=subprocess.PIPE)
+    git_blame_cmd = subprocess.Popen(blame_command, bufsize=1, shell=True,
+                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     rows = git_blame_cmd.stdout.readlines()
     git_blame_cmd.wait()
     git_blame_cmd.stdout.close()

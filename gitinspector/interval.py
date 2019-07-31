@@ -26,6 +26,7 @@ __ref__ = "HEAD"
 # TODO: We definitely need to rewrite the 'interval' module to be part
 # of the Runner context and NOT BEING GLOBAL! (for our own sake!)...
 
+
 def has_interval():
     global __since__, __until__
     return __since__ + __until__ != ""

@@ -380,6 +380,12 @@ class Changes(object):
     def commits_for_author(self, author):
         return [c for c in self.__commits__ if c.author == author]
 
+    def first_commit(self):
+        return self.__commits__[0]
+
+    def last_commit(self):
+        return self.__commits__[-1]
+
     def get_authorinfo_list(self):
         """
         Returns a hash associating authors to AuthorInfo objects,
