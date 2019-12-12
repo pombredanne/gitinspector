@@ -17,126 +17,147 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
-from __future__ import unicode_literals
+import os
+import string
 import textwrap
-from ..localization import N_
+
 from .. import format, gravatar, terminal
-from .. import responsibilities as resp
 from .outputable import Outputable
 
-RESPONSIBILITIES_INFO_TEXT = N_("The following responsibilities, by author, were found in the current "
-                                "revision of the repository (comments are excluded from the line count, "
-                                "if possible)")
-MOSTLY_RESPONSIBLE_FOR_TEXT = N_("is mostly responsible for")
+RESPONSIBILITIES_INFO_TEXT = lambda: _("The following responsibilities, by author, were found in the current "
+                                       "revision of the repository (comments are excluded from the line count, "
+                                       "if possible)")
+MOSTLY_RESPONSIBLE_FOR_TEXT = lambda: _("is mostly responsible for")
 
 class ResponsibilitiesOutput(Outputable):
-	def __init__(self, changes, blame):
-		self.changes = changes
-		self.blame = blame
-		Outputable.__init__(self)
+    output_order = 500
 
-	def output_text(self):
-		print("\n" + textwrap.fill(_(RESPONSIBILITIES_INFO_TEXT) + ":", width=terminal.get_size()[0]))
+    def __init__(self, runner):
+        Outputable.__init__(self)
+        self.changes = runner.changes
+        self.blame = runner.blames
+        self.display = bool(runner.changes.all_commits()) and bool(runner.config.responsibilities)
+        self.out = runner.out
 
-		for i in sorted(set(i[0] for i in self.blame.blames)):
-			responsibilities = sorted(((i[1], i[0]) for i in resp.Responsibilities.get(self.blame, i)), reverse=True)
+    def output_text(self):
+        self.out.writeln("\n" + textwrap.fill(RESPONSIBILITIES_INFO_TEXT() + ":",
+                                              width=terminal.get_size()[0]))
 
-			if responsibilities:
-				print("\n" + i, _(MOSTLY_RESPONSIBLE_FOR_TEXT) + ":")
+        for committer in self.blame.committers_by_responsibilities():
+            responsibilities = sorted(((resp[1], resp[0])
+                                       for resp in self.blame.get_responsibilities(committer)),
+                                      reverse=True)
 
-				for j, entry in enumerate(responsibilities):
-					(width, _unused) = terminal.get_size()
-					width -= 7
+            if responsibilities:
+                self.out.writeln("\n" + committer[0] + " " + MOSTLY_RESPONSIBLE_FOR_TEXT() + ":")
 
-					print(str(entry[0]).rjust(6), end=" ")
-					print("...%s" % entry[1][-width+3:] if len(entry[1]) > width else entry[1])
+                for j, entry in enumerate(responsibilities):
+                    (width, _unused) = terminal.get_size()
+                    width -= 7
 
-					if j >= 9:
-						break
+                    self.out.write(str(entry[0]).rjust(6) + " ")
+                    self.out.writeln("...%s" % entry[1][-width+3:] if len(entry[1]) > width else entry[1])
 
-	def output_html(self):
-		resp_xml = "<div><div class=\"box\" id=\"responsibilities\">"
-		resp_xml += "<p>" + _(RESPONSIBILITIES_INFO_TEXT) + ".</p>"
+                    if j >= 9:
+                        break
 
-		for i in sorted(set(i[0] for i in self.blame.blames)):
-			responsibilities = sorted(((i[1], i[0]) for i in resp.Responsibilities.get(self.blame, i)), reverse=True)
+    def output_html(self):
+        resp_xml = "<table class='git2'>"
+        par = "even"
+        for committer in self.blame.committers_by_responsibilities():
+            responsibilities = sorted(((resp[1], resp[0])
+                                       for resp in self.blame.get_responsibilities(committer)),
+                                      reverse=True)
+            if responsibilities:
+                par = "odd" if par == "even" else "even"
+                resp_xml += "<tr class='{0}'>".format(par)
+                color = self.changes.committers[committer]["color"]
+                rect = ("<svg width='16' height='16'><rect x='5' y='5' "
+                        "width='16' height='16' fill='{0}'></rect></svg>").\
+                        format(color)
 
-			if responsibilities:
-				resp_xml += "<div>"
+                resp_xml += "<td style='text-align:left; width:25%'>{0} &nbsp; {1}</td><td>".\
+                    format(rect, committer[0])
 
-				if format.get_selected() == "html":
-					author_email = self.changes.get_latest_email_by_author(i)
-					resp_xml += "<h3><img src=\"{0}\"/>{1} {2}</h3>".format(gravatar.get_url(author_email, size=32),
-					            i, _(MOSTLY_RESPONSIBLE_FOR_TEXT))
-				else:
-					resp_xml += "<h3>{0} {1}</h3>".format(i, _(MOSTLY_RESPONSIBLE_FOR_TEXT))
+                for i, entry in enumerate(responsibilities):
+                    resp_xml += "<div style='padding:0px'>" + \
+                        entry[1] + " (" + str(entry[0]) + " eloc)</div>"
+                    if i > 9:
+                        break
+                resp_xml += "</td></tr>"
 
-				for j, entry in enumerate(responsibilities):
-					resp_xml += "<div" + (" class=\"odd\">" if j % 2 == 1 else ">") + entry[1] + \
-					            " (" + str(entry[0]) + " eloc)</div>"
-					if j >= 9:
-						break
+        resp_xml += "</table>"
 
-				resp_xml += "</div>"
-		resp_xml += "</div></div>"
-		print(resp_xml)
+        temp_file = os.path.join(os.path.dirname(__file__),
+                                 "../templates/responsibilities_output.html")
+        with open(temp_file, 'r') as infile:
+            src = string.Template( infile.read() )
+            self.out.write(src.substitute(
+                resp_info_text=RESPONSIBILITIES_INFO_TEXT(),
+                resp_inner_text=resp_xml,
+            ))
 
-	def output_json(self):
-		message_xml = "\t\t\t\"message\": \"" + _(RESPONSIBILITIES_INFO_TEXT) + "\",\n"
-		resp_xml = ""
+    def output_json(self):
+        message_json = "\t\t\t\"message\": \"" + RESPONSIBILITIES_INFO_TEXT() + "\",\n"
+        resp_json = ""
 
-		for i in sorted(set(i[0] for i in self.blame.blames)):
-			responsibilities = sorted(((i[1], i[0]) for i in resp.Responsibilities.get(self.blame, i)), reverse=True)
+        for committer in self.blame.committers_by_responsibilities():
+            responsibilities = sorted(((resp[1], resp[0])
+                                       for resp in self.blame.get_responsibilities(committer)),
+                                      reverse=True)
 
-			if responsibilities:
-				author_email = self.changes.get_latest_email_by_author(i)
+            if responsibilities:
+                (author_name, author_email) = committer
 
-				resp_xml += "{\n"
-				resp_xml += "\t\t\t\t\"name\": \"" + i + "\",\n"
-				resp_xml += "\t\t\t\t\"gravatar\": \"" + gravatar.get_url(author_email) + "\",\n"
-				resp_xml += "\t\t\t\t\"files\": [\n\t\t\t\t"
+                resp_json += "{\n"
+                resp_json += "\t\t\t\t\"name\": \"" + author_name + "\",\n"
+                resp_json += "\t\t\t\t\"email\": \"" + author_email + "\",\n"
+                resp_json += "\t\t\t\t\"gravatar\": \"" + gravatar.get_url(author_email) + "\",\n"
+                resp_json += "\t\t\t\t\"files\": [\n\t\t\t\t"
 
-				for j, entry in enumerate(responsibilities):
-					resp_xml += "{\n"
-					resp_xml += "\t\t\t\t\t\"name\": \"" + entry[1] + "\",\n"
-					resp_xml += "\t\t\t\t\t\"rows\": " + str(entry[0]) + "\n"
-					resp_xml += "\t\t\t\t},"
+                for j, entry in enumerate(responsibilities):
+                    resp_json += "{\n"
+                    resp_json += "\t\t\t\t\t\"name\": \"" + entry[1] + "\",\n"
+                    resp_json += "\t\t\t\t\t\"rows\": " + str(entry[0]) + "\n"
+                    resp_json += "\t\t\t\t},"
 
-					if j >= 9:
-						break
+                    if j >= 9:
+                        break
 
-				resp_xml = resp_xml[:-1]
-				resp_xml += "]\n"
-				resp_xml += "\t\t\t},"
+                resp_json = resp_json[:-1]
+                resp_json += "]\n\t\t\t},"
 
-		resp_xml = resp_xml[:-1]
-		print(",\n\t\t\"responsibilities\": {\n" + message_xml + "\t\t\t\"authors\": [\n\t\t\t" + resp_xml + "]\n\t\t}", end="")
+        resp_json = resp_json[:-1]
+        self.out.write(",\n\t\t\"responsibilities\": {\n" + message_json + "\t\t\t\"authors\": [\n\t\t\t" +
+                       resp_json + "]\n\t\t}")
 
-	def output_xml(self):
-		message_xml = "\t\t<message>" + _(RESPONSIBILITIES_INFO_TEXT) + "</message>\n"
-		resp_xml = ""
+    def output_xml(self):
+        message_xml = "\t\t<message>" + RESPONSIBILITIES_INFO_TEXT() + "</message>\n"
+        resp_xml = ""
 
-		for i in sorted(set(i[0] for i in self.blame.blames)):
-			responsibilities = sorted(((i[1], i[0]) for i in resp.Responsibilities.get(self.blame, i)), reverse=True)
-			if responsibilities:
-				author_email = self.changes.get_latest_email_by_author(i)
+        for committer in self.blame.committers_by_responsibilities():
+            (author_name, author_email) = committer
+            responsibilities = sorted(((resp[1], resp[0])
+                                       for resp in self.blame.get_responsibilities(committer)),
+                                      reverse=True)
+            if responsibilities:
+                resp_xml += "\t\t\t<author>\n"
+                resp_xml += "\t\t\t\t<name>" + author_name + "</name>\n"
+                resp_xml += "\t\t\t\t<email>" + author_email + "</email>\n"
+                resp_xml += "\t\t\t\t<gravatar>" + gravatar.get_url(author_email) + "</gravatar>\n"
+                resp_xml += "\t\t\t\t<files>\n"
 
-				resp_xml += "\t\t\t<author>\n"
-				resp_xml += "\t\t\t\t<name>" + i + "</name>\n"
-				resp_xml += "\t\t\t\t<gravatar>" + gravatar.get_url(author_email) + "</gravatar>\n"
-				resp_xml += "\t\t\t\t<files>\n"
+                for j, entry in enumerate(responsibilities):
+                    resp_xml += "\t\t\t\t\t<file>\n"
+                    resp_xml += "\t\t\t\t\t\t<name>" + entry[1] + "</name>\n"
+                    resp_xml += "\t\t\t\t\t\t<rows>" + str(entry[0]) + "</rows>\n"
+                    resp_xml += "\t\t\t\t\t</file>\n"
 
-				for j, entry in enumerate(responsibilities):
-					resp_xml += "\t\t\t\t\t<file>\n"
-					resp_xml += "\t\t\t\t\t\t<name>" + entry[1] + "</name>\n"
-					resp_xml += "\t\t\t\t\t\t<rows>" + str(entry[0]) + "</rows>\n"
-					resp_xml += "\t\t\t\t\t</file>\n"
+                    if j >= 9:
+                        break
 
-					if j >= 9:
-						break
+                resp_xml += "\t\t\t\t</files>\n"
+                resp_xml += "\t\t\t</author>\n"
 
-				resp_xml += "\t\t\t\t</files>\n"
-				resp_xml += "\t\t\t</author>\n"
-
-		print("\t<responsibilities>\n" + message_xml + "\t\t<authors>\n" + resp_xml + "\t\t</authors>\n\t</responsibilities>")
+        self.out.writeln("\t<responsibilities>\n" + message_xml + "\t\t<authors>\n" + resp_xml +
+                         "\t\t</authors>\n\t</responsibilities>")

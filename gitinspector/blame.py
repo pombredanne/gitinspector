@@ -1,6 +1,6 @@
 # coding: utf-8
 #
-# Copyright © 2012-2015 Ejwa Software. All rights reserved.
+# Copyright © 2012-2017 Ejwa Software. All rights reserved.
 #
 # This file is part of gitinspector.
 #
@@ -17,181 +17,299 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
-from __future__ import unicode_literals
 import datetime
 import multiprocessing
 import re
-import subprocess
 import threading
-from .localization import N_
-from .changes import FileDiff
-from . import comment, filtering, format, interval, terminal
+
+from .changes import Commit, FileDiff, FileType
+from .filtering import Filters, is_filtered, is_acceptable_file_name
+from . import comment, format, git_utils, interval, terminal
 
 NUM_THREADS = multiprocessing.cpu_count()
+AVG_DAYS_PER_MONTH = 30.4167
+
 
 class BlameEntry(object):
-	rows = 0
-	skew = 0 # Used when calculating average code age.
-	comments = 0
+    """A simple record class that stores informations about a blame. All
+    BlameEntry objects are stored into hashes (author, file) -> BlameEntry.
+    """
+    rows = 0
+    skew = 0     # Used when calculating average code age.
+    comments = 0
+
+    def __repr__(self):
+        return "BlameEntry(rows:\033[92m{0}\033[0m, skew:{1}, comments:{2})".\
+            format(self.rows, self.skew, self.comments)
+
 
 __thread_lock__ = threading.BoundedSemaphore(NUM_THREADS)
 __blame_lock__ = threading.Lock()
 
-AVG_DAYS_PER_MONTH = 30.4167
 
 class BlameThread(threading.Thread):
-	def __init__(self, useweeks, changes, blame_command, extension, blames, filename):
-		__thread_lock__.acquire() # Lock controlling the number of threads running
-		threading.Thread.__init__(self)
+    """A class that launches a thread counting the blames for a given
+    file. The class is supposed to be somewhat thread-safe, and can be
+    applied a multiple number of times for the same file if needed.
+    """
+    blamechunk_author = None
+    blamechunk_email = None
+    blamechunk_is_last = False
+    blamechunk_is_prior = False
+    blamechunk_revision = None
+    blamechunk_time = None
 
-		self.useweeks = useweeks
-		self.changes = changes
-		self.blame_command = blame_command
-		self.extension = extension
-		self.blames = blames
-		self.filename = filename
+    def __init__(self, config, changes, blames, branch, filename):
+        __thread_lock__.acquire() # Lock controlling the number of threads running
+        threading.Thread.__init__(self)
 
-		self.is_inside_comment = False
+        self.config = config
+        self.branch = branch
+        self.useweeks = config.weeks
+        self.changes = changes
+        self.extension = FileDiff.get_extension(filename)
+        self.blames = blames
+        self.filename = filename
 
-	def __clear_blamechunk_info__(self):
-		self.blamechunk_email = None
-		self.blamechunk_is_last = False
-		self.blamechunk_is_prior = False
-		self.blamechunk_revision = None
-		self.blamechunk_time = None
+        self.is_inside_comment = False
 
-	def __handle_blamechunk_content__(self, content):
-		author = None
-		(comments, self.is_inside_comment) = comment.handle_comment_block(self.is_inside_comment, self.extension, content)
+    def __clear_blamechunk_info__(self):
+        self.blamechunk_email = None
+        self.blamechunk_is_last = False
+        self.blamechunk_is_prior = False # Checks blame's sha to be a boundary commit
+        self.blamechunk_revision = None
+        self.blamechunk_time = None
 
-		if self.blamechunk_is_prior and interval.get_since():
-			return
-		try:
-			author = self.changes.get_latest_author_by_email(self.blamechunk_email)
-		except KeyError:
-			return
+    def __handle_blamechunk_content__(self, content):
+        author = None
+        (comments, self.is_inside_comment) = \
+            comment.handle_comment_block(self.is_inside_comment,
+                                         self.extension, content)
 
-		if not filtering.set_filtered(author, "author") and not \
-		       filtering.set_filtered(self.blamechunk_email, "email") and not \
-		       filtering.set_filtered(self.blamechunk_revision, "revision"):
+        if self.blamechunk_is_prior \
+           and self.config.since \
+           and self.blamechunk_time < self.config.since.date():
+            return
+        (author, email) = Commit.get_alias(self.blamechunk_author,
+                                           self.blamechunk_email,
+                                           self.config)
 
-			__blame_lock__.acquire() # Global lock used to protect calls from here...
+        if not is_filtered(author, Filters.AUTHOR) and \
+           not is_filtered(self.blamechunk_email, Filters.EMAIL) and \
+           not is_filtered(self.blamechunk_revision, Filters.REVISION):
 
-			if self.blames.get((author, self.filename), None) == None:
-				self.blames[(author, self.filename)] = BlameEntry()
+            __blame_lock__.acquire() # Global lock used to protect calls from here...
 
-			self.blames[(author, self.filename)].comments += comments
-			self.blames[(author, self.filename)].rows += 1
+            if (author, email) not in self.changes.committers:
+                self.changes.committers[(author, email)] = { "color" : "#aaaaaa",
+                                                             "committer" : False }
 
-			if (self.blamechunk_time - self.changes.first_commit_date).days > 0:
-				self.blames[(author, self.filename)].skew += ((self.changes.last_commit_date - self.blamechunk_time).days /
-				                                             (7.0 if self.useweeks else AVG_DAYS_PER_MONTH))
+            if self.blames.get(((author, email), self.filename), None) is None:
+                self.blames[((author, email), self.filename)] = BlameEntry()
 
-			__blame_lock__.release() # ...to here.
+            self.blames[((author, email), self.filename)].comments += comments
+            self.blames[((author, email), self.filename)].rows += 1
 
-	def run(self):
-		git_blame_r = subprocess.Popen(self.blame_command, bufsize=1, stdout=subprocess.PIPE).stdout
-		rows = git_blame_r.readlines()
-		git_blame_r.close()
+            if (self.blamechunk_time - self.changes.first_commit_date).days > 0:
+                new_skew = ((self.changes.last_commit_date - self.blamechunk_time).days /
+                            (7.0 if self.useweeks else AVG_DAYS_PER_MONTH))
+                self.blames[((author, email), self.filename)].skew += new_skew
 
-		self.__clear_blamechunk_info__()
+            __blame_lock__.release() # ...to here.
 
-		#pylint: disable=W0201
-		for j in range(0, len(rows)):
-			row = rows[j].decode("utf-8", "replace").strip()
-			keyval = row.split(" ", 2)
+    def run(self):
+        rows = git_utils.blames(self.changes.last_commit().sha,
+                                self.filename, self.config)
+        self.__clear_blamechunk_info__()
 
-			if self.blamechunk_is_last:
-				self.__handle_blamechunk_content__(row)
-				self.__clear_blamechunk_info__()
-			elif keyval[0] == "boundary":
-				self.blamechunk_is_prior = True
-			elif keyval[0] == "author-mail":
-				self.blamechunk_email = keyval[1].lstrip("<").rstrip(">")
-			elif keyval[0] == "author-time":
-				self.blamechunk_time = datetime.date.fromtimestamp(int(keyval[1]))
-			elif keyval[0] == "filename":
-				self.blamechunk_is_last = True
-			elif Blame.is_revision(keyval[0]):
-				self.blamechunk_revision = keyval[0]
+        #pylint: disable=W0201
+        for row in rows:
+            row = row.decode("utf-8", "replace").strip()
+            keyval = row.split(" ", 2) # array of strings
 
-		__thread_lock__.release() # Lock controlling the number of threads running
+            if self.blamechunk_is_last:
+                self.__handle_blamechunk_content__(row)
+                self.__clear_blamechunk_info__()
+            elif keyval[0] == "boundary":
+                self.blamechunk_is_prior = True
+            elif keyval[0] == "author":
+                self.blamechunk_author = " ".join(keyval[1:])
+            elif keyval[0] == "author-mail":
+                self.blamechunk_email = keyval[1].lstrip("<").rstrip(">")
+            elif keyval[0] == "author-time":
+                self.blamechunk_time = datetime.date.fromtimestamp(int(keyval[1]))
+            elif keyval[0] == "filename":
+                self.blamechunk_is_last = True
+            elif Blame.is_revision(keyval[0]):
+                self.blamechunk_revision = keyval[0]
 
-PROGRESS_TEXT = N_("Checking how many rows belong to each author (2 of 2): {0:.0f}%")
+        __thread_lock__.release() # Lock controlling the number of threads running
+
+
+PROGRESS_TEXT = _("Checking how many rows belong to each author (2 of 2): {0:.0f}%")
+
 
 class Blame(object):
-	def __init__(self, repo, hard, useweeks, changes):
-		self.blames = {}
-		ls_tree_r = subprocess.Popen(["git", "ls-tree", "--name-only", "-r", interval.get_ref()], bufsize=1,
-		                             stdout=subprocess.PIPE).stdout
-		lines = ls_tree_r.readlines()
-		ls_tree_r.close()
+    """The global file that enumerates all the files in the current
+    repository and associates one BlameEntry to each of them.
+    """
+    @classmethod
+    def empty(cls):
+        blame = Blame.__new__(Blame)
+        blame.__blames__ = {}
+        return blame
 
-		progress_text = _(PROGRESS_TEXT)
-		if repo != None:
-			progress_text = "[%s] " % repo.name + progress_text
+    def __init__(self, repo, changes, config):
+        self.__blames__ = {}
+        self.config = config
 
-		for i, row in enumerate(lines):
-			row = row.strip().decode("unicode_escape", "ignore")
-			row = row.encode("latin-1", "replace")
-			row = row.decode("utf-8", "replace").strip("\"").strip("'").strip()
+        if self.config.branch == "--all":
+            # Apply an heuristic to compute the blames on all the
+            # branches : The files taken into account are the most
+            # recent ones over all the branches.
+            branches = self.config.branches
+            lines = {} # Associates files to branch
+            times = {} # Associates files to time
+            for b in branches:
+                # for f in git_utils.files(b, config):
+                for f in changes.files:
+                    if f in lines:
+                        if not(f in times):
+                            times[f] = git_utils.last_commit(lines[f], f)
+                        new_time = git_utils.last_commit(b, f)
+                        if new_time > times[f]:
+                            times[f] = new_time
+                            lines[f] = b
+                    else:
+                        lines[f] = b
+        else:
+            lines = {l: self.config.branch
+                     for l in git_utils.files(changes.last_commit().sha, config)}
 
-			if FileDiff.is_valid_extension(row) and not filtering.set_filtered(FileDiff.get_filename(row)):
-				blame_command = filter(None, ["git", "blame", "--line-porcelain", "-w"] + \
-						(["-C", "-C", "-M"] if hard else []) +
-				                [interval.get_since(), interval.get_ref(), "--", row])
-				thread = BlameThread(useweeks, changes, blame_command, FileDiff.get_extension(row), self.blames, row.strip())
-				thread.daemon = True
-				thread.start()
+        if lines:
+            progress_text = _(PROGRESS_TEXT)
 
-				if format.is_interactive_format():
-					terminal.output_progress(progress_text, i, len(lines))
+            if repo is not None:
+                progress_text = "[%s] " % repo.name + progress_text
 
-		# Make sure all threads have completed.
-		for i in range(0, NUM_THREADS):
-			__thread_lock__.acquire()
+            cpt = 0
+            for filename, branch in lines.items():
+                cpt += 1
 
-		# We also have to release them for future use.
-		for i in range(0, NUM_THREADS):
-			__thread_lock__.release()
+                if is_acceptable_file_name(filename):
+                    thread = BlameThread(config, changes, self.__blames__,
+                                         branch, filename)
+                    thread.daemon = True
+                    thread.start()
 
-	def __add__(self, other):
-		if other == None:
-			return self
+                    if config.progress and format.is_interactive_format():
+                        terminal.output_progress(progress_text, cpt, len(lines))
 
-		self.blames.update(other.blames)
-		return self
+            # Make sure all threads have completed.
+            for i in range(0, NUM_THREADS):
+                __thread_lock__.acquire()
 
-	@staticmethod
-	def is_revision(string):
-		revision = re.search("([0-9a-f]{40})", string)
+            # We also have to release them for future use.
+            for i in range(0, NUM_THREADS):
+                __thread_lock__.release()
 
-		if revision == None:
-			return False
+    def __iadd__(self, other):
+        """Concatenate lists of blames"""
+        try:
+            self.__blames__.update(other.__blames__)
+            return self
+        except AttributeError:
+            return other
 
-		return revision.group(1).strip()
+    def __repr__(self):
+        num_rows  = sum([e.rows for b,e in self.__blames__.items()])
+        blame_str = "\n".join(["Blame(\033[93m{0}\033[0m : {1} {2})".format(f, (a,e), b)
+                               for ((a,e),f),b in self.__blames__.items()])
+        return "Blames({0}, rows:\033[92m{1}\033[0m)\n{2}".\
+            format(len(self.__blames__), num_rows, blame_str)
 
-	@staticmethod
-	def get_stability(author, blamed_rows, changes):
-		if author in changes.get_authorinfo_list():
-			author_insertions = changes.get_authorinfo_list()[author].insertions
-			return 100 if author_insertions == 0 else 100.0 * blamed_rows / author_insertions
-		return 100
+    @staticmethod
+    def is_revision(string):
+        """Tests if a string is a git revision"""
+        revision = re.search("([0-9a-f]{40})", string)
 
-	@staticmethod
-	def get_time(string):
-		time = re.search(r" \(.*?(\d\d\d\d-\d\d-\d\d)", string)
-		return time.group(1).strip()
+        if revision is None:
+            return False
 
-	def get_summed_blames(self):
-		summed_blames = {}
-		for i in self.blames.items():
-			if summed_blames.get(i[0][0], None) == None:
-				summed_blames[i[0][0]] = BlameEntry()
+        return revision.group(1).strip()
 
-			summed_blames[i[0][0]].rows += i[1].rows
-			summed_blames[i[0][0]].skew += i[1].skew
-			summed_blames[i[0][0]].comments += i[1].comments
+    @staticmethod
+    def get_stability(author, blamed_rows, changes):
+        if author in changes.get_authorinfo_list():
+            author_insertions = changes.get_authorinfo_list()[author].insertions
+            return 100 if author_insertions == 0 else 100.0 * blamed_rows / author_insertions
+        return 100
 
-		return summed_blames
+    def all_blames(self):
+        """Returns a list of all the BlameEntry objects"""
+        return self.__blames__
+
+    def blames_for_file(self, file):
+        """Returns a list of pairs ((author,email),num) that counts the blames
+        for a given file
+
+        Ex. : [(('Frodo Baggins', 'frodo.baggins@shire.net'), 8)]"""
+        return [(c[0], self.__blames__[c].rows)
+                for c in self.__blames__ if c[1] == file]
+
+    def get_summed_blames(self):
+        """Returns a hash where keys are (author,email) and values are
+        BlameEntries that are the sums of the entries in __blames__.
+
+        Ex. : {('Frodo', 'f@s.n'): BlameEntry(rows:71, skew:101, comm:12)"""
+        summed_blames = {}
+        for (committer, file), blame in self.__blames__.items():
+            if summed_blames.get(committer, None) is None:
+                summed_blames[committer] = BlameEntry()
+
+            summed_blames[committer].rows += blame.rows
+            summed_blames[committer].skew += blame.skew
+            summed_blames[committer].comments += blame.comments
+
+        return summed_blames
+
+    def get_typed_blames(self):
+        """Returns a hash where keys are (author,email) and values are
+        a hash associating a CommitType to a number of lines.
+
+        Ex. : {('Frodo', 'f@s.n'): {'TXT': 8, 'CPP': 63}}"""
+        typed_blames = {}
+        for (committer, file), blame in self.__blames__.items():
+            if typed_blames.get(committer, None) is None:
+                typed_blames[committer] = {}
+            type = FileType.create(file).name
+            if type in typed_blames[committer]:
+                typed_blames[committer][type] += blame.rows
+            else:
+                typed_blames[committer][type] = blame.rows
+
+        return typed_blames
+
+    def committers_by_responsibilities(self):
+        """Sorts the (author,email) in __blames__ by decreasing order of
+        responsibility."""
+        wrk = [(k[0], v.rows) for (k, v) in self.__blames__.items()]
+        aut = set([k[0] for k in wrk])
+        res = sorted(aut,
+                     key=lambda a: -sum([w for (b, w) in wrk if b == a]))
+        return res
+
+    def get_responsibilities(self, committer):
+        """Returns the list of blames of a given (author,email) where each
+        blame is a pair (file,number_of_lines)
+
+        Ex. : [('Makefile',20), ('include/trie.h',5), ('src/Makefile',22)]"""
+        author_blames = {}
+
+        for i in self.__blames__.items():
+            if committer == i[0][0]:
+                total_rows = i[1].rows - i[1].comments
+                if total_rows > 0:
+                    author_blames[i[0][1]] = total_rows
+
+        return sorted(author_blames.items())

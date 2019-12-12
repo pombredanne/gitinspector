@@ -1,0 +1,97 @@
+<div id="repository_div">
+
+  <div class="box">
+
+    <div class="box_title" style="position: absolute">
+      Repository Map
+    </div>
+
+    <div id="repository_tmp">
+    </div>
+
+    <div id="repository_box"
+         style="display: flex; flex-direction: column;
+                align-items: center; position: relative">
+
+    </div>
+    <script>
+      (function () {
+          var authors = $authors;
+          var ownerships = $ownerships;
+          var max_work = $max_work;
+          var files = Object.keys(ownerships).sort()
+
+          function build_tree(parent_elem, parent_file, visibility) {
+              var heads = files.filter((f) => ownerships[f].parent == parent_file);
+              var lis = parent_elem.append("ul").classed("map_box", "true")
+                  .selectAll().data(heads)
+                  .enter().append("li")
+                  .classed("repline", "true")
+                  .style("display", visibility)
+                  .attr("data", (d) => d);
+              lis.append("div");
+              lis.each(function(d) { build_tree(d3.select(this), d, "none"); });
+          }
+
+          var out_div = d3.select("div#repository_box").append("div")
+              .attr("id", "map_uldiv").style("width", "300px")
+              .style("position", "relative").style("left", "300px");
+          build_tree(out_div, "", "");
+          d3.selectAll("li.repline").each(function() {
+              var elem = d3.select(this);
+              var file = elem.attr("data");
+              var div  = elem.select("div");
+              if (ownerships[file]["is_dir"] == "true") {
+                  div.append("button")
+                      .text("+")
+                      .on("click", function () {
+                          var bool = (d3.select(this).classed("visible")),
+                              vis  = bool ? "none" : "",
+                              txt  = bool ? "+" : "-";
+                          d3.select(this).classed("visible", !vis).text(txt);
+                          d3.selectAll("li.repline").filter(function () {
+                              return ownerships[d3.select(this).attr("data")]["parent"] == file;
+                          }).style("display", vis);
+                          console.log(file);
+                          d3.selectAll("svg.repline").filter(function () {
+                              return d3.select(this).attr("data") == file;
+                          }).style("display", bool ? "" : "none");
+                      });
+              }
+              div.append("span").html(ownerships[file]["name"]);
+              const s = Object.values(ownerships[file]["work"])
+                    .reduce((a,b) => a+b) * 200 / max_work;
+              const g = div.append("svg")
+                    .attr("data", file).classed("repline", true)
+                    .attr("height", 15).attr("width", s)
+                    .style("position", "absolute")
+                    .style("right", "300px").append("g");
+              var x = 0;
+              Object.keys(ownerships[file]["work"]).forEach(function (a) {
+                  const w = ownerships[file]["work"][a];
+                  g.append("rect")
+                      .attr("x", x).attr("y", 5)
+                      .attr("height", 10).attr("width", w * 200 / max_work)
+                      .attr("fill",authors[a])
+                      .on("mouseover", function(d, i){
+                              var coords = d3.mouse(this);
+                              out_div.selectAll("rect[fill='" + authors[a] + "']")
+                                  .attr("fill", d3.color(authors[a]).brighter());
+                          }).on("mouseout", function(d, i){
+                              out_div.selectAll("rect[fill='" +
+                                            d3.color(authors[a]).brighter() +
+                                            "']")
+                                  .attr("fill", authors[a])
+                          });
+
+
+                  x += w * 200 / max_work;
+              });
+          });
+
+          // Register the div in the summary
+          register_box("Repository map", "repository_div");
+      })();
+    </script>
+  </div>
+</div>

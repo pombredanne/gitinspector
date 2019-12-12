@@ -17,29 +17,57 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
-from __future__ import unicode_literals
+import glob
+import importlib
+import os
 from .. import format
 
+
 class Outputable(object):
-	def output_html(self):
-		raise NotImplementedError(_("HTML output not yet supported in") + " \"" + self.__class__.__name__ + "\".")
+    outputables = [] # Children classes
 
-	def output_json(self):
-		raise NotImplementedError(_("JSON output not yet supported in") + " \"" + self.__class__.__name__ + "\".")
+    def __init__(self):
+        self.display = False
 
-	def output_text(self):
-		raise NotImplementedError(_("Text output not yet supported in") + " \"" + self.__class__.__name__ + "\".")
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        Outputable.outputables.append(cls)
 
-	def output_xml(self):
-		raise NotImplementedError(_("XML output not yet supported in") + " \"" + self.__class__.__name__ + "\".")
+    @classmethod
+    def list(cls):
+        """
+        List all the classes implementing Outputable
+        """
+        return sorted(Outputable.outputables, key=(lambda c: c.output_order))
 
-def output(outputable):
-	if format.get_selected() == "html" or format.get_selected() == "htmlembedded":
-		outputable.output_html()
-	elif format.get_selected() == "json":
-		outputable.output_json()
-	elif format.get_selected() == "text":
-		outputable.output_text()
-	else:
-		outputable.output_xml()
+    def output_html(self):
+        raise NotImplementedError(_("HTML output not yet supported in") +
+                                  " \"" + self.__class__.__name__ + "\".")
+
+    def output_json(self):
+        raise NotImplementedError(_("JSON output not yet supported in") +
+                                  " \"" + self.__class__.__name__ + "\".")
+
+    def output_text(self):
+        raise NotImplementedError(_("Text output not yet supported in") +
+                                  " \"" + self.__class__.__name__ + "\".")
+
+    def output_xml(self):
+        raise NotImplementedError(_("XML output not yet supported in") +
+                                  " \"" + self.__class__.__name__ + "\".")
+
+    def output(self):
+        if self.display:
+            if format.get_selected() == "html" or format.get_selected() == "htmlembedded":
+                self.output_html()
+            elif format.get_selected() == "json":
+                self.output_json()
+            elif format.get_selected() == "text":
+                self.output_text()
+            else:
+                self.output_xml()
+
+# Import the outputables inside the output/ directory
+for f in glob.glob(os.path.dirname(__file__)+"/*output.py"):
+    base = os.path.basename(f)[:-3]
+    importlib.import_module("gitinspector.output." + base)

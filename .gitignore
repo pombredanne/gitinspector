@@ -1,6 +1,11 @@
-build
-debian
-deb_dist
-dist
 *.egg-info
 *.pyc
+*.tgz
+.coverage
+build/
+deb_dist/
+debian/
+dist/
+gitinspector/translations/*.mo
+htmlcov/
+node_modules/

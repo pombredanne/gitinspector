@@ -1,0 +1,124 @@
+<div id="changes_div">
+  <div class="box">
+
+    <div class="box_title" style="display:inline-block">
+      Changes summary
+    </div>
+
+    <div id="changes_box"
+         style="display: flex; align-items: center">
+
+      <div style="width:75%">
+        <table id="changes_table" class="git2">
+          <thead>
+            <tr>
+              <th/>
+              <th>Author</th>
+              <th>Commits</th>
+              <th>Insertions</th>
+              <th>Deletions</th>
+              <th>Types</th>
+              <th>% of changes</th>
+              <th/>
+            </tr>
+          </thead>
+          <tbody></tbody>
+          <tfoot>
+            <tr>
+              <th class="hoverable" colspan="8">
+              </th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div>
+        <svg id="changes_svg" width="290" height="220">
+        </svg>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+          var changes_data = $changes_data;
+          var max_other = $max_other;
+          // Control which data appear inside the pie
+          var changes_filter = d => d.changes > 0.5;
+          var changes_data_pie = changes_data.filter(changes_filter);
+          var sum_changes = 0;
+          changes_data_pie.forEach(function (d) { sum_changes += d.changes; });
+          // Append the remaining changes as the last element of the pie
+          changes_data_pie.push({changes: 100-sum_changes, color: "#cccccc"});
+
+          var titles = Object.keys(changes_data[0]).filter(t => t != "color");
+
+          var svg = d3.select("svg#changes_svg"),
+              width = svg.attr("width"),
+              height = svg.attr("height"),
+              radius = Math.min(width, height) / 2,
+              group = svg.append("g").attr("transform",
+                                       "translate(" + width / 2 + "," + height / 2 + ")");
+
+          // Generate the pie
+          var arcs = generate_pie(group, radius, changes_data_pie,
+                                  d => d.changes, d => d.data.color);
+          // Generate the table
+          var lines = generate_sortable_table("changes_table", titles,
+                                              changes_data, changes_filter);
+
+          // Generate the commit types
+          const tab_width = 100;
+          d3.selectAll("svg.changes_svg_types").
+              attr("width", tab_width + 25 +
+                   10*Math.floor(Math.log(Math.max(1,max_other))/Math.log(10))).
+              attr("height", 26).
+              each(function () {
+                  var el = d3.select(this);
+                  var types = JSON.parse(el.html());
+                  var relevant = types["relevant"];
+                  var types_str = "";
+                  Object.keys(relevant).forEach(function (k) {
+                      if (relevant[k] > 0) {
+                          if (types_str.length > 0) { types_str += " / "; }
+                          types_str += k.toLowerCase() + ":" + relevant[k].toFixed(2) + "%"; }
+                  });
+                  var dx = 1;
+                  Object.keys(relevant).sort().forEach( function(k,i) {
+                      var v = relevant[k];
+                      el.append("rect").
+                          attr("width", tab_width*v/100).attr("x", dx).
+                          attr("height", 16).attr("y", 5).
+                          attr("fill", d3.hsl(40*i,0.6,0.6)).
+                          attr("stroke", d3.hsl(40*i,0.4,0.4)).
+                          on("mouseover", function(d, i){
+                              var r = d3.select(this);
+                              r.attr("oldfill", r.attr("fill"));
+                              r.attr("fill", d3.color(r.attr("fill")).brighter()); }).
+                          on("mouseout", function(d, i){
+                              var r = d3.select(this);
+                              r.attr("fill", r.attr("oldfill")); }).
+                          append("title").html(types_str);
+                      dx += tab_width*v/100;
+                  });
+                  el.append("rect").attr("width", tab_width).attr("height", 16).
+                      attr("x", 1).attr("y", 5).attr("stroke", "#000000").
+                      attr("fill", "none");
+                  if(types["other"] > 0)
+                      el.append("text").attr("x", tab_width + 6).attr("y", 18).
+                      style("font-size", "xx-small").html("+" + types["other"]);
+                  else
+                      el.append("text").attr("x", tab_width + 6).attr("y", 18).
+                      style("fill", "#aaaaaa").style("font-size", "xx-small").
+                      html("+" + types["other"]);
+              });
+
+          // Link pie chart sections with lines
+          link_table_and_pie(lines, arcs);
+
+          // Register the div in the summary
+          register_box("Changes summary", "changes_div");
+      })();
+    </script>
+
+  </div>
+</div>

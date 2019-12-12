@@ -20,48 +20,52 @@
 #include <stdio.h>
 
 struct Dimensions {
-	double width;
-	double height;
+        double width;
+        double height;
 };
 
 /*
  * A class for a rectangle
  */
 class Rectangle {
-	private:
-		Dimensions dimensions;
-	public:
-		Rectangle(Dimensions dimensions);
-		void print();
+        private:
+                Dimensions dimensions;
+        public:
+                Rectangle(Dimensions dimensions);
+                void print();
 };
 
 Rectangle::Rectangle(Dimensions dimensions) {
-	this->dimensions = dimensions;
+        this->dimensions = dimensions;
 }
 
 void Rectangle::print() {
-	/*
-	 * Print some stuff (testing comments)
-	 */
-	std::cout << "\nCharacteristics of this rectangle";
-	std::cout << "\nWidth  = " << this->dimensions.width;
-	std::cout << "\nHeight = " << this->dimensions.height;
-	std::cout << "\nArea   = " << this->dimensions.width * this->dimensions.height << "\n"; // ^2
+        /*
+         * Print some stuff (testing comments)
+         */
+        std::cout << "\nCharacteristics of this rectangle";
+        std::cout << "\nWidth  = " << this->dimensions.width;
+        std::cout << "\nHeight = " << this->dimensions.height;
+        std::cout << "\nArea   = " << this->dimensions.width *
+          this->dimensions.height << "\n"; // ^2
 }
 
 int main(int argc, char *argv[]) {
-	Dimensions dimensions;
+        Dimensions dimensions;
 
-	std::cout << "Provide the dimensions of a rectangle\n";
-	std::cout << "Width: ";
-	std::cin >> dimensions.width;
-	std::cout << "Height: ";
-	std::cin >> dimensions.height;
+        std::cout << "Provide the dimensions of a rectangle\n";
+        std::cout << "Width: ";
+        std::cin >> dimensions.width;
+        std::cout << "Height: ";
+        std::cin >> dimensions.height;
 
-	// Create rectanlge and wait for user-input.
-	Rectangle rectangle(dimensions);
-	rectangle.print();
-	getchar();
+        // Create rectangle and wait for user-input.
+        Rectangle rectangle(dimensions);
+        rectangle.print();
+        getchar();
 
-	return 0;
+        return 0;
 }
+
+// The block of comments inside this file (including this one) amount to :
+// 18 + 3 + 3 + 1 + 2 = 27

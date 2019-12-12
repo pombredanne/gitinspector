@@ -1,6 +1,6 @@
 # coding: utf-8
 #
-# Copyright © 2012-2015 Ejwa Software. All rights reserved.
+# Copyright © 2019 Emmanuel Fleury. All rights reserved.
 #
 # This file is part of gitinspector.
 #
@@ -17,21 +17,19 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
-from __future__ import unicode_literals
+import sys
 
-class ResponsibiltyEntry(object):
-	blames = {}
+EXEC_NAME = "gitinspector"
 
-class Responsibilities(object):
-	@staticmethod
-	def get(blame, author_name):
-		author_blames = {}
+def error(msg):
+    """Display an error message and quit the program with a failure code."""
+    sys.stderr.write(EXEC_NAME + ": error: " + msg + "\n")
+    sys.stderr.write("Try `" + EXEC_NAME + " --help' for more information.\n")
+    sys.exit(1)
 
-		for i in blame.blames.items():
-			if author_name == i[0][0]:
-				total_rows = i[1].rows - i[1].comments
-				if total_rows > 0:
-					author_blames[i[0][1]] = total_rows
+def warning(msg):
+    """Display a warning message and keep going on the """
+    sys.stderr.write(EXEC_NAME + ": warning: " + msg + "\n")
 
-		return sorted(author_blames.items())
+def debug(msg):
+    sys.stderr.write(EXEC_NAME + ": debug: " + msg + "\n")

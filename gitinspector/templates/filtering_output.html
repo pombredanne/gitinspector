@@ -1,0 +1,49 @@
+<div id="filtering_div">
+  <div class="box">
+
+    <div class="box_title" style="display: inline-block">
+        Filtered files
+    </div>
+
+    <div id="filtering_box">
+
+      <div id="files_filters" style="display:none">
+	$files_filtering_text :
+	<div id="files_filters_filter">$files_filtered</div>
+	<div id="files_filters_other">$other_files</div>
+      </div>
+      <div id="authors_filters" style="display:none">
+	$authors_filtering_text : $authors_filtered
+      </div>
+      <div id="emails_filters" style="display:none">
+	$emails_filtering_text : $emails_filtered
+      </div>
+      <div id="commits_filters" style="display:none">
+	$commits_filtering_text : $commits_filtered
+      </div>
+
+    </div>
+
+    <script>
+      (function () {
+	  var other_files = "$other_files";
+	  var files_filtered = "$files_filtered";
+          // Hide the empty sections
+	  if ((other_files.length > 0) || (files_filtered.length > 0)) {
+	      $$("#files_filters").css("display", "block");
+	      $$("#files_filters_filter").html(files_filtered);
+	      $$("#files_filters_other").html(other_files);
+	  }
+	  if ("$authors_filtered".length > 0)
+	      $$("#authors_filters").css("display", "block");
+	  if ("$emails_filtered".length > 0)
+	      $$("#emails_filters").css("display", "block");
+	  if ("$commits_filtered".length > 0)
+	      $$("#commits_filters").css("display", "block");
+
+	  // Register the div in the summary
+	  register_box("Filtered files", "filtering_div");
+      })();
+    </script>
+
+</div>

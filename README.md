@@ -1,12 +1,20 @@
-[![Latest release](https://img.shields.io/github/release/ejwa/gitinspector.svg?style=flat-square)](https://github.com/ejwa/gitinspector/releases/latest)
-[![License](https://img.shields.io/github/license/ejwa/gitinspector.svg?style=flat-square)](https://github.com/ejwa/gitinspector/blob/master/LICENSE.txt)
+[![Latest release](https://img.shields.io/github/release/ejwa/gitinspector.svg?style=flat)](https://github.com/ejwa/gitinspector/releases/latest)
+[![License](https://img.shields.io/github/license/ejwa/gitinspector.svg?style=flat)](https://github.com/ejwa/gitinspector/blob/master/LICENSE.txt)
+
+ ⚠ This version of Gitinspector is a work-in-progress fork of the
+[original gitinspector](https://github.com/ejwa/gitinspector). It
+integrates a series of features and modifications from the original
+code, the list of which shall eventually appear on this page one
+day. The links in the remainder of this page point to the original
+program. ⚠
+
 <h2>
  <img align="left" height="65px"
       src="https://raw.githubusercontent.com/ejwa/gitinspector/master/gitinspector/html/gitinspector_piclet.png"/>
       &nbsp;About Gitinspector
 </h2>
-<img align="right" width="30%" src="https://raw.github.com/wiki/ejwa/gitinspector/images/html_example.jpg" /> 
-Gitinspector is a statistical analysis tool for git repositories. The defaut analysis shows general statistics per author, which can be complemented with a timeline analysis that shows the workload and activity of each author. Under normal operation, it filters the results to only show statistics about a number of given extensions and by default only includes source files in the statistical analysis.
+<img align="right" width="30%" src="https://raw.github.com/wiki/ejwa/gitinspector/images/html_example.jpg" />
+Gitinspector is a statistical analysis tool for git repositories. The default analysis shows general statistics per author, which can be complemented with a timeline analysis that shows the workload and activity of each author. Under normal operation, it filters the results to only show statistics about a number of given extensions and by default only includes source files in the statistical analysis.
 
 This tool was originally written to help fetch repository statistics from student projects in the course Object-oriented Programming Project (TDA367/DIT211) at Chalmers University of Technology and Gothenburg University.
 
@@ -35,6 +43,7 @@ Below are some example outputs for a number of famous open source projects. All 
 ### The Team
   * Adam Waldenberg, Lead maintainer and Swedish translation
   * Agustín Cañas, Spanish translation
+  * Bart van Andel, npm package maintainer
   * Bill Wang, Chinese translation
   * Christian Kastner, Debian package maintainer
   * Jiwon Kim, Korean translation
@@ -48,6 +57,8 @@ Below are some example outputs for a number of famous open source projects. All 
 
 ### Packages
 The Debian packages offered with releases of gitinspector are unofficial and very simple packages generated with [stdeb](https://github.com/astraw/stdeb). Christian Kastner is maintaining the official Debian packages. You can check the current status on the [Debian Package Tracker](https://tracker.debian.org/pkg/gitinspector).  Consequently, there are official packages for many Debian based distributions installable via *apt-get*.
+
+An [npm](https://npmjs.com) package is provided for convenience as well. To install it globally, execute `npm i -g gitinspector`.
 
 ### License
 gitinspector is licensed under the *GNU GPL v3*. The gitinspector logo is partly based on the git logo; based on the work of Jason Long. The logo is licensed under the *Creative Commons Attribution 3.0 Unported License*.

@@ -1,0 +1,118 @@
+<div id="blames_div">
+  <div class="box">
+
+    <div class="box_title" style="display: inline-block">
+      Ownership summary
+    </div>
+
+    <div id="remains_box"
+         style="display: flex; align-items: center">
+
+      <div style="width:75%">
+        <table id="remains_table" class="git2">
+          <thead>
+            <tr>
+              <th/>
+              <th>Author</th>
+              <th>Rows</th>
+              <th>Stability</th>
+              <th>Age</th>
+              <th>Types</th>
+              <th>% of comments</th>
+              <th>% of changes</th>
+              <th/>
+            </tr>
+          </thead>
+          <tbody></tbody>
+          <tfoot>
+            <tr>
+              <th class="hoverable" colspan="9">
+              </th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div>
+        <svg id="remains_svg" width="290" height="220">
+        </svg>
+      </div>
+
+    </div>
+
+    <script>
+      (function () {
+          var remains_data = $remains_data;
+          var sum_rows = 0;
+          remains_data.forEach(function (d) { sum_rows += d.rows; });
+          // Control which data appear inside the pie
+          var remains_filter = d => d.rows > 0.01 * sum_rows;
+          var remains_data_pie = remains_data.filter(remains_filter);
+          var eff_rows = 0;
+          remains_data_pie.forEach(function (d) { eff_rows += d.rows; });
+          // Append the remaining changes as the last element of the pie
+          remains_data_pie.push({rows: sum_rows-eff_rows, color: "#cccccc" });
+
+          var titles = Object.keys(remains_data[0]).filter(t => t != "color");
+
+          var svg = d3.select("svg#remains_svg"),
+              width = svg.attr("width"),
+              height = svg.attr("height"),
+              radius = Math.min(width, height) / 2,
+              group = svg.append("g").attr("transform",
+                                       "translate(" + width / 2 + "," + height / 2 + ")");
+
+          // Generate the pie
+          var arcs = generate_pie(group, radius, remains_data_pie,
+                                  d => d.rows, d => d.data.color);
+          // Generate the table
+          var lines = generate_sortable_table("remains_table", titles, remains_data, remains_filter);
+
+          // Generate the commit types
+          const tab_width = 100;
+          d3.selectAll("svg.blames_svg_types").
+              attr("width", tab_width + 2).
+              attr("height", 26).
+              each(function () {
+                  var el = d3.select(this);
+                  var types = JSON.parse(el.html());
+                  var types_str = "";
+                  Object.keys(types).forEach(function (k) {
+                      if (types[k] > 0) {
+                          if (types_str.length > 0) { types_str = types_str + " / "; }
+                          types_str = types_str + k.toLowerCase() + ":" + types[k].toFixed(2) + "%"; }
+                  });
+                  var dx = 1;
+                  Object.keys(types).sort().forEach( function(k,i) {
+                      var v = types[k];
+                      el.append("rect").
+                          attr("width", tab_width*v/100).attr("x", dx).
+                          attr("height", 16).attr("y", 5).
+                          attr("fill", d3.hsl(40*i,0.6,0.6)).
+                          attr("stroke", d3.hsl(40*i,0.4,0.4)).
+                          on("mouseover", function(d, i){
+                              var r = d3.select(this);
+                              r.attr("oldfill", r.attr("fill"));
+                              r.attr("fill", d3.color(r.attr("fill")).brighter()); }).
+                          on("mouseout", function(d, i){
+                              var r = d3.select(this);
+                              r.attr("fill", r.attr("oldfill")); }).
+                          append("title").html(types_str);
+                      dx += tab_width*v/100;
+                  });
+                  el.append("rect").attr("width", tab_width).attr("height", 16).
+                      attr("x", 1).attr("y", 5).attr("stroke", "#000000").
+                      attr("fill", "none");
+              });
+
+
+          // Link pie chart sections with lines
+          link_table_and_pie(lines, arcs);
+
+          // Register the div in the summary
+          register_box("Ownership summary", "blames_div");
+      })();
+    </script>
+
+  </div>
+</div>

@@ -21,43 +21,53 @@ import os
 import subprocess
 import sys
 
+from .messages import error, warning, debug
+
 def get_basedir():
-	if hasattr(sys, "frozen"): # exists when running via py2exe
-		return sys.prefix
-	else:
-		return os.path.dirname(os.path.realpath(__file__))
+    if hasattr(sys, "frozen"): # exists when running via py2exe
+        return sys.prefix
+    return os.path.dirname(os.path.realpath(__file__))
 
 def get_basedir_git(path=None):
-	previous_directory = None
+    previous_directory = None
 
-	if path != None:
-		previous_directory = os.getcwd()
-		os.chdir(path)
+    if path is not None:
+        previous_directory = os.getcwd()
+        try:
+            os.chdir(path)
+        except FileNotFoundError:
+            error("%s: No such file or directory" % (path))
 
-	bare_command = subprocess.Popen(["git", "rev-parse", "--is-bare-repository"], bufsize=1,
-	                          stdout=subprocess.PIPE, stderr=open(os.devnull, "w"))
+    # Test if the repository is bare
+    with open(os.devnull, "w") as stderr:
+        bare_command = subprocess.Popen(["git", "rev-parse", "--is-bare-repository"],
+                                        bufsize=1, stdout=subprocess.PIPE, stderr=stderr)
 
-	isbare = bare_command.stdout.readlines()
-	bare_command.wait()
+        isbare = bare_command.stdout.readlines()
+        bare_command.wait()
+        bare_command.stdout.close()
 
-	if bare_command.returncode != 0:
-		sys.exit(_("Error processing git repository at \"%s\"." % os.getcwd()))
+    if bare_command.returncode != 0:
+        error(_("%s: Unable to process git repository." % os.getcwd()))
 
-	isbare = (isbare[0].decode("utf-8", "replace").strip() == "true")
-	absolute_path = None
+    isbare = (isbare[0].decode("utf-8", "replace").strip() == "true")
+    absolute_path = None
 
-	if isbare:
-		absolute_path = subprocess.Popen(["git", "rev-parse", "--git-dir"], bufsize=1, stdout=subprocess.PIPE).stdout
-	else:
-		absolute_path = subprocess.Popen(["git", "rev-parse", "--show-toplevel"], bufsize=1,
-		                                 stdout=subprocess.PIPE).stdout
+    if isbare:
+        absolute_command = subprocess.Popen(["git", "rev-parse", "--git-dir"],
+                                            bufsize=1, stdout=subprocess.PIPE)
+    else:
+        absolute_command = subprocess.Popen(["git", "rev-parse", "--show-toplevel"],
+                                            bufsize=1, stdout=subprocess.PIPE)
 
-	absolute_path = absolute_path.readlines()
+    absolute_path = absolute_command.stdout.readlines()
+    absolute_command.wait()
+    absolute_command.stdout.close()
 
-	if len(absolute_path) == 0:
-		sys.exit(_("Unable to determine absolute path of git repository."))
+    if not absolute_path:
+        error(_("%s: Unable to determine git repository absolute path." % os.getcwd()))
 
-	if path != None:
-		os.chdir(previous_directory)
+    if path is not None:
+        os.chdir(previous_directory)
 
-	return absolute_path[0].decode("utf-8", "replace").strip()
+    return absolute_path[0].decode("utf-8", "replace").strip()

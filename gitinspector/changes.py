@@ -1,6 +1,6 @@
 # coding: utf-8
 #
-# Copyright © 2012-2015 Ejwa Software. All rights reserved.
+# Copyright © 2012-2017 Ejwa Software. All rights reserved.
 #
 # This file is part of gitinspector.
 #
@@ -17,268 +17,426 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
 import bisect
+import copy
 import datetime
-import multiprocessing
 import os
-import subprocess
-import threading
-from .localization import N_
-from . import extensions, filtering, format, interval, terminal
+import re
+from .filtering import Filters, is_filtered, is_acceptable_file_name
+from . import format, git_utils, interval
+from enum import Enum, auto
 
-CHANGES_PER_THREAD = 200
-NUM_THREADS = multiprocessing.cpu_count()
 
-__thread_lock__ = threading.BoundedSemaphore(NUM_THREADS)
-__changes_lock__ = threading.Lock()
+class CommitType(Enum):
+    """
+    An enumeration class representing the different commit types
+    """
+    CODE = "code"
+    FILTERED = "filtered"
+    MERGE = "merge"
+
+
+class FileType(Enum):
+    """
+    An enumeration class representing the different commit types.
+    """
+    OTHER  = auto()
+    BUILD  = auto()
+    CPP    = auto()
+    CSHARP = auto()
+    GIT    = auto()
+    GO     = auto()
+    HTML   = auto()
+    JAVA   = auto()
+    JAVASCRIPT = auto()
+    OCAML  = auto()
+    PYTHON = auto()
+    RUBY   = auto()
+    RUST   = auto()
+    SCHEME = auto()
+    SHELL  = auto()
+    TEX    = auto()
+    TXT    = auto()
+    VISUALBASIC = auto()
+
+    __types__ = {
+        "bib"      : TEX,
+        "c"        : CPP,
+        "cc"       : CPP,
+        "cpp"      : CPP,
+        "cxx"      : CPP,
+        "cmake"    : BUILD,
+        "cs"       : CSHARP,
+        ".gitignore" : GIT,
+        "go"       : GO,
+        "h"        : CPP,
+        "hh"       : CPP,
+        "hpp"      : CPP,
+        "html"     : HTML,
+        "hxx"      : CPP,
+        "i"        : CPP,
+        "ii"       : CPP,
+        "inl"      : CPP,
+        "ipp"      : CPP,
+        "ixx"      : CPP,
+        "java"     : JAVA,
+        "js"       : JAVASCRIPT,
+        "Makefile" : BUILD,
+        "md"       : TXT,
+        "ml"       : OCAML,
+        "mli"      : OCAML,
+        "py"       : PYTHON,
+        "Rakefile" : BUILD,
+        "README"   : TXT,
+        "rb"       : RUBY,
+        "rkt"      : SCHEME,
+        "rs"       : RUST,
+        "sh"       : SHELL,
+        "tex"      : TEX,
+        "txt"      : TXT,
+        "vb"       : VISUALBASIC,
+        "xml"      : TXT,
+    }
+
+    @staticmethod
+    def create(file):
+        _, rfile = os.path.split(file)
+        _, ext = os.path.splitext(rfile)
+        if ext:
+            key = ext[1:]
+        else:
+            key = rfile
+        type = FileType.__types__.get(key)
+        if (type is None):
+            return FileType.OTHER
+        else:
+            return FileType(type)
+
+class AuthorColors(object):
+    """
+    A class providing different colors for the authors
+    """
+    colors =  [
+        "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+        "#8c564b", "#e377c2", "#5f5fdf", "#bcbd22", "#17becf",
+        "#77b41f", "#7f0eff", "#a02c2c", "#2728d6", "#67bd94",
+        "#564b8c", "#77c2e3", "#bd22bc", "#becf17",
+        "#b41f77", "#0eff7f", "#2c2ca0", "#28d627", "#bd9467",
+        "#4b8c56", "#c2e377", "#22bcbd", "#cf17be",
+    ]
+    index = -1
+
+    @staticmethod
+    def get_new_color():
+        AuthorColors.index += 1
+        return AuthorColors.colors[AuthorColors.index % len(AuthorColors.colors)]
+
 
 class FileDiff(object):
-	def __init__(self, string):
-		commit_line = string.split("|")
+    def __init__(self, name, line):
+        commit_line = line.split("|")
 
-		if commit_line.__len__() == 2:
-			self.name = commit_line[0].strip()
-			self.insertions = commit_line[1].count("+")
-			self.deletions = commit_line[1].count("-")
+        if commit_line.__len__() == 2:
+            self.name = name
+            if is_acceptable_file_name(self.name):
+                self.type = FileType.create(self.name)
+            else:
+                self.type = FileType.OTHER
+            self.insertions = commit_line[1].count("+")
+            self.deletions = commit_line[1].count("-")
 
-	@staticmethod
-	def is_filediff_line(string):
-		string = string.split("|")
-		return string.__len__() == 2 and string[1].find("Bin") == -1 and ('+' in string[1] or '-' in string[1])
+    def __repr__(self):
+        return "FileDiff(name: \033[93m{0}\033[0m, ins: \033[92m{1}\033[0m, del: \033[91m{2}\033[0m)".\
+            format(self.name, self.insertions, self.deletions)
 
-	@staticmethod
-	def get_extension(string):
-		string = string.split("|")[0].strip().strip("{}").strip("\"").strip("'")
-		return os.path.splitext(string)[1][1:]
+    @staticmethod
+    def is_filediff_line(string):
+        pattern = re.compile("^[^\|]+\|[ ]*(Bin[ ].*|[0-9]+[ ]*[+-]*)$")
+        return pattern.match(string) is not None
 
-	@staticmethod
-	def get_filename(string):
-		return string.split("|")[0].strip().strip("{}").strip("\"").strip("'")
+    @staticmethod
+    def get_extension(string):
+        string = string.split("|")[0].strip().strip("{}").strip("\"").strip("'")
+        return os.path.splitext(string)[1][1:]
 
-	@staticmethod
-	def is_valid_extension(string):
-		extension = FileDiff.get_extension(string)
+    @staticmethod
+    def get_filename(string):
+        file_name = string.split("|")[0].strip()
+        file_name = re.sub(r"^(.*)\{([^\}]*) => ([^\}]*)\}(.*)$", r"\1\3\4", file_name)
+        file_name = re.sub(r"^(.*) => (.*)$", r"\2", file_name)
+        file_name = file_name.strip("{}").strip("\"").strip("'")
+        return file_name
 
-		for i in extensions.get():
-			if (extension == "" and i == "*") or extension == i or i == '**':
-				return True
-		return False
 
 class Commit(object):
-	def __init__(self, string):
-		self.filediffs = []
-		commit_line = string.split("|")
+    def __init__(self, string, config):
+        self.filediffs = []
+        self.config = config
+        commit_line = string.split("|")
 
-		if commit_line.__len__() == 5:
-			self.timestamp = commit_line[0]
-			self.date = commit_line[1]
-			self.sha = commit_line[2]
-			self.author = commit_line[3].strip()
-			self.email = commit_line[4].strip()
+        if commit_line.__len__() == 5:
+            self.timestamp = commit_line[0]
+            self.date = commit_line[1]
+            self.sha = commit_line[2]
+            author = commit_line[3].strip()
+            email = commit_line[4].strip()
+            (self.author, self.email) = Commit.get_alias(author, email, self.config)
 
-	def __lt__(self, other):
-		return self.timestamp.__lt__(other.timestamp) # only used for sorting; we just consider the timestamp.
+    def __lt__(self, other): # only used for sorting; we just consider the timestamp.
+        return self.timestamp.__lt__(other.timestamp)
 
-	def add_filediff(self, filediff):
-		self.filediffs.append(filediff)
+    def __repr__(self):
+        if (self.type == CommitType.MERGE):
+            return " Merge(sha: {0}, author: {1} <{2}>)".\
+                format(self.sha[0:8], self.author, self.email)
+        else:
+            return "Commit(sha: {0}, author: {1} <{2}>, diffs: {3})".\
+                format(self.sha[0:8], self.author, self.email, self.filediffs)
 
-	def get_filediffs(self):
-		return self.filediffs
+    def add_filediff(self, filediff):
+        self.filediffs.append(filediff)
 
-	@staticmethod
-	def get_author_and_email(string):
-		commit_line = string.split("|")
+    def get_filediffs(self):
+        return self.filediffs
 
-		if commit_line.__len__() == 5:
-			return (commit_line[3].strip(), commit_line[4].strip())
+    @staticmethod
+    def handle_diff_chunk(config, changes, commits, chunk):
+        commit_line = chunk.pop(0).strip().\
+            decode("unicode_escape", "ignore").\
+            encode("latin-1", "replace").\
+            decode("utf-8", "replace")
+        (author, email) = Commit.get_author_and_email(config, changes, commit_line)
+        if (author, email) not in changes.committers:
+            changes.committers[(author, email)] = {
+                "color": AuthorColors.get_new_color() }
+        found_valid_extension = False
+        commit = Commit(commit_line, config)
+        has_been_filtered = (is_filtered(commit.author, Filters.AUTHOR) or \
+                             is_filtered(commit.email,  Filters.EMAIL) or \
+                             is_filtered(commit.sha,    Filters.REVISION) or \
+                             is_filtered(commit.sha,    Filters.MESSAGE))
 
-	@staticmethod
-	def is_commit_line(string):
-		return string.split("|").__len__() == 5
+        if has_been_filtered:
+            commit.type = CommitType.FILTERED
+        elif not chunk: # Chunk is [], it is a pure merge
+            commit.type = CommitType.MERGE
+        else:
+            commit.type = CommitType.FILTERED # if all files are filtered
+            for line in chunk:
+                line = line.strip().\
+                    decode("unicode_escape", "ignore").\
+                    encode("latin-1", "replace").\
+                    decode("utf-8", "replace")
+                if FileDiff.is_filediff_line(line):
+                    file_name = FileDiff.get_filename(line)
+                    changes.files.add(file_name)
+                    filediff = FileDiff(file_name, line)
+                    commit.add_filediff(filediff)
+                    commit.type = CommitType.CODE
+
+        bisect.insort(commits, commit)
+
+    @staticmethod
+    def get_alias(author, email, config):
+        if email in config.aliases.keys():
+            new_author_mail = config.aliases[email].split("<")
+            return (new_author_mail[0].strip(), new_author_mail[1][0:-1])
+        else:
+            if config.merge_authors:
+                config.aliases[email] = "{0} <{1}>".format(author, email)
+            return (author, email)
+
+    @staticmethod
+    def get_author_and_email(config, changes, string):
+        commit_line = string.split("|")
+        try:
+            author = commit_line[3].strip()
+            email = commit_line[4].strip()
+            (real_author, real_email) = Commit.get_alias(author, email, config)
+            return (real_author, real_email)
+        except IndexError:
+            return "Unknown Author"
+
 
 class AuthorInfo(object):
-	email = None
-	insertions = 0
-	deletions = 0
-	commits = 0
+    def __init__(self):
+        # self.email = None
+        self.insertions = 0
+        self.deletions = 0
+        self.commits = 0
+        self.types = { FileType.OTHER: set() }
 
-class ChangesThread(threading.Thread):
-	def __init__(self, hard, changes, first_hash, second_hash, offset):
-		__thread_lock__.acquire() # Lock controlling the number of threads running
-		threading.Thread.__init__(self)
+    def __repr__(self):
+        return "Info(ins: \033[92m{0}\033[0m, del: \033[91m{1}\033[0m, commits: {2})".\
+            format(self.insertions, self.deletions, self.commits)
 
-		self.hard = hard
-		self.changes = changes
-		self.first_hash = first_hash
-		self.second_hash = second_hash
-		self.offset = offset
 
-	@staticmethod
-	def create(hard, changes, first_hash, second_hash, offset):
-		thread = ChangesThread(hard, changes, first_hash, second_hash, offset)
-		thread.daemon = True
-		thread.start()
+PROGRESS_TEXT = _("Fetching and calculating primary statistics (1 of 2): {0:.0f}%")
 
-	def run(self):
-		git_log_r = subprocess.Popen(filter(None, ["git", "log", "--reverse", "--pretty=%ct|%cd|%H|%aN|%aE",
-		                             "--stat=100000,8192", "--no-merges", "-w", interval.get_since(),
-		                             interval.get_until(), "--date=short"] + (["-C", "-C", "-M"] if self.hard else []) +
-		                             [self.first_hash + self.second_hash]), bufsize=1, stdout=subprocess.PIPE).stdout
-		lines = git_log_r.readlines()
-		git_log_r.close()
-
-		commit = None
-		found_valid_extension = False
-		is_filtered = False
-		commits = []
-
-		__changes_lock__.acquire() # Global lock used to protect calls from here...
-
-		for i in lines:
-			j = i.strip().decode("unicode_escape", "ignore")
-			j = j.encode("latin-1", "replace")
-			j = j.decode("utf-8", "replace")
-
-			if Commit.is_commit_line(j):
-				(author, email) = Commit.get_author_and_email(j)
-				self.changes.emails_by_author[author] = email
-				self.changes.authors_by_email[email] = author
-
-			if Commit.is_commit_line(j) or i is lines[-1]:
-				if found_valid_extension:
-					bisect.insort(commits, commit)
-
-				found_valid_extension = False
-				is_filtered = False
-				commit = Commit(j)
-
-				if Commit.is_commit_line(j) and \
-				   (filtering.set_filtered(commit.author, "author") or \
-				   filtering.set_filtered(commit.email, "email") or \
-				   filtering.set_filtered(commit.sha, "revision") or \
-				   filtering.set_filtered(commit.sha, "message")):
-					is_filtered = True
-
-			if FileDiff.is_filediff_line(j) and not \
-			   filtering.set_filtered(FileDiff.get_filename(j)) and not is_filtered:
-				extensions.add_located(FileDiff.get_extension(j))
-
-				if FileDiff.is_valid_extension(j):
-					found_valid_extension = True
-					filediff = FileDiff(j)
-					commit.add_filediff(filediff)
-
-		self.changes.commits[self.offset // CHANGES_PER_THREAD] = commits
-		__changes_lock__.release() # ...to here.
-		__thread_lock__.release() # Lock controlling the number of threads running
-
-PROGRESS_TEXT = N_("Fetching and calculating primary statistics (1 of 2): {0:.0f}%")
 
 class Changes(object):
-	authors = {}
-	authors_dateinfo = {}
-	authors_by_email = {}
-	emails_by_author = {}
 
-	def __init__(self, repo, hard):
-		self.commits = []
-		git_log_hashes_r = subprocess.Popen(filter(None, ["git", "rev-list", "--reverse", "--no-merges",
-		                                    interval.get_since(), interval.get_until(), "HEAD"]), bufsize=1,
-		                                    stdout=subprocess.PIPE).stdout
-		lines = git_log_hashes_r.readlines()
-		git_log_hashes_r.close()
+    @classmethod
+    def empty(cls):
+        changes = Changes.__new__(Changes)
+        changes.__commits__ = []
+        changes.authors = {}
+        changes.authors_dateinfo = {}
+        changes.committers = {}
+        changes.files = set()
+        return changes
 
-		if len(lines) > 0:
-			progress_text = _(PROGRESS_TEXT)
-			if repo != None:
-				progress_text = "[%s] " % repo.name + progress_text
+    def __init__(self, repo, config):
+        self.__commits__ = []
+        self.authors = {}
+        self.authors_dateinfo = {}
+        self.committers = {}
+        self.files = set()
+        self.config = config
 
-			self.commits = [None] * (len(lines) // CHANGES_PER_THREAD + 1)
-			first_hash = ""
+        interval.set_ref("HEAD")
 
-			for i, entry in enumerate(lines):
-				if i % CHANGES_PER_THREAD == CHANGES_PER_THREAD - 1:
-					entry = entry.decode("utf-8", "replace").strip()
-					second_hash = entry
-					ChangesThread.create(hard, self, first_hash, second_hash, i)
-					first_hash = entry + ".."
+        progress_text = _(PROGRESS_TEXT)
+        if repo is not None:
+            progress_text = "[%s] " % repo.name + progress_text
 
-					if format.is_interactive_format():
-						terminal.output_progress(progress_text, i, len(lines))
-			else:
-				entry = entry.decode("utf-8", "replace").strip()
-				second_hash = entry
-				ChangesThread.create(hard, self, first_hash, second_hash, i)
+        chunks =  git_utils.commit_chunks(self.config.branch, \
+                                          interval.get_since(), interval.get_until(), \
+                                          self.config)
 
-		# Make sure all threads have completed.
-		for i in range(0, NUM_THREADS):
-			__thread_lock__.acquire()
+        commits = []
+        for chunk in chunks:
+            Commit.handle_diff_chunk(self.config, self, commits, chunk)
+        self.__commits__ = commits
 
-		# We also have to release them for future use.
-		for i in range(0, NUM_THREADS):
-			__thread_lock__.release()
+        if self.__commits__:
+            if interval.has_interval(): # or self.config.branch != "master":
+                interval.set_ref(self.__commits__[-1].sha)
 
-		self.commits = [item for sublist in self.commits for item in sublist]
+            self.first_commit_date = datetime.date(int(self.__commits__[0].date[0:4]),
+                                                   int(self.__commits__[0].date[5:7]),
+                                                   int(self.__commits__[0].date[8:10]))
+            self.last_commit_date = datetime.date(int(self.__commits__[-1].date[0:4]),
+                                                  int(self.__commits__[-1].date[5:7]),
+                                                  int(self.__commits__[-1].date[8:10]))
 
-		if len(self.commits) > 0:
-			if interval.has_interval() and len(self.commits) > 0:
-				interval.set_ref(self.commits[-1].sha)
+    def __repr__(self):
+        comm_str = "\n".join([ str(s) for s in self.__commits__ ])
+        return "Changes(commits: {0})\n{1}".format(len(self.__commits__),
+                                                   comm_str)
 
-			self.first_commit_date = datetime.date(int(self.commits[0].date[0:4]), int(self.commits[0].date[5:7]),
-			                                       int(self.commits[0].date[8:10]))
-			self.last_commit_date = datetime.date(int(self.commits[-1].date[0:4]), int(self.commits[-1].date[5:7]),
-			                                      int(self.commits[-1].date[8:10]))
+    def __iadd__(self, other):
+        try:
+            self.authors.update(other.authors)
+            self.authors_dateinfo.update(other.authors_dateinfo)
+            self.committers.update(other.committers)
 
-	def __add__(self, other):
-		if other == None:
-			return self
+            for commit in other.__commits__:
+                bisect.insort(self.__commits__, commit)
+            if not self.__commits__ and not other.__commits__:
+                self.__commits__ = []
 
-		self.authors.update(other.authors)
-		self.authors_dateinfo.update(other.authors_dateinfo)
-		self.authors_by_email.update(other.authors_by_email)
-		self.emails_by_author.update(other.emails_by_author)
+            self.changes.files.update(other.files)
 
-		for commit in other.commits:
-			bisect.insort(self.commits, commit)
+            return self
+        except AttributeError:
+            return other
 
-		return self
+    def __update_dict_commit__(self, dict, key, commit):
+        """
+        Given `dict` whose values are AuthorInfos, add to dict[key] the
+        properties of `commit` (insertions, deletions).
+        """
+        if key not in dict:
+            dict[key] = AuthorInfo()
 
-	def get_commits(self):
-		return self.commits
+        # Even commits with no diffs (for example merges) are counted
+        dict[key].commits += 1
 
-	@staticmethod
-	def modify_authorinfo(authors, key, commit):
-		if authors.get(key, None) == None:
-			authors[key] = AuthorInfo()
+        for j in commit.get_filediffs():
+            if (j.type == FileType.OTHER):
+                dict[key].types[j.type].add(j.name)
+            else:
+                dict[key].insertions += j.insertions
+                dict[key].deletions += j.deletions
+                if (j.type in dict[key].types):
+                    dict[key].types[j.type] += j.insertions + j.deletions
+                else:
+                    dict[key].types[j.type] = j.insertions + j.deletions
 
-		if commit.get_filediffs():
-			authors[key].commits += 1
+    def all_commits(self):
+        return self.__commits__
 
-		for j in commit.get_filediffs():
-			authors[key].insertions += j.insertions
-			authors[key].deletions += j.deletions
+    def relevant_commits(self):
+        return [c for c in self.__commits__
+                if c.type == CommitType.CODE or c.type == CommitType.MERGE]
 
-	def get_authorinfo_list(self):
-		if not self.authors:
-			for i in self.commits:
-				Changes.modify_authorinfo(self.authors, i.author, i)
+    def code_commits(self):
+        return [c for c in self.__commits__ if c.type == CommitType.CODE]
 
-		return self.authors
+    def merge_commits(self):
+        return [c for c in self.__commits__ if c.type == CommitType.MERGE]
 
-	def get_authordateinfo_list(self):
-		if not self.authors_dateinfo:
-			for i in self.commits:
-				Changes.modify_authorinfo(self.authors_dateinfo, (i.date, i.author), i)
+    def commits_for_author(self, author):
+        return [c for c in self.__commits__ if c.author == author]
 
-		return self.authors_dateinfo
+    def first_commit(self):
+        return self.__commits__[0]
 
-	def get_latest_author_by_email(self, name):
-		if not hasattr(name, "decode"):
-			name = str.encode(name)
+    def last_commit(self):
+        return self.__commits__[-1]
 
-		name = name.decode("unicode_escape", "ignore")
-		return self.authors_by_email[name]
+    def diffs_for_file(self, file):
+        return [d for c in self.__commits__ for d in c.filediffs if d.name == file]
 
-	def get_latest_email_by_author(self, name):
-		return self.emails_by_author[name]
+    def get_authorinfo_list(self):
+        """
+        Returns a hash associating authors to AuthorInfo objects,
+        technically a number of insertions, deletions and commits.
+        """
+        if not self.authors:
+            for i in self.__commits__:
+                self.__update_dict_commit__(self.authors, (i.author, i.email), i)
+
+        return copy.deepcopy(self.authors)
+
+    def get_total_types(self):
+        author_list = self.get_authorinfo_list()
+        total_types = set([FileType(k).name for c in author_list
+                           for k in author_list.get(c).types
+                           if k != FileType.OTHER])
+        return total_types
+
+    def get_authordateinfo_list(self):
+        """
+        Returns a hash associating (authors * dates) to AuthorInfo objects.
+        Basically splits the return of get_authorinfo_list() on the dates.
+        """
+        if not self.authors_dateinfo:
+            for i in self.__commits__:
+                self.__update_dict_commit__(self.authors_dateinfo, (i.date, (i.author, i.email)), i)
+
+        return copy.deepcopy(self.authors_dateinfo)
+
+    def authors_by_responsibilities(self):
+        """
+        Returns a list of authors sorted according to their amount of
+        work, namely the sum of their insertions and deletions.
+        """
+        wrk = [((c.author, c.email), sum([f.insertions + f.deletions for f in c.filediffs]))
+               for c in self.__commits__]
+        aut = set([k[0] for k in wrk])
+        res = sorted(aut,
+                     key=lambda a: -sum([w for (b,w) in wrk if b == a]))
+        return res
+
+    def filtered_files(self, author):
+        """
+        Returns a list of files that have been filtered during the run,
+        given an (author,email) key.
+        """
+        authorinfo_dict = self.get_authorinfo_list()
+        if (author in authorinfo_dict):
+            return authorinfo_dict[author].types[FileType.OTHER]
+        else:
+            raise "Incorrect author key in 'Changes.filtered_files'"

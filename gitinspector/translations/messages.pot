@@ -24,7 +24,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: gitinspector 0.5.0dev\n"
+"Project-Id-Version: gitinspector 0.5.1.thor\n"
 "Report-Msgid-Bugs-To: gitinspector@ejwa.se\n"
 "POT-Creation-Date: 2015-10-02 03:35+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -54,7 +54,11 @@ msgid "Below are the number of rows from each author that have survived and are 
 msgstr ""
 
 #, python-brace-format
-msgid "Checking how many rows belong to each author (Progress): {0:.0f}%"
+msgid "Fetching and calculating primary statistics (1 of 2): {0:.0f}%"
+msgstr ""
+
+#, python-brace-format
+msgid "Checking how many rows belong to each author (2 of 2): {0:.0f}%"
 msgstr ""
 
 msgid "Commits"
@@ -170,63 +174,6 @@ msgstr ""
 msgid "Unable to determine absolute path of git repository."
 msgstr ""
 
-#, python-brace-format
-msgid ""
-"Usage: {0} [OPTION]... [REPOSITORY]\n"
-"List information about the repository in REPOSITORY. If no repository is\n"
-"specified, the current directory is used. If multiple repositories are\n"
-"given, information will be fetched from the last repository specified.\n"
-"\n"
-"Mandatory arguments to long options are mandatory for short options too.\n"
-"Boolean arguments can only be given to long options.\n"
-"  -f, --file-types=EXTENSIONS    a comma separated list of file extensions to\n"
-"                                   include when computing statistics. The\n"
-"                                   default extensions used are:\n"
-"                                   {1}\n"
-"                                   Specifying * includes files with no\n"
-"                                   extension, while ** includes all files\n"
-"  -F, --format=FORMAT            define in which format output should be\n"
-"                                   generated; the default format is 'text' and\n"
-"                                   the available formats are:\n"
-"                                   {2}\n"
-"      --grading[=BOOL]           show statistics and information in a way that\n"
-"                                   is formatted for grading of student\n"
-"                                   projects; this is the same as supplying the\n"
-"                                   options -HlmrTw\n"
-"  -H, --hard[=BOOL]              track rows and look for duplicates harder;\n"
-"                                   this can be quite slow with big repositories\n"
-"  -l, --list-file-types[=BOOL]   list all the file extensions available in the\n"
-"                                   current branch of the repository\n"
-"  -L, --localize-output[=BOOL]   localize the generated output to the selected\n"
-"                                   system language if a translation is\n"
-"                                   available\n"
-"  -m  --metrics[=BOOL]           include checks for certain metrics during the\n"
-"                                   analysis of commits\n"
-"  -r  --responsibilities[=BOOL]  show which files the different authors seem\n"
-"                                   most responsible for\n"
-"      --since=DATE               only show statistics for commits more recent\n"
-"                                   than a specific date\n"
-"  -T, --timeline[=BOOL]          show commit timeline, including author names\n"
-"      --until=DATE               only show statistics for commits older than a\n"
-"                                   specific date\n"
-"  -w, --weeks[=BOOL]             show all statistical information in weeks\n"
-"                                   instead of in months\n"
-"  -x, --exclude=PATTERN          an exclusion pattern describing the file\n"
-"                                   paths, revisions, revisions with certain\n"
-"                                   commit messages, author names or author\n"
-"                                   emails that should be excluded from the\n"
-"                                   statistics; can be specified multiple times\n"
-"  -h, --help                     display this help and exit\n"
-"      --version                  output version information and exit\n"
-"\n"
-"gitinspector will filter statistics to only include commits that modify,\n"
-"add or remove one of the specified extensions, see -f or --file-types for\n"
-"more information.\n"
-"\n"
-"gitinspector requires that the git executable is available in your PATH.\n"
-"Report gitinspector bugs to gitinspector@ejwa.se."
-msgstr ""
-
 msgid "WARNING: The terminal encoding is not correctly configured. gitinspector might malfunction. The encoding can be configured with the environment variable 'PYTHONIOENCODING'."
 msgstr ""
 
@@ -256,4 +203,89 @@ msgstr ""
 
 #, python-brace-format
 msgid "{0} ({1} in cyclomatic complexity)"
+msgstr ""
+
+msgid
+"List information about the repository in REPOSITORY. If no repository is \n"
+"specified, the current directory is used. If multiple repositories are \n"
+"given, information will be merged into a unified statistical report."
+msgstr ""
+
+msgid
+"gitinspector will filter statistics to only include commits that modify, \n"
+"add or remove one of the specified extensions, see -f or --file-types for \n"
+"more information. \n\n"
+"gitinspector requires that the git executable is available in your PATH. \n"
+"Report gitinspector bugs to gitinspector@ejwa.se."
+msgstr ""
+
+msgid "the address of a repository to be analyzed"
+msgstr ""
+
+msgid
+"a comma separated list of file extensions to include when "
+"computing statistics. The default extensions used are: "
+msgstr ""
+
+msgid "Specifying * includes files with no extension, while ** includes all files"
+msgstr ""
+
+msgid
+"define in which format output should be generated; the "
+"default format is 'text' and the available formats are: "
+msgstr ""
+
+msgid
+"show statistics and information in a way that is formatted "
+"for grading of student projects; this is the same as supplying "
+"the options -HlmrTw"
+msgstr ""
+
+msgid
+"track rows and look for duplicates harder;"
+"this can be quite slow with big repositories"
+msgstr ""
+
+msgid
+"list all the file extensions available in the current branch of the repository"
+msgstr ""
+
+msgid
+"localize the generated output to the selected "
+"system language if a translation is available"
+msgstr ""
+
+msgid "include checks for certain metrics during the analysis of commits"
+msgstr ""
+
+msgid "show which files the different authors seem most responsible for"
+msgstr ""
+
+msgid
+"only show statistics for commits more recent than a specific date, "
+"specified as '%%Y-%%m-%%d'"
+msgstr ""
+
+msgid "Silent output, mainly used for testing purposes"
+msgstr ""
+
+msgid "show commit timeline, including author names"
+msgstr ""
+
+msgid
+"only show statistics for commits older than a specific date, "
+"specified as '%%Y-%%m-%%d'"
+msgstr ""
+
+msgid "display the current version of the program"
+msgstr ""
+
+msgid "show all statistical information in weeks instead of in months"
+msgstr ""
+
+msgid
+"an exclusion pattern of the form KEY=PAT, describing the file paths, "
+"revisions, revisions with certain commit messages, author names or "
+"author emails that should be excluded from the statistics; KEY must "
+"be in [ 'file', 'author', 'email', 'revision', 'message' ]"
 msgstr ""

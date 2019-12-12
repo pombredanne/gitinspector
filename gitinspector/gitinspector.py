@@ -1,7 +1,7 @@
 # coding: utf-8
 #
-# Copyright © 2012-2015 Ejwa Software. All rights reserved.
-#
+# Copyright © 2012-2017 Ejwa Software. All rights reserved.
+#             2017-2019 David Renault.
 # This file is part of gitinspector.
 #
 # gitinspector is free software: you can redistribute it and/or modify
@@ -17,202 +17,316 @@
 # You should have received a copy of the GNU General Public License
 # along with gitinspector. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
-from __future__ import unicode_literals
+import argparse
+import ast
 import atexit
-import getopt
+import datetime
+import io
 import os
 import sys
+
 from .blame import Blame
 from .changes import Changes
 from .config import GitConfig
+from .git_utils import local_branches
+from .messages import error, warning, debug
 from .metrics import MetricsLogic
-from . import (basedir, clone, extensions, filtering, format, help, interval,
-               localization, optval, terminal, version)
+from .repository import Repository
+from . import (basedir, filtering, format, interval,
+               localization, terminal, version)
 from .output import outputable
-from .output.blameoutput import BlameOutput
-from .output.changesoutput import ChangesOutput
-from .output.extensionsoutput import ExtensionsOutput
-from .output.filteringoutput import FilteringOutput
-from .output.metricsoutput import MetricsOutput
-from .output.responsibilitiesoutput import ResponsibilitiesOutput
-from .output.timelineoutput import TimelineOutput
+
+from .format import __available_formats__
+from .filtering import Filters
 
 localization.init()
 
+# The list of extensions that are analyzed when no filter is
+# specified for the files.
+DEFAULT_EXTENSIONS = ["*.java", "*.cs", "*.rb",
+                      "*.c",    "*.cc", "*.cpp", ".cxx",
+                      "*.h",    "*.hh", "*.hpp", ".hxx",
+                      "*.i",    "*.ii", "*.ipp", ".ixx",
+                      "*.rs",   "*.go",  "*.ml", "*.mli",
+                      "*.js",   "*.pl",  "*.pm", "*.py", "*.sh", "*.vb",
+                      "*.tex",  "*.bib",
+                      "*.md",   "*.txt", "*.xml",
+                      "*.s",    "*.asm", "*.rkt",
+                      "*.l",    "*.y",
+                      "*.glsl", "*.sql",
+                      "*akefile", "README", "INSTALL",
+                     ]
+
+
+class StdoutWriter(io.StringIO):
+    def __init__(self):
+        io.StringIO.__init__(self)
+    def writeln(self, string):
+        self.write(string + "\n")
+    def close(self):
+        print(self.getvalue())
+        io.StringIO.close(self)
+
+
+class FileWriter(object):
+    def __init__(self, file):
+        self.file = file
+    def write(self, string):
+        self.file.write(string)
+    def writeln(self, string):
+        self.file.write(string + "\n")
+    def close(self):
+        self.file.close()
+
+
 class Runner(object):
-	def __init__(self):
-		self.hard = False
-		self.include_metrics = False
-		self.list_file_types = False
-		self.localize_output = False
-		self.responsibilities = False
-		self.grading = False
-		self.timeline = False
-		self.useweeks = False
+    def __init__(self, config, writer):
+        self.config = config  # Namespace object containing the config
+        self.out = writer     # Buffer for containing the output
 
-	def process(self, repos):
-		localization.check_compatibility(version.__version__)
+        # Initialize the filters
+        filtering.clear()
+        if config.exclude:
+            for pat in config.exclude:
+                filtering.add_filters(pat)
+        for f in config.file_types.split(','):
+            filtering.__add_one_filter__(f)
 
-		if not self.localize_output:
-			localization.disable()
+        # Initialize a list of Repository objects
+        self.repos = __get_validated_git_repos__(config)
+        # We need the repos above to be set before we read the git config.
+        GitConfig(self, self.repos[-1].location).read()
+        # Initialize extensions and formats
+        format.select(config.format)
 
-		terminal.skip_escapes(not sys.stdout.isatty())
-		terminal.set_stdout_encoding()
-		previous_directory = os.getcwd()
-		summed_blames = None
-		summed_changes = None
-		summed_metrics = None
+        # Initialize bounds on commits dates
+        interval.clear()
+        if config.since:
+            interval.set_since(config.since.isoformat())
+        if config.until:
+            interval.set_until(config.until.isoformat())
 
-		for repo in repos:
-			os.chdir(repo.location)
-			repo = repo if len(repos) > 1 else None
-			changes = Changes(repo, self.hard)
-			summed_blames = Blame(repo, self.hard, self.useweeks, changes) + summed_blames
-			summed_changes = changes + summed_changes
+        # The following objects are additive : they begin empty, and
+        # then one instance is added to the Runner for each repository
+        self.changes = Changes.empty()      # Changes object
+        self.blames = Blame.empty()         # Blame object
+        self.metrics = MetricsLogic.empty() # Metrics object
 
-			if self.include_metrics:
-				summed_metrics = MetricsLogic() + summed_metrics
+    def __load__(self):
+        """
+        Load a list of repositories `repos`, compute the changes, the
+        blames and possibly the metrics.
+        """
+        localization.check_compatibility(version.__version__)
 
-			if sys.stdout.isatty() and format.is_interactive_format():
-				terminal.clear_row()
-		else:
-			os.chdir(previous_directory)
+        # if not self.config.localize_output:
+        #     localization.disable()
 
-		format.output_header(repos)
-		outputable.output(ChangesOutput(changes))
+        terminal.skip_escapes(not sys.stdout.isatty())
+        terminal.set_stdout_encoding()
+        previous_directory = os.getcwd()
 
-		if changes.get_commits():
-			outputable.output(BlameOutput(summed_changes, summed_blames))
+        for repo in self.repos:
+            os.chdir(repo.location)
 
-			if self.timeline:
-				outputable.output(TimelineOutput(summed_changes, self.useweeks))
+            # Initialize the branches
+            if self.config.branch == "--all":
+                self.config.branches = local_branches()
 
-			if self.include_metrics:
-				outputable.output(MetricsOutput(summed_metrics))
+            repo = repo if len(self.repos) > 1 else None
+            repo_changes = Changes(repo, self.config)
+            self.blames += Blame(repo, repo_changes, self.config)
+            self.changes += repo_changes
 
-			if self.responsibilities:
-				outputable.output(ResponsibilitiesOutput(summed_changes, summed_blames))
+            if self.config.metrics:
+                self.metrics += MetricsLogic()
 
-			outputable.output(FilteringOutput())
+            if self.config.progress and sys.stdout.isatty() and format.is_interactive_format():
+                terminal.clear_row()
 
-			if self.list_file_types:
-				outputable.output(ExtensionsOutput())
+        os.chdir(previous_directory)
 
-		format.output_footer()
-		os.chdir(previous_directory)
+    def __output__(self):
+        """
+        Output the results of the run.
+        """
+        if self.config.silent:
+            return
+
+        format.output_header(self)
+        for out in outputable.Outputable.list():
+            out(self).output()
+        format.output_footer(self)
+
+        self.out.close()
+
+    def process(self):
+        """
+        Launch a full run, loading the repositories and possibly outputting the results.
+        """
+        self.__load__()
+        self.__output__()
+
 
 def __check_python_version__():
-	if sys.version_info < (2, 6):
-		python_version = str(sys.version_info[0]) + "." + str(sys.version_info[1])
-		sys.exit(_("gitinspector requires at least Python 2.6 to run (version {0} was found).").format(python_version))
+    """
+    Check for a sufficiently recent python version.
+    """
+    if sys.version_info < (3, 6):
+        python_version = str(sys.version_info[0]) + "." + str(sys.version_info[1])
+        error(_("gitinspector requires Python >=3.6 (version {0} was found).").format(python_version))
 
-def __get_validated_git_repos__(repos_relative):
-	if not repos_relative:
-		repos_relative = "."
 
-	repos = []
+def __get_validated_git_repos__(config):
+    """
+    Returns a list of Repository objects that have been newly cloned
+    """
+    repos_relative = config.repositories
+    if not repos_relative:
+        repos_relative = ["."]
 
-	#Try to clone the repos or return the same directory and bail out.
-	for repo in repos_relative:
-		cloned_repo = clone.create(repo)
-		basedir_path = basedir.get_basedir_git(cloned_repo.location)
+    repos = []
 
-		if cloned_repo.name == None:
-			cloned_repo.name = os.path.basename(basedir_path)
+    # Try to clone the repos or return the same directory and bail out.
+    for repo in repos_relative:
+        cloned_repo = Repository.create(repo, config)
 
-		repos.append(cloned_repo)
+        if cloned_repo.name is None:
+            cloned_repo.location = basedir.get_basedir_git(cloned_repo.location)
+            cloned_repo.name = os.path.basename(cloned_repo.location)
 
-	return repos
+        repos.append(cloned_repo)
+
+    return repos
+
+
+def __parse_arguments__(args=None):
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     allow_abbrev=False, description=
+        _("List information about the repository in REPOSITORY. If no repository is \n"
+          "specified, the current directory is used. If multiple repositories are \n"
+          "given, information will be merged into a unified statistical report."), epilog=
+        _("gitinspector will filter statistics to only include commits that modify, \n"
+          "add or remove one of the specified extensions, see -f or --file-types for \n"
+          "more information. \n\n"
+          "gitinspector requires that the git executable is available in your PATH. \n"
+          "Report gitinspector bugs to gitinspector@ejwa.se."))
+    parser.add_argument('repositories', metavar='REPOSITORY', type=str, nargs='*',
+                        help=_('the address of a repository to be analyzed'))
+    parser.add_argument('-a', '--aliases', metavar='ALIASES', help=
+                        _("a dictionary string indicating aliases for the authors"),
+                        type=lambda s: ast.literal_eval(s), default={})
+    parser.add_argument('-A', '--merge-authors', action='store_true', help=
+                        _("merge authors with the same email"))
+    parser.add_argument('-b', '--branch', metavar='BRANCH', help=
+                        _("the name of the branch for git to checkout, the default "
+                          "being 'master'"), default="--all")
+    parser.add_argument('-d', '--debug-mode', action='store_true', help=
+                        _("displays some debug messages"))
+    parser.add_argument('-f', '--file-types', metavar='TYPES', help=
+                        _("a comma separated list of file extensions to include when "
+                          "computing statistics. The default extensions used are: ") +
+                        str(DEFAULT_EXTENSIONS) + " " +
+                        _("Specifying * includes files with no extension, while ** includes all files"),
+                        default=",".join(DEFAULT_EXTENSIONS))
+    parser.add_argument('-F', '--format', metavar='FORMAT', help=
+                        _("define in which format output should be generated; the "
+                          "default format is 'text' and the available formats are: ") +
+                        str(__available_formats__),
+                        default="text", choices=__available_formats__)
+    parser.add_argument('-g', '--grading', action='store_true', help=
+                        _("show statistics and information in a way that is formatted "
+                          "for grading of student projects; this is the same as supplying "
+                          "the options -HlmrTw"))
+    parser.add_argument('-H', '--hard', action='store_true', help=
+                        _("track rows and look for duplicates harder;"
+                          "this can be quite slow with big repositories"))
+    parser.add_argument('-l', '--list-file-types', action='store_true', help=
+                        _("list all the file extensions available in the current branch "
+                          "of the repository"))
+    parser.add_argument('-L', '--localize-output', action='store_true', help=
+                        _("localize the generated output to the selected "
+                          "system language if a translation is available"))
+    parser.add_argument('-m', '--metrics', action='store_true', help=
+                        _("include checks for certain metrics during the analysis of commits"))
+    parser.add_argument('-o', '--output', metavar='FILE', help=
+                        _("output the statistics in the given file"))
+    parser.add_argument('-r', '--responsibilities', action='store_true', help=
+                        _("show which files the different authors seem most responsible for"))
+    parser.add_argument('-s', '--since', metavar='DATE',
+                        type=lambda s: datetime.datetime.strptime(s, '%Y-%m-%d'), help=
+                        _("only show statistics for commits more recent than a specific date, "
+                          "specified as '%%Y-%%m-%%d'"),
+                        default=None)
+    parser.add_argument('-S', '--silent', action='store_true', help=
+                        _("Silent output, mainly used for testing purposes"))
+    parser.add_argument('-T', '--timeline', action='store_true', help=
+                        _("show commit timeline, including author names"))
+    parser.add_argument('-u', '--until', metavar='DATE',
+                        type=lambda s: datetime.datetime.strptime(s, '%Y-%m-%d'), help=
+                        _("only show statistics for commits older than a specific date, "
+                          "specified as '%%Y-%%m-%%d'"),
+                        default=None)
+    parser.add_argument('-v', '--version', action='store_true', help=
+                        _("display the current version of the program"))
+    parser.add_argument('-w', '--weeks', action='store_true', help=
+                        _("show all statistical information in weeks instead of in months"))
+    parser.add_argument('-W', '--ignore-space', action='store_true', help=
+                        _("add 'ignore-all-space' option to git commands"))
+    parser.add_argument('-x', '--exclude', metavar='PATTERN', action='append', help=
+                        _("an exclusion pattern of the form KEY:PAT, describing the file paths, "
+                          "revisions, revisions with certain commit messages, author names or "
+                          "author emails that should be excluded from the statistics; KEY must "
+                          "be in: ") + str([ f.name.lower() for f in Filters ]))
+    parser.add_argument('-z', '--legacy', action='store_true', help=
+                        _("display the legacy outputs for additional information (may be buggy)"))
+
+    options, unknown = parser.parse_known_args() if args is None else parser.parse_known_args(args)
+    if (unknown):
+        error("%s: Unknown option" % unknown[0])
+
+    options.progress = True  # Display progress messages
+
+    if options.grading:
+        options.metrics = True
+        options.list_file_types = True
+        options.responsibilities = True
+        options.hard = True
+        options.timeline = True
+        options.weeks = True
+
+    return options
+
 
 def main():
-	terminal.check_terminal_encoding()
-	terminal.set_stdin_encoding()
-	argv = terminal.convert_command_line_to_utf8()
-	run = Runner()
-	repos = []
+    __check_python_version__()
+    terminal.check_terminal_encoding()
+    terminal.set_stdin_encoding()
 
-	try:
-		opts, args = optval.gnu_getopt(argv[1:], "f:F:hHlLmrTwx:", ["exclude=", "file-types=", "format=",
-		                                         "hard:true", "help", "list-file-types:true", "localize-output:true",
-		                                         "metrics:true", "responsibilities:true", "since=", "grading:true",
-		                                         "timeline:true", "until=", "version", "weeks:true"])
-		repos = __get_validated_git_repos__(set(args))
+    try:
+        options = __parse_arguments__()
 
-		#We need the repos above to be set before we read the git config.
-		GitConfig(run, repos[-1].location).read()
-		clear_x_on_next_pass = True
+        if options.version:
+            version.output()
+            sys.exit(0)
 
-		for o, a in opts:
-			if o in("-h", "--help"):
-				help.output()
-				sys.exit(0)
-			elif o in("-f", "--file-types"):
-				extensions.define(a)
-			elif o in("-F", "--format"):
-				if not format.select(a):
-					raise format.InvalidFormatError(_("specified output format not supported."))
-			elif o == "-H":
-				run.hard = True
-			elif o == "--hard":
-				run.hard = optval.get_boolean_argument(a)
-			elif o == "-l":
-				run.list_file_types = True
-			elif o == "--list-file-types":
-				run.list_file_types = optval.get_boolean_argument(a)
-			elif o == "-L":
-				run.localize_output = True
-			elif o == "--localize-output":
-				run.localize_output = optval.get_boolean_argument(a)
-			elif o == "-m":
-				run.include_metrics = True
-			elif o == "--metrics":
-				run.include_metrics = optval.get_boolean_argument(a)
-			elif o == "-r":
-				run.responsibilities = True
-			elif o == "--responsibilities":
-				run.responsibilities = optval.get_boolean_argument(a)
-			elif o == "--since":
-				interval.set_since(a)
-			elif o == "--version":
-				version.output()
-				sys.exit(0)
-			elif o == "--grading":
-				grading = optval.get_boolean_argument(a)
-				run.include_metrics = grading
-				run.list_file_types = grading
-				run.responsibilities = grading
-				run.grading = grading
-				run.hard = grading
-				run.timeline = grading
-				run.useweeks = grading
-			elif o == "-T":
-				run.timeline = True
-			elif o == "--timeline":
-				run.timeline = optval.get_boolean_argument(a)
-			elif o == "--until":
-				interval.set_until(a)
-			elif o == "-w":
-				run.useweeks = True
-			elif o == "--weeks":
-				run.useweeks = optval.get_boolean_argument(a)
-			elif o in("-x", "--exclude"):
-				if clear_x_on_next_pass:
-					clear_x_on_next_pass = False
-					filtering.clear()
-				filtering.add(a)
+        if options.output is None:
+            writer = StdoutWriter()
+        else:
+            writer = FileWriter(open(options.output,"w+"))
 
-		__check_python_version__()
-		run.process(repos)
+        run = Runner(options, writer)
+        run.process()
 
-	except (filtering.InvalidRegExpError, format.InvalidFormatError, optval.InvalidOptionArgument, getopt.error) as exception:
-		print(sys.argv[0], "\b:", exception.msg, file=sys.stderr)
-		print(_("Try `{0} --help' for more information.").format(sys.argv[0]), file=sys.stderr)
-		sys.exit(2)
+    except (filtering.InvalidRegExpError, format.InvalidFormatError) as exception:
+        error(exception.msg)
+
+
 
 @atexit.register
 def cleanup():
-	clone.delete()
+    Repository.delete_all()
+
 
 if __name__ == "__main__":
-	main()
+    main()
